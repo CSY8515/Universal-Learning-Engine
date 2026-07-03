@@ -1,14 +1,15 @@
-# Universal Learning Engine v0.1
+# Universal Learning Engine v0.2
 
-Universal Learning Engine의 최초 공개 MVP입니다.
+Universal Learning Engine v0.2는 학습할 주제를 입력하면 동일한 학습 엔진이 해당 주제에 맞게 학습 흐름을 생성하는 Streamlit MVP입니다.
 
-목표는 하나입니다.
+## 현재 구현된 기능
 
-> 학습할 주제를 입력하면 동일한 학습 엔진이 해당 주제에 맞게 동작한다.
-
-## 포함 기능
-
-- 주제 입력
+- 학습 주제 입력
+- 입력 검증
+  - 빈 입력 차단
+  - 공백 입력 차단
+  - 80자 초과 입력 차단
+- OpenAI API를 통한 학습 내용 생성
 - 튜토리얼
 - 예제
 - 직접 구현 / 직접 작성
@@ -17,8 +18,11 @@ Universal Learning Engine의 최초 공개 MVP입니다.
 - 오답노트
 - 해설
 - 학습 종료 메시지
+- JSON 응답 형식 오류 안내
+- OpenAI API 호출 오류 안내
+- 응답 데이터 구조 오류 안내
 
-## 제외 기능
+## 구현하지 않은 기능
 
 - Adaptive Difficulty
 - Learning Analytics
@@ -35,14 +39,19 @@ Universal Learning Engine의 최초 공개 MVP입니다.
 - 데이터 저장
 - 로그인
 
-## 실행 방법
+## 설치 방법
 
 ```bash
 pip install -r requirements.txt
+```
+
+## 실행 방법
+
+```bash
 streamlit run app.py
 ```
 
-## OpenAI API 설정
+## OpenAI API Key 설정
 
 앱은 아래 순서로 API 키를 읽습니다.
 
@@ -58,7 +67,7 @@ streamlit run app.py
 copy .env.example .env
 ```
 
-`.env` 파일 안의 값을 본인 키로 바꿉니다.
+`.env` 파일에 실제 API 키를 입력합니다.
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
@@ -78,9 +87,9 @@ OPENAI_MODEL = "gpt-4.1-mini"
 
 참고용 예시는 `.streamlit/secrets.toml.example` 파일에 있습니다.
 
-## 배포 파일
+## Streamlit Cloud 배포 설정
 
-Streamlit Cloud의 Main file path:
+Main file path:
 
 ```text
 app.py
@@ -94,15 +103,18 @@ Universal_Learning_Engine/
 ├── requirements.txt
 ├── README.md
 ├── .env.example
+├── .gitignore
 └── .streamlit/
     ├── config.toml
     └── secrets.toml.example
 ```
 
-## v0.1 원칙
+## v0.2 원칙
 
-- MVP만 구현
-- 확장 기능 구현 금지
-- 디자인보다 동작 우선
-- 하나의 엔진으로 모든 학습 주제 처리
-- 주제별 하드코딩 금지
+- MVP 범위 유지
+- 기존 Learning Flow 유지
+- CBT 5문제 구조 유지
+- Expansion Pack 미구현
+- 데이터 저장 미구현
+- 로그인 미구현
+- 실행 안정성 우선

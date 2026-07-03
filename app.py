@@ -7,6 +7,9 @@ import streamlit as st
 APP_TITLE = "Universal Learning Engine"
 APP_DESCRIPTION = "학습할 주제를 입력하면 동일한 학습 엔진이 해당 주제에 맞게 동작합니다."
 DEFAULT_MODEL = "gpt-4.1-mini"
+MAX_TOPIC_LENGTH = 80
+AI_RESPONSE_FORMAT_ERROR = "AI 응답 형식 오류입니다. 다시 시도해주세요."
+AI_RESPONSE_DATA_ERROR = "AI 응답 데이터가 예상과 다릅니다. 다시 시도해주세요."
 
 
 def load_local_env() -> None:
@@ -54,7 +57,7 @@ def get_model() -> str:
 
 def build_prompt(topic: str) -> str:
     return f"""
-너는 Universal Learning Engine v0.1이다.
+너는 Universal Learning Engine v0.2이다.
 
 목표:
 입력된 학습 주제 하나를 대상으로 가장 작은 MVP 학습 Flow를 생성한다.
@@ -110,7 +113,22 @@ def parse_json_response(text: str) -> dict:
             lines = lines[:-1]
         cleaned = "\n".join(lines).strip()
 
-    return json.loads(cleaned)
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{AI_RESPONSE_FORMAT_ERROR} 원인: {exc}") from exc
+
+
+def build_api_error_message(error: Exception) -> str:
+    return (
+        "OpenAI API 호출에 실패했습니다. "
+        "API 키, 결제 상태, 모델 이름, 네트워크 연결을 확인해주세요. "
+        f"원인: {error}"
+    )
+
+
+def build_response_data_error(reason: str) -> str:
+    return f"{AI_RESPONSE_DATA_ERROR} 원인: {reason}"
 
 
 def generate_lesson(topic: str) -> dict:
@@ -133,12 +151,15 @@ def generate_lesson(topic: str) -> dict:
             input=prompt,
             temperature=0.2,
         )
-    except Exception:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
-        )
+    except Exception as first_error:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2,
+            )
+        except Exception as second_error:
+            raise RuntimeError(build_api_error_message(second_error)) from first_error
 
     data = parse_json_response(extract_text(response))
     validate_lesson(data)
@@ -146,20 +167,48 @@ def generate_lesson(topic: str) -> dict:
 
 
 def validate_lesson(data: dict) -> None:
+    if not isinstance(data, dict):
+        raise ValueError(build_response_data_error("응답이 객체 형식이 아닙니다."))
+
     required_keys = ["topic", "tutorial", "example", "direct_task", "practice", "cbt"]
     for key in required_keys:
         if key not in data:
-            raise ValueError(f"응답에 필요한 값이 없습니다: {key}")
+            raise ValueError(build_response_data_error(f"필요한 값이 없습니다({key})."))
+
+    text_keys = ["topic", "tutorial", "example", "direct_task", "practice"]
+    for key in text_keys:
+        if not isinstance(data[key], str) or not data[key].strip():
+            raise ValueError(build_response_data_error(f"{key} 값이 비어 있거나 문자 형식이 아닙니다."))
 
     if not isinstance(data["cbt"], list) or len(data["cbt"]) != 5:
-        raise ValueError("CBT 문제는 반드시 5문제여야 합니다.")
+        raise ValueError(build_response_data_error("CBT 문제는 반드시 5문제여야 합니다."))
 
     for index, question in enumerate(data["cbt"], start=1):
-        if len(question.get("choices", [])) != 4:
-            raise ValueError(f"CBT {index}번 문제는 선택지 4개가 필요합니다.")
+        if not isinstance(question, dict):
+            raise ValueError(build_response_data_error(f"CBT {index}번 문제가 객체 형식이 아닙니다."))
+        for key in ["question", "choices", "answer_index", "explanation"]:
+            if key not in question:
+                raise ValueError(build_response_data_error(f"CBT {index}번 문제에 {key} 값이 없습니다."))
+        if not isinstance(question["question"], str) or not question["question"].strip():
+            raise ValueError(build_response_data_error(f"CBT {index}번 문제 내용이 비어 있습니다."))
+        if not isinstance(question["choices"], list) or len(question["choices"]) != 4:
+            raise ValueError(build_response_data_error(f"CBT {index}번 문제는 선택지 4개가 필요합니다."))
+        if not all(isinstance(choice, str) and choice.strip() for choice in question["choices"]):
+            raise ValueError(build_response_data_error(f"CBT {index}번 선택지가 비어 있거나 문자 형식이 아닙니다."))
         answer_index = question.get("answer_index")
         if not isinstance(answer_index, int) or answer_index not in [0, 1, 2, 3]:
-            raise ValueError(f"CBT {index}번 문제의 정답 번호가 올바르지 않습니다.")
+            raise ValueError(build_response_data_error(f"CBT {index}번 문제의 정답 번호가 올바르지 않습니다."))
+        if not isinstance(question["explanation"], str) or not question["explanation"].strip():
+            raise ValueError(build_response_data_error(f"CBT {index}번 해설이 비어 있습니다."))
+
+
+def validate_topic_input(topic: str) -> tuple[bool, str, str]:
+    cleaned_topic = topic.strip()
+    if not cleaned_topic:
+        return False, "", "학습할 주제를 입력해주세요."
+    if len(cleaned_topic) > MAX_TOPIC_LENGTH:
+        return False, "", f"학습 주제는 {MAX_TOPIC_LENGTH}자 이하로 입력해주세요."
+    return True, cleaned_topic, ""
 
 
 def reset_learning_state() -> None:
@@ -258,13 +307,14 @@ def main() -> None:
     topic = st.text_input("학습할 주제를 입력하세요.", placeholder="예: 제과제빵, Python, 영어, 투자, 역사")
 
     if st.button("학습 시작"):
-        if not topic.strip():
-            st.warning("학습할 주제를 입력해주세요.")
+        is_valid, cleaned_topic, message = validate_topic_input(topic)
+        if not is_valid:
+            st.warning(message)
         else:
             reset_learning_state()
             with st.spinner("학습 내용을 생성하는 중입니다."):
                 try:
-                    st.session_state.lesson = generate_lesson(topic.strip())
+                    st.session_state.lesson = generate_lesson(cleaned_topic)
                 except Exception as exc:
                     st.error(str(exc))
 
