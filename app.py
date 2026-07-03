@@ -57,7 +57,44 @@ def get_model() -> str:
     return os.getenv("OPENAI_MODEL") or get_secret_value("OPENAI_MODEL") or DEFAULT_MODEL
 
 
+def get_difficulty_rules(difficulty: str) -> str:
+    rules = {
+        "입문": """
+입문 난이도 기준:
+- 기본 용어를 묻는다.
+- 단순 개념을 확인한다.
+- 암기형 문제를 포함한다.
+- 완전 초보자도 풀 수 있는 수준으로 만든다.
+- 선택지는 너무 꼬지 말고 명확하게 만든다.
+""",
+        "초급": """
+초급 난이도 기준:
+- 기본 개념과 간단한 적용을 함께 묻는다.
+- 쉬운 사례 문제를 포함한다.
+- 기초 이해 여부를 확인한다.
+- 단순 암기만 묻지 말고, 쉬운 상황 판단을 1~2문제 포함한다.
+""",
+        "중급": """
+중급 난이도 기준:
+- 응용 문제를 포함한다.
+- 사례 기반 문제를 포함한다.
+- 혼동하기 쉬운 개념 비교 문제를 포함한다.
+- 실무형 또는 시험형 판단 문제를 포함한다.
+- 너무 쉬운 정의형 문제는 금지한다.
+- 정의만 묻는 초급 문제를 출제하지 말 것.
+- 응용·사례·비교·판단형 문제를 포함할 것.
+
+중급 주제별 예시 기준:
+- 투자: "투자의 목적은?" 같은 단순 정의 문제 금지. ETF, 분산투자, 금리, 채권, 리스크, 장기투자 판단 문제를 포함한다.
+- 제과제빵: "이스트 역할은?" 같은 단순 정의 문제 금지. 글루텐, 발효, 온도, 믹싱, 반죽 상태, 기능사 시험형 문제를 포함한다.
+- 영어: 알파벳 개수 같은 문제 금지. 문법, 시제, 어순, 독해, 문장 수정 문제를 포함한다.
+""",
+    }
+    return rules.get(difficulty, rules["입문"])
+
+
 def build_prompt(topic: str, question_count: int, difficulty: str) -> str:
+    difficulty_rules = get_difficulty_rules(difficulty)
     return f"""
 너는 Universal Learning Engine v0.2이다.
 
@@ -73,12 +110,16 @@ CBT 문제 수:
 난이도:
 {difficulty}
 
+난이도별 출제 기준:
+{difficulty_rules}
+
 규칙:
 - 주제별 하드코딩 없이 입력 주제에 맞게 일반적으로 설명한다.
 - 확장 기능을 만들지 않는다.
 - Recovery Engine, Analytics, Dashboard, Decision Engine, Expansion Pack 내용을 넣지 않는다.
 - CBT는 반드시 {question_count}문제만 만든다.
 - CBT 난이도는 반드시 {difficulty} 수준으로 맞춘다.
+- 위 난이도별 출제 기준을 CBT 문제, 선택지, 해설에 강하게 반영한다.
 - CBT는 객관식 4지선다로 만든다.
 - 완전 초보자도 이해할 수 있게 쓴다.
 - 응답은 JSON만 출력한다.
