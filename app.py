@@ -8,6 +8,8 @@ APP_TITLE = "Universal Learning Engine"
 APP_DESCRIPTION = "학습할 주제를 입력하면 동일한 학습 엔진이 해당 주제에 맞게 동작합니다."
 DEFAULT_MODEL = "gpt-4.1-mini"
 MAX_TOPIC_LENGTH = 80
+QUESTION_COUNT_OPTIONS = [5, 10, 15, 20]
+DIFFICULTY_OPTIONS = ["입문", "초급", "중급"]
 AI_RESPONSE_FORMAT_ERROR = "AI 응답 형식 오류입니다. 다시 시도해주세요."
 AI_RESPONSE_DATA_ERROR = "AI 응답 데이터가 예상과 다릅니다. 다시 시도해주세요."
 
@@ -55,21 +57,28 @@ def get_model() -> str:
     return os.getenv("OPENAI_MODEL") or get_secret_value("OPENAI_MODEL") or DEFAULT_MODEL
 
 
-def build_prompt(topic: str) -> str:
+def build_prompt(topic: str, question_count: int, difficulty: str) -> str:
     return f"""
 너는 Universal Learning Engine v0.2이다.
 
 목표:
-입력된 학습 주제 하나를 대상으로 가장 작은 MVP 학습 Flow를 생성한다.
+입력된 학습 주제 하나를 대상으로 MVP 학습 Flow를 생성한다.
 
 학습 주제:
 {topic}
 
+CBT 문제 수:
+{question_count}
+
+난이도:
+{difficulty}
+
 규칙:
 - 주제별 하드코딩 없이 입력 주제에 맞게 일반적으로 설명한다.
 - 확장 기능을 만들지 않는다.
-- 난이도 조절, 분석, 추천, 복습 스케줄, 대시보드 내용을 넣지 않는다.
-- CBT는 반드시 5문제만 만든다.
+- Recovery Engine, Analytics, Dashboard, Decision Engine, Expansion Pack 내용을 넣지 않는다.
+- CBT는 반드시 {question_count}문제만 만든다.
+- CBT 난이도는 반드시 {difficulty} 수준으로 맞춘다.
 - CBT는 객관식 4지선다로 만든다.
 - 완전 초보자도 이해할 수 있게 쓴다.
 - 응답은 JSON만 출력한다.
@@ -104,7 +113,7 @@ def extract_text(response) -> str:
 
 
 def parse_json_response(text: str) -> dict:
-    cleaned = text.strip()
+    cleaned = str(text).strip()
     if cleaned.startswith("```"):
         lines = cleaned.splitlines()
         if lines and lines[0].startswith("```"):
@@ -116,6 +125,13 @@ def parse_json_response(text: str) -> dict:
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError as exc:
+        json_start = cleaned.find("{")
+        json_end = cleaned.rfind("}")
+        if json_start != -1 and json_end != -1 and json_start < json_end:
+            try:
+                return json.loads(cleaned[json_start : json_end + 1])
+            except json.JSONDecodeError:
+                pass
         raise ValueError(f"{AI_RESPONSE_FORMAT_ERROR} 원인: {exc}") from exc
 
 
@@ -131,10 +147,12 @@ def build_response_data_error(reason: str) -> str:
     return f"{AI_RESPONSE_DATA_ERROR} 원인: {reason}"
 
 
-def generate_lesson(topic: str) -> dict:
+def generate_lesson(topic: str, question_count: int, difficulty: str) -> dict:
     api_key = get_api_key()
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY가 설정되어 있지 않습니다. 로컬에서는 .env, Streamlit Cloud에서는 Secrets를 설정해주세요.")
+    if difficulty not in DIFFICULTY_OPTIONS:
+        raise ValueError(build_response_data_error("지원하지 않는 난이도입니다."))
 
     try:
         from openai import OpenAI
@@ -143,7 +161,7 @@ def generate_lesson(topic: str) -> dict:
 
     client = OpenAI(api_key=api_key)
     model = get_model()
-    prompt = build_prompt(topic)
+    prompt = build_prompt(topic, question_count, difficulty)
 
     try:
         response = client.responses.create(
@@ -162,11 +180,15 @@ def generate_lesson(topic: str) -> dict:
             raise RuntimeError(build_api_error_message(second_error)) from first_error
 
     data = parse_json_response(extract_text(response))
-    validate_lesson(data)
+    validate_lesson(data, question_count)
+    data["difficulty"] = difficulty
+    data["requested_question_count"] = question_count
     return data
 
 
-def validate_lesson(data: dict) -> None:
+def validate_lesson(data: dict, question_count: int) -> None:
+    if question_count not in QUESTION_COUNT_OPTIONS:
+        raise ValueError(build_response_data_error("지원하지 않는 CBT 문제 수입니다."))
     if not isinstance(data, dict):
         raise ValueError(build_response_data_error("응답이 객체 형식이 아닙니다."))
 
@@ -180,8 +202,24 @@ def validate_lesson(data: dict) -> None:
         if not isinstance(data[key], str) or not data[key].strip():
             raise ValueError(build_response_data_error(f"{key} 값이 비어 있거나 문자 형식이 아닙니다."))
 
-    if not isinstance(data["cbt"], list) or len(data["cbt"]) != 5:
-        raise ValueError(build_response_data_error("CBT 문제는 반드시 5문제여야 합니다."))
+    if not isinstance(data["cbt"], list):
+        raise ValueError(build_response_data_error("CBT 문제가 배열 형식이 아닙니다."))
+
+    actual_question_count = len(data["cbt"])
+    if actual_question_count == 0:
+        raise ValueError(build_response_data_error("생성된 CBT 문제가 없습니다. 다시 시도해주세요."))
+    if actual_question_count < question_count:
+        data["cbt_count_notice"] = (
+            f"요청한 문제 수는 {question_count}문제였지만 "
+            f"AI가 {actual_question_count}문제만 생성했습니다. "
+            "생성된 문제로 학습을 진행합니다."
+        )
+    elif actual_question_count > question_count:
+        data["cbt"] = data["cbt"][:question_count]
+        data["cbt_count_notice"] = (
+            f"AI가 {actual_question_count}문제를 생성했습니다. "
+            f"요청한 {question_count}문제만 사용합니다."
+        )
 
     for index, question in enumerate(data["cbt"], start=1):
         if not isinstance(question, dict):
@@ -211,10 +249,21 @@ def validate_topic_input(topic: str) -> tuple[bool, str, str]:
     return True, cleaned_topic, ""
 
 
+def reset_round_state() -> None:
+    st.session_state.answers = {}
+    st.session_state.current_question_index = 0
+    st.session_state.current_feedback = None
+    st.session_state.round_finished = False
+    current_round_id = st.session_state.get("cbt_round_id", 0)
+    st.session_state.cbt_round_id = current_round_id + 1
+    for key in list(st.session_state.keys()):
+        if key.startswith("cbt_") and key != "cbt_round_id":
+            del st.session_state[key]
+
+
 def reset_learning_state() -> None:
     st.session_state.lesson = None
-    st.session_state.answers = {}
-    st.session_state.submitted = False
+    reset_round_state()
 
 
 def init_state() -> None:
@@ -222,12 +271,77 @@ def init_state() -> None:
         st.session_state.lesson = None
     if "answers" not in st.session_state:
         st.session_state.answers = {}
-    if "submitted" not in st.session_state:
-        st.session_state.submitted = False
+    if "current_question_index" not in st.session_state:
+        st.session_state.current_question_index = 0
+    if "current_feedback" not in st.session_state:
+        st.session_state.current_feedback = None
+    if "round_finished" not in st.session_state:
+        st.session_state.round_finished = False
+    if "cbt_round_id" not in st.session_state:
+        st.session_state.cbt_round_id = 0
+
+
+def normalize_round_state(lesson: dict) -> None:
+    questions = lesson.get("cbt", [])
+    total_questions = len(questions)
+    if total_questions == 0:
+        reset_round_state()
+        return
+
+    if not isinstance(st.session_state.answers, dict):
+        st.session_state.answers = {}
+
+    safe_answers = {}
+    for key, value in st.session_state.answers.items():
+        if isinstance(key, int) and 0 <= key < total_questions and value in [0, 1, 2, 3]:
+            safe_answers[key] = value
+    st.session_state.answers = safe_answers
+
+    if not isinstance(st.session_state.current_question_index, int):
+        st.session_state.current_question_index = 0
+    st.session_state.current_question_index = max(
+        0,
+        min(st.session_state.current_question_index, total_questions - 1),
+    )
+
+    if not isinstance(st.session_state.round_finished, bool):
+        st.session_state.round_finished = False
+
+    feedback = st.session_state.current_feedback
+    if not isinstance(feedback, dict):
+        st.session_state.current_feedback = None
+        return
+
+    feedback_index = feedback.get("index")
+    selected_index = feedback.get("selected_index")
+    if (
+        not isinstance(feedback_index, int)
+        or feedback_index < 0
+        or feedback_index >= total_questions
+        or selected_index not in [0, 1, 2, 3]
+        or not isinstance(feedback.get("is_correct"), bool)
+    ):
+        st.session_state.current_feedback = None
+
+
+def render_learning_status(lesson: dict) -> None:
+    topic = lesson.get("topic", "학습 주제")
+    difficulty = lesson.get("difficulty", "입문")
+    requested_count = lesson.get("requested_question_count", len(lesson.get("cbt", [])))
+
+    st.info(
+        f"학습 주제: {topic} | "
+        f"난이도: {difficulty} | "
+        f"문제 수: {requested_count}"
+    )
 
 
 def render_lesson(lesson: dict) -> None:
     st.header(f"학습 주제: {lesson['topic']}")
+    render_learning_status(lesson)
+
+    if lesson.get("cbt_count_notice"):
+        st.warning(lesson["cbt_count_notice"])
 
     st.subheader("튜토리얼")
     st.write(lesson["tutorial"])
@@ -247,36 +361,103 @@ def render_lesson(lesson: dict) -> None:
 
 
 def render_cbt(lesson: dict) -> None:
+    normalize_round_state(lesson)
+    questions = lesson["cbt"]
+    total_questions = len(questions)
+    if total_questions == 0:
+        st.error("CBT 문제가 없습니다. 학습을 다시 시작해주세요.")
+        return
+
+    current_index = min(st.session_state.current_question_index, total_questions - 1)
+    question = questions[current_index]
+
     st.subheader("CBT")
+    st.write(f"난이도: {lesson.get('difficulty', '입문')}")
+    progress_current = total_questions if st.session_state.round_finished else current_index + 1
+    st.write(f"진행률: {progress_current} / {total_questions}")
+    st.progress(progress_current / total_questions)
 
-    for index, question in enumerate(lesson["cbt"]):
-        st.markdown(f"**문제 {index + 1}. {question['question']}**")
-        choice = st.radio(
-            "답을 선택하세요.",
-            question["choices"],
-            key=f"cbt_{index}",
-            index=None,
-        )
-        if choice is not None:
-            st.session_state.answers[index] = question["choices"].index(choice)
+    if st.session_state.round_finished:
+        render_round_summary(lesson)
+        if st.button("다시 학습"):
+            reset_round_state()
+            st.rerun()
+        if st.button("처음으로"):
+            reset_learning_state()
+            st.rerun()
+        return
 
-    if st.button("제출 후 채점"):
-        if len(st.session_state.answers) < 5:
-            st.warning("CBT 5문제의 답을 모두 선택해주세요.")
+    st.markdown(f"**문제 {current_index + 1} / {total_questions}. {question['question']}**")
+    choice = st.radio(
+        "답을 선택하세요.",
+        question["choices"],
+        key=f"cbt_{st.session_state.cbt_round_id}_{current_index}",
+        index=None,
+    )
+
+    if st.button("정답 확인"):
+        if choice is None:
+            st.warning("답을 선택해주세요.")
         else:
-            st.session_state.submitted = True
+            selected_index = question["choices"].index(choice)
+            is_correct = selected_index == question["answer_index"]
+            st.session_state.answers[current_index] = selected_index
+            st.session_state.current_feedback = {
+                "index": current_index,
+                "is_correct": is_correct,
+                "selected_index": selected_index,
+            }
 
-    if st.session_state.submitted:
-        render_results(lesson)
+    render_current_feedback(question, current_index, total_questions)
 
 
-def render_results(lesson: dict) -> None:
+def render_current_feedback(question: dict, current_index: int, total_questions: int) -> None:
+    feedback = st.session_state.current_feedback
+    if not feedback or feedback["index"] != current_index:
+        return
+
+    if feedback["is_correct"]:
+        st.success("정답입니다.")
+    else:
+        st.error("오답입니다.")
+
+    st.write(f"정답: {question['choices'][question['answer_index']]}")
+    st.write(f"해설: {question['explanation']}")
+
+    if current_index < total_questions - 1:
+        if st.button("다음 문제"):
+            st.session_state.current_question_index += 1
+            st.session_state.current_feedback = None
+            st.rerun()
+    else:
+        if st.button("결과 보기"):
+            st.session_state.round_finished = True
+            st.session_state.current_feedback = None
+            st.rerun()
+
+
+def render_round_summary(lesson: dict) -> None:
+    questions = lesson["cbt"]
+    total_questions = len(questions)
+    correct_count = 0
     wrong_answers = []
 
-    for index, question in enumerate(lesson["cbt"]):
+    for index, question in enumerate(questions):
         user_answer = st.session_state.answers.get(index)
-        if user_answer != question["answer_index"]:
+        if user_answer == question["answer_index"]:
+            correct_count += 1
+        else:
             wrong_answers.append((index, question, user_answer))
+
+    wrong_count = total_questions - correct_count
+    accuracy = round((correct_count / total_questions) * 100) if total_questions else 0
+
+    st.subheader("라운드 결과 요약")
+    st.write(f"난이도: {lesson.get('difficulty', '입문')}")
+    st.write(f"총 문제 수: {total_questions}")
+    st.write(f"정답 수: {correct_count}")
+    st.write(f"오답 수: {wrong_count}")
+    st.write(f"정답률: {accuracy}%")
 
     st.subheader("오답노트")
     if not wrong_answers:
@@ -284,11 +465,14 @@ def render_results(lesson: dict) -> None:
     else:
         for index, question, user_answer in wrong_answers:
             st.markdown(f"**문제 {index + 1}. {question['question']}**")
-            st.write(f"사용자 답: {question['choices'][user_answer]}")
+            if user_answer is None:
+                st.write("사용자 답: 미응답")
+            else:
+                st.write(f"사용자 답: {question['choices'][user_answer]}")
             st.write(f"정답: {question['choices'][question['answer_index']]}")
 
     st.subheader("해설")
-    for index, question in enumerate(lesson["cbt"]):
+    for index, question in enumerate(questions):
         st.markdown(f"**문제 {index + 1}. {question['question']}**")
         st.write(f"정답: {question['choices'][question['answer_index']]}")
         st.write(question["explanation"])
@@ -305,6 +489,8 @@ def main() -> None:
     st.write(APP_DESCRIPTION)
 
     topic = st.text_input("학습할 주제를 입력하세요.", placeholder="예: 제과제빵, Python, 영어, 투자, 역사")
+    question_count = st.selectbox("CBT 문제 수를 선택하세요.", QUESTION_COUNT_OPTIONS, index=0)
+    difficulty = st.selectbox("난이도를 선택하세요.", DIFFICULTY_OPTIONS, index=0)
 
     if st.button("학습 시작"):
         is_valid, cleaned_topic, message = validate_topic_input(topic)
@@ -314,7 +500,7 @@ def main() -> None:
             reset_learning_state()
             with st.spinner("학습 내용을 생성하는 중입니다."):
                 try:
-                    st.session_state.lesson = generate_lesson(cleaned_topic)
+                    st.session_state.lesson = generate_lesson(cleaned_topic, question_count, difficulty)
                 except Exception as exc:
                     st.error(str(exc))
 
