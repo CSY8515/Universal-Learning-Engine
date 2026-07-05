@@ -1,6 +1,6 @@
-# Universal Learning Engine v0.3
+# Universal Learning Engine v0.3.1
 
-![Version](https://img.shields.io/badge/version-v0.3.0-blue)
+![Version](https://img.shields.io/badge/version-v0.3.1-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,7 +9,7 @@ Universal Learning Engine is a Streamlit-based learning MVP that generates a sim
 
 Topic → Tutorial → Example → Practice → CBT → Scoring → Result
 
-v0.3 is a **Quality & Reliability Update**. It does not add new engines. It improves grading reliability, JSON validation, API fallback safety, difficulty prompt quality, and release readiness.
+v0.3.1 is a **Difficulty Quality Hotfix** on top of the v0.3 Quality & Reliability Update. It does not add new engines. It improves Hard / Nightmare question quality, duplicate-choice validation, and difficulty prompt strength.
 
 ## Web Demo
 
@@ -17,7 +17,7 @@ Coming soon.
 
 ## GitHub Release
 
-See [RELEASE_NOTES_v0.3.0.md](./RELEASE_NOTES_v0.3.0.md).
+See [RELEASE_NOTES_v0.3.1.md](./RELEASE_NOTES_v0.3.1.md).
 
 ## Main Features
 
@@ -53,6 +53,16 @@ See [RELEASE_NOTES_v0.3.0.md](./RELEASE_NOTES_v0.3.0.md).
 - Lesson structure is validated before rendering
 - Hard / Nightmare difficulty prompts discourage simple definition-only questions
 - Minimum test suite added with `unittest`
+
+## v0.3.1 Difficulty Quality Hotfix
+
+- Hard now emphasizes application, comparison, case-based reasoning, and plausible distractors
+- Hard questions must connect at least 2 concepts
+- Nightmare now emphasizes complex scenario, multi-step reasoning, trap choices, real-world judgment, and competing trade-offs
+- Nightmare questions must connect at least 3 concepts
+- Nightmare prompts require scenario-based questions
+- Explanations are instructed to cover why the correct answer is best and why other choices are wrong
+- Duplicate choices are rejected during JSON validation
 
 ## Not Included in v0.3
 
@@ -157,7 +167,7 @@ Universal_Learning_Engine/
 
 ## Release Note
 
-See [RELEASE_NOTES_v0.3.0.md](./RELEASE_NOTES_v0.3.0.md).
+See [RELEASE_NOTES_v0.3.1.md](./RELEASE_NOTES_v0.3.1.md).
 
 ## Changelog
 

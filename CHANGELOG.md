@@ -2,6 +2,29 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v0.3.1 - Difficulty Quality Hotfix
+
+### Changed
+
+- Strengthened Hard difficulty prompt rules
+- Strengthened Nightmare difficulty prompt rules
+- Added stricter CBT quality instructions for plausible distractors
+- Added explicit rule against duplicate choices
+- Added explicit rule against obvious answer clues
+- Added Nightmare requirement for concrete scenario-based questions
+- Updated version from `v0.3.0` to `v0.3.1`
+
+### Fixed
+
+- Hard questions could feel too easy or definition-heavy
+- Nightmare questions could feel too similar to Hard
+- Duplicate choices are now rejected during JSON validation
+
+### Tests
+
+- Added duplicate-choice validation test
+- Added v0.3.1 Hard / Nightmare prompt quality assertions
+
 ## v0.3.0 - Quality & Reliability Update
 
 ### Added

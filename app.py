@@ -149,8 +149,49 @@ Hard 난이도 기준:
     return rules.get(difficulty, rules["Easy"])
 
 
+def get_quality_difficulty_rules(difficulty: str) -> str:
+    """Return stricter v0.3.1 prompt rules for noticeably different difficulty levels."""
+    rules = {
+        "Easy": """
+Easy difficulty:
+- Ask definition-style questions.
+- Focus on basic terms and beginner concepts.
+- The correct answer may be relatively clear.
+- Distractors should be simple but not duplicated.
+""",
+        "Normal": """
+Normal difficulty:
+- Ask concept-understanding questions.
+- Include basic application.
+- Include simple comparison between related ideas.
+- Avoid making every question pure memorization.
+""",
+        "Hard": """
+Hard difficulty:
+- Use application, comparison, and case-based reasoning.
+- Do not ask simple definition-only questions.
+- Each question must connect at least 2 concepts.
+- All 4 choices must be plausible distractors.
+- Avoid obvious wrong-answer clues such as excessive "always", "never", "only", or "must".
+- The correct answer should not be visually or semantically obvious.
+- Prefer exam-style or real-use judgment questions.
+""",
+        "Nightmare": """
+Nightmare difficulty:
+- Use complex scenario, multi-step reasoning, trap choices, real-world judgment, and competing trade-offs.
+- Every CBT question must include a concrete scenario sentence.
+- Do not ask questions solvable by simple memorization.
+- Each question must connect at least 3 concepts.
+- All wrong choices must sound partially correct or tempting.
+- Include traps where the learner must distinguish the best answer from plausible alternatives.
+- The explanation must state why the correct answer is best and why the other choices are wrong.
+""",
+    }
+    return rules.get(difficulty, rules["Easy"])
+
+
 def build_prompt(topic: str, question_count: int, difficulty: str) -> str:
-    difficulty_rules = get_difficulty_rules(difficulty)
+    difficulty_rules = get_quality_difficulty_rules(difficulty)
     return f"""
 너는 Universal Learning Engine v0.2이다.
 
@@ -168,6 +209,16 @@ CBT 문제 수:
 
 난이도별 출제 기준:
 {difficulty_rules}
+
+v0.3.1 CBT 품질 규칙:
+- 모든 CBT 문제는 선택지 4개를 가진다.
+- choices 배열 안의 선택지 텍스트는 서로 중복되면 안 된다.
+- answer_index는 반드시 0, 1, 2, 3 중 하나다.
+- 정답이 너무 노골적으로 보이면 안 된다.
+- "항상", "무조건", "절대", "오직" 같은 쉬운 오답 단서를 남발하지 않는다.
+- Hard와 Nightmare에서는 단순 정의형 문제를 출제하지 않는다.
+- Nightmare 문제에는 반드시 구체적인 사례 문장이 포함되어야 한다.
+- 해설은 정답 이유와 오답이 틀린 이유를 함께 설명한다.
 
 규칙:
 - 주제별 하드코딩 없이 입력 주제에 맞게 일반적으로 설명한다.
@@ -353,6 +404,9 @@ def validate_lesson(data: dict, question_count: int) -> None:
             raise ValueError(build_response_data_error(f"CBT {index}번 문제는 선택지 4개가 필요합니다."))
         if not all(isinstance(choice, str) and choice.strip() for choice in question["choices"]):
             raise ValueError(build_response_data_error(f"CBT {index}번 선택지가 비어 있거나 문자 형식이 아닙니다."))
+        normalized_choices = [choice.strip() for choice in question["choices"]]
+        if len(set(normalized_choices)) != len(normalized_choices):
+            raise ValueError(build_response_data_error(f"CBT {index}번 문제에 중복 선택지가 있습니다."))
         answer_index = question.get("answer_index")
         if not isinstance(answer_index, int) or answer_index not in [0, 1, 2, 3]:
             raise ValueError(build_response_data_error(f"CBT {index}번 문제의 정답 번호가 올바르지 않습니다."))

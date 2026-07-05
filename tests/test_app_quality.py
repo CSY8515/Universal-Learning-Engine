@@ -53,6 +53,13 @@ class AppQualityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             app.validate_lesson(lesson, 5)
 
+    def test_validate_lesson_rejects_duplicate_choices(self):
+        lesson = make_lesson()
+        lesson["cbt"][0]["choices"] = ["A", "A", "B", "C"]
+
+        with self.assertRaises(ValueError):
+            app.validate_lesson(lesson, 5)
+
     def test_cbt_scoring_uses_index_not_choice_text(self):
         choices = ["A", "A", "B", "C"]
         answer_index = 1
@@ -74,12 +81,14 @@ class AppQualityTests(unittest.TestCase):
         hard_prompt = app.build_prompt("investment", 5, "Hard")
         nightmare_prompt = app.build_prompt("English", 5, "Nightmare")
 
-        self.assertIn("Hard 난이도 기준", hard_prompt)
-        self.assertIn("정의만 묻는 초급 문제를 출제하지 말 것", hard_prompt)
-        self.assertIn("응용·사례·비교·판단형 문제", hard_prompt)
-        self.assertIn("Nightmare 난이도 기준", nightmare_prompt)
-        self.assertIn("Hard보다 더 어렵게", nightmare_prompt)
-        self.assertIn("단순 정의형 문제를 반복하지 않는다", nightmare_prompt)
+        self.assertIn("application, comparison, and case-based reasoning", hard_prompt)
+        self.assertIn("connect at least 2 concepts", hard_prompt)
+        self.assertIn("plausible distractors", hard_prompt)
+        self.assertIn("complex scenario", nightmare_prompt)
+        self.assertIn("multi-step reasoning", nightmare_prompt)
+        self.assertIn("trap choices", nightmare_prompt)
+        self.assertIn("connect at least 3 concepts", nightmare_prompt)
+        self.assertIn("why the correct answer is best and why the other choices are wrong", nightmare_prompt)
 
 
 if __name__ == "__main__":
