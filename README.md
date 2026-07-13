@@ -1,84 +1,51 @@
-# Universal Learning Engine v0.3.1
+# Universal Learning Engine v0.4 Adaptive Learning
 
-![Version](https://img.shields.io/badge/version-v0.3.1-blue)
+![Version](https://img.shields.io/badge/version-v0.4-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-Universal Learning Engine is a Streamlit-based learning MVP that generates a simple learning flow for any topic:
+Universal Learning Engine is a Streamlit learning MVP that generates a consistent learning flow for any topic:
 
-Topic → Tutorial → Example → Practice → CBT → Scoring → Result
+Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-v0.3.1 is a **Difficulty Quality Hotfix** on top of the v0.3 Quality & Reliability Update. It does not add new engines. It improves Hard / Nightmare question quality, duplicate-choice validation, and difficulty prompt strength.
+The current version is **v0.4 Adaptive Learning**, built on the preserved v0.3.1 Quality & Reliability baseline. The release files are prepared, but no commit, tag, GitHub Release, or deployment has been performed.
 
-## Web Demo
+## Current features
 
-Coming soon.
+- Topic input with empty-input and 80-character validation
+- CBT question counts of 5, 10, 15, or 20
+- Easy, Normal, Hard, and Nightmare difficulty levels
+- OpenAI-generated tutorial, example, direct task, practice, and CBT content
+- One-question-at-a-time CBT interaction
+- Answer-index scoring and immediate feedback
+- Explanation display and end-of-round summary
+- Retry and home-reset flows
+- Plain, fenced, and lightly wrapped JSON parsing
+- Lesson schema, question-count, choice, answer-index, and explanation validation
+- Duplicate-choice rejection
+- Restricted fallback behavior for retryable OpenAI API failures
+- Optional low, medium, high, or unset reported confidence per answer
+- Session-only Round Status and same-topic Learning Progress
+- Deterministic learning-pattern signals
+- Bounded next-difficulty recommendations with explanations
+- Advisory recovery priority and relative interval guidance
+- Explicit user-controlled application of a recommended difficulty
 
-## GitHub Release
+Hard questions emphasize application, comparison, cases, and plausible distractors while connecting at least two concepts. Nightmare questions require a concrete scenario, multi-step reasoning, competing trade-offs, plausible traps, at least three connected concepts, and explanations of both correct and incorrect choices.
 
-See [RELEASE_NOTES_v0.3.1.md](./RELEASE_NOTES_v0.3.1.md).
+## Documentation authority
 
-## Main Features
+The repository is the single source of truth. Use these documents in this order:
 
-- Topic input
-- Input validation
-- Question count selection
-  - 5
-  - 10
-  - 15
-  - 20
-- Difficulty selection
-  - Easy
-  - Normal
-  - Hard
-  - Nightmare
-- OpenAI-powered learning content generation
-- Tutorial
-- Example
-- Direct writing / implementation task
-- Practice task
-- One-question-at-a-time CBT
-- Index-based CBT scoring
-- Explanation display
-- Round summary
-- Retry / Home reset flow
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — frozen v0.2 scope and implemented v0.3.1 baseline
+2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
+3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
+4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
+5. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+6. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
-## v0.3 Quality & Reliability Update
-
-- CBT scoring now uses selected choice index instead of choice text
-- Duplicate choice text no longer causes misgrading
-- OpenAI API fallback is blocked for non-retryable errors
-- JSON parsing handles plain JSON, fenced JSON, and lightly wrapped JSON
-- Lesson structure is validated before rendering
-- Hard / Nightmare difficulty prompts discourage simple definition-only questions
-- Minimum test suite added with `unittest`
-
-## v0.3.1 Difficulty Quality Hotfix
-
-- Hard now emphasizes application, comparison, case-based reasoning, and plausible distractors
-- Hard questions must connect at least 2 concepts
-- Nightmare now emphasizes complex scenario, multi-step reasoning, trap choices, real-world judgment, and competing trade-offs
-- Nightmare questions must connect at least 3 concepts
-- Nightmare prompts require scenario-based questions
-- Explanations are instructed to cover why the correct answer is best and why other choices are wrong
-- Duplicate choices are rejected during JSON validation
-
-## Not Included in v0.3
-
-The following features are intentionally not implemented in v0.3:
-
-- Recovery Engine
-- Learning Analytics
-- Dashboard
-- Expansion Pack
-- PDF
-- Login
-- OCR
-- Voice
-- Image
-- Learning history storage
-- Review scheduling
+If a future proposal conflicts with the implemented baseline, the conflict must be resolved in the canonical documents before implementation.
 
 ## Installation
 
@@ -86,107 +53,99 @@ The following features are intentionally not implemented in v0.3:
 pip install -r requirements.txt
 ```
 
-## Run Locally
+Python 3.10 or newer is expected.
 
-```bash
-streamlit run app.py
-```
+## Configuration
 
-## Run Tests
+Do not hardcode an API key. The app resolves configuration in this order:
 
-```bash
-python -m unittest discover
-```
-
-`pytest` is not required for v0.3.
-
-## OpenAI API Key Setup
-
-Do not hardcode your API key in source code.
-
-The app reads the API key in this order:
-
-1. Local `.env`
-2. Environment variable `OPENAI_API_KEY`
+1. Local `.env` values loaded into the environment
+2. Existing environment variables
 3. Streamlit Cloud Secrets
+4. `gpt-4.1-mini` as the model default when no model is configured
 
-### Local `.env`
-
-Copy `.env.example` to `.env`.
-
-```bash
-copy .env.example .env
-```
-
-Then edit `.env`.
+Create a local `.env` from `.env.example`:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
-`.env` is ignored by Git.
+For Streamlit Cloud, use the equivalent keys shown in `.streamlit/secrets.toml.example`.
 
-### Streamlit Cloud Secrets
+## Run locally
 
-In Streamlit Cloud, add this under App Settings → Secrets:
-
-```toml
-OPENAI_API_KEY = "your_openai_api_key_here"
-OPENAI_MODEL = "gpt-4.1-mini"
+```bash
+streamlit run app.py
 ```
 
-## Streamlit Cloud Deployment
+## Run tests
 
-Main file path:
-
-```text
-app.py
+```bash
+python -m unittest discover
 ```
 
-## Project Structure
+The suite verifies the preserved v0.3.1 behavior, adaptive rule boundaries, confidence categories, topic-isolated progress, recovery precedence, and controlled Streamlit v0.4 flows.
+
+## Explicit exclusions
+
+The following are not implemented in v0.4:
+
+- Recovery content-generation engine
+- Learning Analytics or Dashboard
+- Learning history persistence or review scheduling
+- Expansion Packs
+- Login, PDF, OCR, voice, or image features
+
+See [ROADMAP.md](./docs/ROADMAP.md) for approved placement. Roadmap entries are documentation, not implemented functionality.
+
+## Project structure
 
 ```text
-Universal_Learning_Engine/
+Universal-Learning-Engine/
 ├─ app.py
-├─ requirements.txt
+├─ adaptive.py
+├─ tests/
+│  ├─ __init__.py
+│  ├─ test_app_quality.py
+│  ├─ test_adaptive.py
+│  └─ test_streamlit_v04.py
+├─ docs/
+│  ├─ ROADMAP.md
+│  ├─ ROADMAP_v0.4.md
+│  ├─ MASTER_DESIGN.md
+│  ├─ ARCHITECTURE.md
+│  └─ MODULE_SPEC.md
+├─ .streamlit/
+│  ├─ config.toml
+│  └─ secrets.toml.example
 ├─ README.md
 ├─ CHANGELOG.md
 ├─ RELEASE_NOTES_v0.3.0.md
+├─ RELEASE_NOTES_v0.3.1.md
+├─ RELEASE_NOTES_v0.4.md
 ├─ VERSION
+├─ requirements.txt
 ├─ LICENSE
 ├─ .env.example
-├─ .gitignore
-├─ tests/
-│  ├─ __init__.py
-│  └─ test_app_quality.py
-└─ .streamlit/
-   ├─ config.toml
-   └─ secrets.toml.example
+└─ .gitignore
 ```
 
-## Release Note
+## Release information
 
-See [RELEASE_NOTES_v0.3.1.md](./RELEASE_NOTES_v0.3.1.md).
+- [v0.4 release notes](./RELEASE_NOTES_v0.4.md)
+- [v0.3.1 release notes](./RELEASE_NOTES_v0.3.1.md)
+- [v0.3.0 release notes](./RELEASE_NOTES_v0.3.0.md)
+- [Changelog](./CHANGELOG.md)
 
-## Changelog
+## Known limitations
 
-See [CHANGELOG.md](./CHANGELOG.md).
-
-## Known Issues
-
-- Real OpenAI generation quality depends on model behavior and prompt interpretation.
-- Streamlit Cloud requires `OPENAI_API_KEY` in Secrets.
-- Final deployed API generation should be manually verified after deployment.
-
-## Roadmap: v0.4 Candidates
-
-- Recovery Engine
-- Learning Analytics
-- Dashboard
-- Expansion Pack structure
-- Learning history storage
-- Review scheduling
+- Generated content quality depends on model behavior and prompt interpretation.
+- Live API behavior and generated difficulty quality require manual verification.
+- Streamlit Cloud requires an `OPENAI_API_KEY` Secret.
+- Adaptive state exists only in the current Streamlit session; Home clears it and there is no durable learner history.
+- Confidence is self-reported and recommendations are deterministic guidance, not a diagnosis.
+- Five-question rounds can produce volatile percentage changes.
 
 ## License
 

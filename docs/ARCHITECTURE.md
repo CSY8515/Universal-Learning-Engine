@@ -1,0 +1,91 @@
+# Architecture
+
+## Current architecture
+
+Universal Learning Engine v0.4 is a single-process Streamlit application. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, and UI rendering. `adaptive.py` contains pure deterministic adaptive rules.
+
+```text
+User
+  │ topic, count, difficulty, answers
+  ▼
+Streamlit UI
+  │ validated generation request
+  ▼
+Prompt builder ──► OpenAI API
+                     │ JSON text
+                     ▼
+               Parser and validator
+                     │ validated lesson
+                     ▼
+              Streamlit session state
+                     │
+                     ▼
+             CBT, feedback, summary
+```
+
+After a round completes, validated answer evidence flows through `adaptive.py` to produce Round Status, pattern signals, difficulty advice, and recovery advice. There is no database, background worker, external analytics system, account system, or durable learner profile.
+
+## Runtime boundaries
+
+### Presentation boundary
+
+Streamlit renders topic and configuration inputs, generated lesson sections, CBT controls, feedback, progress, and the round summary. UI rendering reads and updates session state but does not persist it outside the active session.
+
+### Generation boundary
+
+The application builds one text prompt from the topic, requested question count, and difficulty. The model is instructed to return only the defined JSON lesson structure and not to introduce recovery, analytics, dashboard, decision-engine, or expansion-pack content.
+
+### External API boundary
+
+The OpenAI client receives the resolved API key and model. The Responses interface is primary. A chat-completions call is a conditional compatibility fallback, not an unconditional retry.
+
+### Validation boundary
+
+All model output crosses a parser and lesson validator before it becomes session data. This boundary owns JSON extraction, required-field checks, question-count normalization, choice validation, duplicate detection, answer-index validation, and explanation validation.
+
+### State boundary
+
+Streamlit session state contains:
+
+| Key | Purpose |
+|---|---|
+| `lesson` | Current validated generated lesson |
+| `answers` | Selected choice index by question index |
+| `current_question_index` | Current CBT position |
+| `current_feedback` | Feedback for the active question |
+| `round_finished` | Whether summary mode is active |
+| `cbt_round_id` | Separates widget keys between retries |
+| `is_generating` | Prevents repeated generation-button activation |
+| `answer_confidence` | Optional reported confidence by question index |
+| `adaptation_records` | Completed summaries grouped by session-local topic key |
+| `latest_adaptive_summary` | Current advisory output rendered after the round result |
+| `adaptation_error` | Non-fatal analysis failure state |
+| `pending_recommended_difficulty` | Explicitly queued selector update |
+
+State normalization removes invalid answers, bounds the active index, repairs invalid flags, and clears malformed feedback.
+
+## Configuration architecture
+
+- `.env` may populate local environment variables.
+- Existing environment variables are not overwritten by the fallback `.env` loader.
+- Streamlit Secrets are consulted when an environment value is absent.
+- `OPENAI_API_KEY` has no built-in default.
+- `OPENAI_MODEL` defaults to `gpt-4.1-mini`.
+- `.streamlit/config.toml` defines presentation theme only.
+
+## Error behavior
+
+- Missing API configuration and dependencies produce controlled runtime errors.
+- Invalid model JSON and invalid lesson data produce user-facing validation errors.
+- Authentication, permission, quota, billing, payment, and rate-limit failures do not trigger a second API call.
+- Likely transient connection or service failures may trigger one fallback call.
+
+## Security and privacy boundary
+
+API secrets are excluded from tracked source through `.gitignore`. The repository includes examples containing placeholders only. The current application does not intentionally persist learner content, but topics and generated requests are sent to the configured OpenAI API.
+
+## v0.4 adaptive boundary
+
+Adaptive analysis occurs only after the existing scoring path and never bypasses input, output, or scoring validation. The pure adaptive module receives completed-round evidence and returns advisory dictionaries without Streamlit or API dependencies.
+
+The interface applies a recommended difficulty through a queued state value before the selector widget is created. This avoids autonomous generation and preserves explicit learner control. Learning Timeline, Knowledge Retention, and Decision Engine capabilities remain outside this architecture.

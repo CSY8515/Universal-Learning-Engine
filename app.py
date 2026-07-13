@@ -3,6 +3,8 @@ import os
 
 import streamlit as st
 
+import adaptive
+
 
 APP_TITLE = "Universal Learning Engine"
 APP_DESCRIPTION = "학습할 주제를 입력하면 동일한 학습 엔진이 해당 주제에 맞게 동작합니다."
@@ -10,6 +12,12 @@ DEFAULT_MODEL = "gpt-4.1-mini"
 MAX_TOPIC_LENGTH = 80
 QUESTION_COUNT_OPTIONS = [5, 10, 15, 20]
 DIFFICULTY_OPTIONS = ["Easy", "Normal", "Hard", "Nightmare"]
+CONFIDENCE_OPTIONS = {
+    "선택 안 함": None,
+    "낮음": "low",
+    "보통": "medium",
+    "높음": "high",
+}
 NON_RETRYABLE_API_ERROR_KEYWORDS = [
     "authentication",
     "api key",
@@ -425,6 +433,7 @@ def validate_topic_input(topic: str) -> tuple[bool, str, str]:
 
 def reset_round_state() -> None:
     st.session_state.answers = {}
+    st.session_state.answer_confidence = {}
     st.session_state.current_question_index = 0
     st.session_state.current_feedback = None
     st.session_state.round_finished = False
@@ -435,9 +444,14 @@ def reset_round_state() -> None:
             del st.session_state[key]
 
 
-def reset_learning_state() -> None:
+def reset_learning_state(clear_adaptation: bool = True) -> None:
     st.session_state.lesson = None
     reset_round_state()
+    if clear_adaptation:
+        st.session_state.adaptation_records = {}
+        st.session_state.latest_adaptive_summary = None
+        st.session_state.adaptation_error = None
+        st.session_state.pending_recommended_difficulty = None
 
 
 def init_state() -> None:
@@ -446,6 +460,8 @@ def init_state() -> None:
         st.session_state.lesson = None
     if "answers" not in st.session_state:
         st.session_state.answers = {}
+    if "answer_confidence" not in st.session_state:
+        st.session_state.answer_confidence = {}
     if "current_question_index" not in st.session_state:
         st.session_state.current_question_index = 0
     if "current_feedback" not in st.session_state:
@@ -456,6 +472,22 @@ def init_state() -> None:
         st.session_state.cbt_round_id = 0
     if "is_generating" not in st.session_state:
         st.session_state.is_generating = False
+    if "adaptation_records" not in st.session_state:
+        st.session_state.adaptation_records = {}
+    if "latest_adaptive_summary" not in st.session_state:
+        st.session_state.latest_adaptive_summary = None
+    if "adaptation_error" not in st.session_state:
+        st.session_state.adaptation_error = None
+    if "pending_recommended_difficulty" not in st.session_state:
+        st.session_state.pending_recommended_difficulty = None
+
+
+def apply_pending_difficulty_recommendation() -> None:
+    """Apply a queued recommendation before Streamlit creates the selector widget."""
+    pending = st.session_state.pending_recommended_difficulty
+    if pending in DIFFICULTY_OPTIONS:
+        st.session_state.difficulty_selector = pending
+    st.session_state.pending_recommended_difficulty = None
 
 
 def normalize_round_state(lesson: dict) -> None:
@@ -473,6 +505,14 @@ def normalize_round_state(lesson: dict) -> None:
         if isinstance(key, int) and 0 <= key < total_questions and value in [0, 1, 2, 3]:
             safe_answers[key] = value
     st.session_state.answers = safe_answers
+
+    if not isinstance(st.session_state.answer_confidence, dict):
+        st.session_state.answer_confidence = {}
+    st.session_state.answer_confidence = {
+        key: adaptive.normalize_confidence(value)
+        for key, value in st.session_state.answer_confidence.items()
+        if isinstance(key, int) and 0 <= key < total_questions
+    }
 
     if not isinstance(st.session_state.current_question_index, int):
         st.session_state.current_question_index = 0
@@ -499,6 +539,82 @@ def normalize_round_state(lesson: dict) -> None:
         or not isinstance(feedback.get("is_correct"), bool)
     ):
         st.session_state.current_feedback = None
+
+
+def normalize_topic_key(topic: str) -> str:
+    """Normalize a topic only for session-local record grouping."""
+    return " ".join(str(topic).strip().casefold().split())
+
+
+def confidence_input_to_value(label: str) -> str | None:
+    """Translate the optional Korean UI label to the adaptive data contract."""
+    return CONFIDENCE_OPTIONS.get(label)
+
+
+def calculate_learning_progress(records: list[dict]) -> dict:
+    """Compare completed rounds without claiming long-term retention."""
+    if not records:
+        return {
+            "completed_rounds": 0,
+            "latest_accuracy": None,
+            "previous_accuracy": None,
+            "accuracy_change": None,
+            "trend": "not_available",
+        }
+    latest = records[-1]["round_status"]["accuracy"]
+    previous = records[-2]["round_status"]["accuracy"] if len(records) > 1 else None
+    change = latest - previous if previous is not None else None
+    if change is None:
+        trend = "not_available"
+    elif change > 0:
+        trend = "improved"
+    elif change < 0:
+        trend = "declined"
+    else:
+        trend = "steady"
+    return {
+        "completed_rounds": len(records),
+        "latest_accuracy": latest,
+        "previous_accuracy": previous,
+        "accuracy_change": change,
+        "trend": trend,
+    }
+
+
+def record_completed_round(lesson: dict) -> dict:
+    """Record one completed round and return its session-only adaptive summary."""
+    topic_key = normalize_topic_key(lesson["topic"])
+    round_id = st.session_state.cbt_round_id
+    records = st.session_state.adaptation_records.setdefault(topic_key, [])
+    existing = next(
+        (item for item in records if item["round_status"]["round_id"] == round_id),
+        None,
+    )
+    if existing is not None:
+        return existing
+
+    answer_evidence = []
+    for index, question in enumerate(lesson["cbt"]):
+        selected_index = st.session_state.answers.get(index)
+        answer_evidence.append(
+            {
+                "question_index": index,
+                "selected_index": selected_index,
+                "answer_index": question["answer_index"],
+                "is_correct": selected_index == question["answer_index"],
+                "confidence": st.session_state.answer_confidence.get(index),
+            }
+        )
+    status = adaptive.build_round_status(
+        answer_evidence,
+        lesson.get("difficulty", "Easy"),
+        round_id,
+        topic_key,
+    )
+    summary = adaptive.build_adaptive_summary(status)
+    records.append(summary)
+    summary["learning_progress"] = calculate_learning_progress(records)
+    return summary
 
 
 def render_learning_status(lesson: dict) -> None:
@@ -555,6 +671,12 @@ def render_cbt(lesson: dict) -> None:
     st.progress(progress_current / total_questions)
 
     if st.session_state.round_finished:
+        try:
+            st.session_state.latest_adaptive_summary = record_completed_round(lesson)
+            st.session_state.adaptation_error = None
+        except Exception as exc:
+            st.session_state.latest_adaptive_summary = None
+            st.session_state.adaptation_error = str(exc)
         render_round_summary(lesson)
         if st.button("다시 학습"):
             reset_round_state()
@@ -572,6 +694,12 @@ def render_cbt(lesson: dict) -> None:
         key=f"cbt_{st.session_state.cbt_round_id}_{current_index}",
         index=None,
     )
+    confidence_label = st.selectbox(
+        "답변 확신도 (선택)",
+        list(CONFIDENCE_OPTIONS),
+        key=f"confidence_{st.session_state.cbt_round_id}_{current_index}",
+        help="현재 답변에 대해 스스로 느끼는 확신도입니다. 선택하지 않아도 됩니다.",
+    )
 
     if st.button("정답 확인"):
         if selected_index is None:
@@ -579,6 +707,9 @@ def render_cbt(lesson: dict) -> None:
         else:
             is_correct = is_correct_answer(selected_index, question["answer_index"])
             st.session_state.answers[current_index] = selected_index
+            st.session_state.answer_confidence[current_index] = confidence_input_to_value(
+                confidence_label
+            )
             st.session_state.current_feedback = {
                 "index": current_index,
                 "is_correct": is_correct,
@@ -657,24 +788,107 @@ def render_round_summary(lesson: dict) -> None:
     st.subheader("학습 종료")
     st.success("학습이 완료되었습니다.")
 
+    render_adaptive_summary()
+
+
+def render_adaptive_summary() -> None:
+    """Render additive v0.4 advice without replacing the v0.3.1 result."""
+    if st.session_state.adaptation_error:
+        st.warning(
+            "기존 학습 결과는 정상적으로 완료되었지만 적응형 분석을 표시할 수 없습니다."
+        )
+        return
+    summary = st.session_state.latest_adaptive_summary
+    if not summary:
+        return
+
+    status = summary["round_status"]
+    confidence = status["confidence_counts"]
+    progress = summary["learning_progress"]
+    difficulty = summary["difficulty_recommendation"]
+    recovery = summary["recovery_recommendation"]
+
+    st.divider()
+    st.header("v0.4 적응형 학습 안내")
+    st.caption("현재 세션과 현재 주제의 결과만 사용한 참고용 추천입니다.")
+
+    st.subheader("라운드 상태")
+    st.write(
+        f"난이도 {status['difficulty']} | 정답 {status['correct_count']} / "
+        f"{status['question_count']} | 정확도 {status['accuracy']:.0f}%"
+    )
+    st.write(
+        "보고된 확신도 — "
+        f"높음 {confidence.get('high', 0)}, 보통 {confidence.get('medium', 0)}, "
+        f"낮음 {confidence.get('low', 0)}, 미선택 {confidence.get('unset', 0)}"
+    )
+
+    st.subheader("학습 패턴")
+    pattern_labels = {
+        "strong_mastery_signal": "강한 숙달 신호",
+        "fragile_success_signal": "불안정한 성공 신호",
+        "overconfidence_risk": "과신 위험 신호",
+        "developing_understanding": "발전 중인 이해",
+        "foundational_gap_signal": "기초 보완 신호",
+    }
+    for signal in summary["learning_patterns"]:
+        st.write(f"- {pattern_labels.get(signal['name'], signal['name'])}: {signal['reason']}")
+
+    st.subheader("학습 진행")
+    st.write(f"이 세션에서 같은 주제로 완료한 라운드: {progress['completed_rounds']}")
+    if progress["accuracy_change"] is None:
+        st.write("이전 라운드가 없어 정확도 변화는 아직 계산하지 않습니다.")
+    else:
+        st.write(
+            f"이전 라운드 대비 정확도 변화: {progress['accuracy_change']:+.0f}%p "
+            f"({progress['trend']})"
+        )
+
+    st.subheader("다음 난이도 추천")
+    st.write(
+        f"현재 {difficulty['current_difficulty']} → 추천 "
+        f"{difficulty['recommended_difficulty']}"
+    )
+    st.write(difficulty["reason"])
+    st.caption(difficulty["advisory"])
+    if difficulty["recommended_difficulty"] != difficulty["current_difficulty"]:
+        if st.button("추천 난이도 사용", key="apply_recommended_difficulty"):
+            st.session_state.pending_recommended_difficulty = difficulty[
+                "recommended_difficulty"
+            ]
+            st.rerun()
+    else:
+        st.info("현재 난이도를 유지하는 것을 추천합니다.")
+
+    st.subheader("회복 학습 추천")
+    st.write(f"우선순위: {recovery['priority']} | {recovery['interval']}")
+    st.write(recovery["reason"])
+    st.caption(recovery["advisory"])
+
 
 def main() -> None:
     st.set_page_config(page_title=APP_TITLE, page_icon="📘")
     init_state()
+    apply_pending_difficulty_recommendation()
 
     st.title(APP_TITLE)
     st.write(APP_DESCRIPTION)
 
     topic = st.text_input("학습할 주제를 입력하세요.", placeholder="예: 제과제빵, Python, 영어, 투자, 역사")
     question_count = st.selectbox("CBT 문제 수를 선택하세요.", QUESTION_COUNT_OPTIONS, index=0)
-    difficulty = st.selectbox("난이도를 선택하세요.", DIFFICULTY_OPTIONS, index=0)
+    difficulty = st.selectbox(
+        "난이도를 선택하세요.",
+        DIFFICULTY_OPTIONS,
+        index=0,
+        key="difficulty_selector",
+    )
 
     if st.button("학습 시작", disabled=st.session_state.is_generating):
         is_valid, cleaned_topic, message = validate_topic_input(topic)
         if not is_valid:
             st.warning(message)
         else:
-            reset_learning_state()
+            reset_learning_state(clear_adaptation=False)
             st.session_state.is_generating = True
             with st.spinner("학습 내용을 생성하는 중입니다."):
                 try:

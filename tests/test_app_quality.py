@@ -90,6 +90,34 @@ class AppQualityTests(unittest.TestCase):
         self.assertIn("connect at least 3 concepts", nightmare_prompt)
         self.assertIn("why the correct answer is best and why the other choices are wrong", nightmare_prompt)
 
+    def test_topic_normalization_for_session_records(self):
+        self.assertEqual(app.normalize_topic_key("  Python   Basics "), "python basics")
+        self.assertNotEqual(app.normalize_topic_key("Python"), app.normalize_topic_key("Java"))
+
+    def test_learning_progress_compares_only_provided_topic_records(self):
+        records = [
+            {"round_status": {"accuracy": 60}},
+            {"round_status": {"accuracy": 80}},
+        ]
+        progress = app.calculate_learning_progress(records)
+        self.assertEqual(progress["completed_rounds"], 2)
+        self.assertEqual(progress["accuracy_change"], 20)
+        self.assertEqual(progress["trend"], "improved")
+
+    def test_learning_progress_handles_first_round(self):
+        progress = app.calculate_learning_progress(
+            [{"round_status": {"accuracy": 80}}]
+        )
+        self.assertIsNone(progress["previous_accuracy"])
+        self.assertEqual(progress["trend"], "not_available")
+
+    def test_optional_confidence_ui_mapping(self):
+        self.assertIsNone(app.confidence_input_to_value("선택 안 함"))
+        self.assertEqual(app.confidence_input_to_value("낮음"), "low")
+        self.assertEqual(app.confidence_input_to_value("보통"), "medium")
+        self.assertEqual(app.confidence_input_to_value("높음"), "high")
+        self.assertIsNone(app.confidence_input_to_value("unknown"))
+
 
 if __name__ == "__main__":
     unittest.main()

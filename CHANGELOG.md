@@ -2,6 +2,33 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v0.4 - Adaptive Learning
+
+### Added
+
+- Optional per-answer reported confidence
+- Session-only Round Status and same-topic Learning Progress
+- Deterministic learning-pattern analysis
+- Bounded adaptive difficulty recommendations with evidence
+- Advisory recovery priority and interval recommendations
+- Explicit user-controlled recommendation application
+- Pure adaptive rule tests and Streamlit integration tests
+
+### Changed
+
+- Extended the completed-round summary with adaptive learning guidance
+- Added explicit learner control for applying the recommended next difficulty
+- Updated canonical architecture, module, master-design, and roadmap documentation
+- Updated the repository version from `v0.3.1` to `v0.4`
+
+### Preserved
+
+- All v0.3.1 lesson generation, validation, CBT, scoring, feedback, summary, retry, reset, and API fallback behavior
+
+### Excluded
+
+- Persistent history, Decision Engine behavior, autonomous AI decisions, databases, background scheduling, and notifications
+
 ## v0.3.1 - Difficulty Quality Hotfix
 
 ### Changed
