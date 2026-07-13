@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v0.6 remains a single-process Streamlit application on the preserved v0.5 baseline. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, reliability logging, and UI rendering. `adaptive.py` contains pure deterministic v0.4 adaptive rules. `analytics.py` contains pure deterministic v0.5 Learning Analytics.
+Universal Learning Engine v0.7 preserves the single-process Streamlit v0.6 application and adds an independent in-process Expansion Platform. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, reliability logging, and UI rendering. `adaptive.py` contains pure deterministic v0.4 adaptive rules. `analytics.py` contains pure deterministic v0.5 Learning Analytics. The `expansion` package contains the v0.7 common interface, Registry, Loader, Manager, API, and connection-only Living OS boundary.
 
 ```text
 User
@@ -126,3 +126,28 @@ Operational logs contain event metadata and failure types only. They do not log
 API keys, prompts, generated lesson text, answer text, or raw learner content.
 Unexpected exceptions are logged by type and mapped to a stable learner-facing
 message.
+
+## v0.7 expansion boundary
+
+The Expansion Platform is imported and used independently from `app.py`,
+`adaptive.py`, and `analytics.py`.
+
+```text
+ExpansionAPI
+  -> PackManager
+       -> PackRegistry (installed exact versions, in process)
+       -> PackLoader (loaded exact versions and lifecycle calls)
+
+LivingOSIntegrationInterface
+  -> connection contract to ExpansionAPI only
+```
+
+Pack identity is the exact `(pack_id, version)` pair. Multiple versions may be
+installed, but an operation without a version is rejected when selection would
+be ambiguous. Pack lifecycle callbacks add no learning hook and cannot bypass
+lesson validation, scoring, adaptive rules, analytics, or the existing UI.
+
+Registry and Loader state is process-local. There is no filesystem discovery,
+database, remote repository, dependency resolution, automatic update, or
+background worker. The Living OS boundary has no concrete implementation and
+performs no communication or Living OS action.

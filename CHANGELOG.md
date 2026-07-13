@@ -2,6 +2,33 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v0.7 - Expansion Platform
+
+### Added
+
+- Lifecycle-only Expansion Pack common interface and immutable manifest
+- In-process Pack Registry with exact multi-version identity
+- Pack Loader with failure-safe lifecycle state
+- Pack Manager for install, remove, load, unload, lookup, and version listing
+- Expansion API facade independent of the existing learning runtime
+- Connection-only Living OS Integration Interface
+- Focused Expansion Platform contract and regression tests
+
+### Preserved
+
+- Complete v0.6 learning flow, public APIs, UI, adaptive behavior, analytics,
+  reliability boundaries, and session-state behavior
+
+### Excluded
+
+- Concrete Living OS functionality, new UI, remote pack acquisition, durable
+  pack persistence, dependency resolution, automatic updates, and v0.8 features
+
+### Verification
+
+- Expansion Platform contract tests passing
+- Full v0.6 regression suite preserved
+
 ## v0.6 - Quality & Reliability
 
 ### Added

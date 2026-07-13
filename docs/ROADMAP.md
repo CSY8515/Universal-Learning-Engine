@@ -7,7 +7,8 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The next version is v0.7 Expansion Platform.
+- The implemented working-tree version is v0.7 Expansion Platform; publishing
+  remains separately controlled.
 
 ## Version sequence
 
@@ -78,6 +79,14 @@ and learning-flow changes remain excluded.
 - Pack Registry
 - Expansion API
 - Living OS Integration
+
+The approved detailed v0.7 implementation contract is `ROADMAP_v0.7.md`.
+It also defines the Pack Manager and lifecycle-only common interface required to
+coordinate these roadmap components. Actual Living OS functionality remains
+excluded.
+
+The v0.7 contract is implemented and verified in the working tree. Commit,
+push, GitHub Release, and deployment remain pending explicit approval.
 
 ## v0.4 preparation gates — complete
 

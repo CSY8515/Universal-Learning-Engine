@@ -2,7 +2,7 @@
 
 ## Scope
 
-This specification describes the implemented v0.6 Quality & Reliability working tree on the preserved v0.5 baseline. Most runtime responsibilities remain in `app.py`; deterministic adaptive rules are separated into `adaptive.py`, and deterministic Learning Analytics are separated into `analytics.py`.
+This specification describes the implemented v0.7 Expansion Platform working tree on the preserved v0.6 baseline. Existing runtime responsibilities remain in `app.py`; deterministic adaptive rules remain in `adaptive.py`, deterministic Learning Analytics remain in `analytics.py`, and v0.7 expansion responsibilities are isolated in the `expansion` package.
 
 ## Configuration module
 
@@ -210,3 +210,65 @@ Responsibilities:
 `tests/test_v06_quality.py` and the preserved suites cover the v0.6 reliability
 contract. The complete local Python 3.13.14 suite contains 57 passing tests.
 GitHub Actions is configured for Python 3.10 and 3.13.
+
+## v0.7 common interface module
+
+Files: `expansion/interfaces.py`, `expansion/errors.py`
+
+Responsibilities:
+
+- Define immutable `PackManifest` exact identity and interface compatibility.
+- Define lifecycle-only `ExpansionPack` callbacks.
+- Validate packs without executing lifecycle code.
+- Provide stable Expansion Platform exception types.
+
+## Pack Registry module
+
+File: `expansion/registry.py`
+
+Responsibilities:
+
+- Store pack instances by exact `(pack_id, version)` in process.
+- Reject duplicate exact identities and ambiguous version selection.
+- Return immutable manifests and deterministic version listings.
+- Add no database, discovery, or remote acquisition behavior.
+
+## Pack Loader module
+
+File: `expansion/loader.py`
+
+Responsibilities:
+
+- Load only registered, compatible pack instances.
+- Invoke lifecycle callbacks once for valid state transitions.
+- Preserve unloaded state after load failure and loaded state after unload failure.
+
+## Pack Manager and Expansion API modules
+
+Files: `expansion/manager.py`, `expansion/api.py`
+
+Responsibilities:
+
+- Coordinate install, remove, load, unload, lookup, and exact version listing.
+- Unload a loaded pack successfully before unregistering it.
+- Expose immutable `PackStatus` values through the Expansion API facade.
+- Remain independent of Streamlit, OpenAI, adaptive rules, and analytics.
+
+## Living OS Integration Interface module
+
+File: `expansion/living_os.py`
+
+Responsibilities:
+
+- Define connect, disconnect, and connected-state members only.
+- Accept an Expansion API binding without providing a concrete adapter.
+- Perform no Living OS, network, command, authentication, or synchronization
+  behavior.
+
+## v0.7 test module
+
+File: `tests/test_expansion_platform.py`
+
+The tests cover manifests, common-interface validation, exact version identity,
+Registry ambiguity, lifecycle transitions and failures, Manager removal,
+Expansion API behavior, and the abstract Living OS boundary.

@@ -2,10 +2,10 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v0.6 behavior. It does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v0.7 behavior. It does not authorize future functionality.
 
-- Implemented working-tree design: **v0.6 Quality & Reliability**
-- Release version file: **v0.6**
+- Implemented working-tree design: **v0.7 Expansion Platform**
+- Release version file: **v0.7**
 
 Runtime entry point: `app.py`  
 Interface: Streamlit  
@@ -174,3 +174,30 @@ recovery guidance, recommendations, and analytics semantics remain unchanged.
 Decision Engine expansion, new Recovery behavior, persistence, Living OS
 integration, Expansion features, and a new UI or learning-flow structure remain
 outside v0.6.
+
+## v0.7 Expansion Platform design
+
+v0.7 preserves the complete v0.6 learning runtime and adds an independent,
+in-process Expansion Platform. The detailed approved contract is
+`ROADMAP_v0.7.md`.
+
+- An Expansion Pack exposes an immutable identity manifest and lifecycle-only
+  common interface.
+- Pack identity is the exact `(pack_id, version)` pair. Version strings are not
+  ranked or resolved automatically.
+- Pack Registry stores installed pack instances in process and supports exact,
+  deterministic lookup without adding persistence.
+- Pack Loader validates the interface contract and owns loaded state.
+- Pack Manager coordinates install, remove, load, unload, listing, and exact
+  version selection.
+- Expansion API is a facade over those management operations and does not alter
+  lesson generation, CBT, adaptive rules, analytics, or Streamlit state.
+- Living OS integration is limited to a connect/disconnect interface bound to
+  the Expansion API. No concrete Living OS behavior is included.
+- Lifecycle failures are isolated from the existing learning engine and leave
+  Registry and Loader state consistent.
+
+v0.7 does not add a new UI, learning hook, content type, AI Tutor, Voice, 3D
+Learning, Memory Curve, Knowledge Engine, Rule Engine expansion, durable
+storage, remote pack acquisition, dependency resolution, background work, or
+any v0.8 capability.
