@@ -4,6 +4,7 @@ import os
 import streamlit as st
 
 import adaptive
+import analytics
 
 
 APP_TITLE = "Universal Learning Engine"
@@ -789,6 +790,7 @@ def render_round_summary(lesson: dict) -> None:
     st.success("학습이 완료되었습니다.")
 
     render_adaptive_summary()
+    render_learning_analytics(lesson)
 
 
 def render_adaptive_summary() -> None:
@@ -864,6 +866,181 @@ def render_adaptive_summary() -> None:
     st.write(f"우선순위: {recovery['priority']} | {recovery['interval']}")
     st.write(recovery["reason"])
     st.caption(recovery["advisory"])
+
+
+def _format_analytics_percentage(value: float | None) -> str:
+    return "—" if value is None else f"{value:.1f}%"
+
+
+def _analytics_round_rows(rounds: list[dict]) -> list[dict]:
+    return [
+        {
+            "주제": item["topic_key"],
+            "라운드": item["round_id"],
+            "난이도": item["difficulty"],
+            "문항": item["question_count"],
+            "정답": item["correct_count"],
+            "정확도": _format_analytics_percentage(item["accuracy"]),
+            "확신도 보고율": _format_analytics_percentage(
+                item["confidence"]["reporting_rate"]
+            ),
+        }
+        for item in rounds
+    ]
+
+
+def _analytics_aggregate_rows(items: list[dict], key_label: str) -> list[dict]:
+    return [
+        {
+            key_label: item["scope_key"],
+            "라운드": item["round_count"],
+            "문항": item["question_count"],
+            "가중 정확도": _format_analytics_percentage(item["weighted_accuracy"]),
+            "평균 라운드 정확도": _format_analytics_percentage(
+                item["mean_round_accuracy"]
+            ),
+            "확신도 보고율": _format_analytics_percentage(
+                item["confidence"]["reporting_rate"]
+            ),
+        }
+        for item in items
+    ]
+
+
+def render_learning_analytics(lesson: dict) -> None:
+    """Render additive v0.5 analytics without affecting the v0.4 result path."""
+    try:
+        topic_key = normalize_topic_key(lesson["topic"])
+        result = analytics.build_learning_analytics(
+            st.session_state.adaptation_records, topic_key
+        )
+    except Exception:
+        st.warning(
+            "기존 v0.4 학습 결과는 정상적으로 완료되었지만 "
+            "v0.5 학습 분석을 표시할 수 없습니다."
+        )
+        return
+
+    latest = result["latest_round"]
+    current = result["current_topic"]
+    overall = result["overall"]
+
+    st.divider()
+    st.header("v0.5 학습 분석")
+    st.caption(
+        "현재 Streamlit 세션에 남아 있는 완료 라운드만 사용한 설명형 분석입니다. "
+        "결정, 자동 실행, 저장 또는 일정 생성을 수행하지 않습니다."
+    )
+
+    if latest is None:
+        st.info("현재 주제에서 분석할 완료 라운드가 없습니다.")
+        return
+
+    st.subheader("최신 라운드 분석")
+    latest_columns = st.columns(4)
+    latest_columns[0].metric("정확도", _format_analytics_percentage(latest["accuracy"]))
+    latest_columns[1].metric(
+        "확신도 보고율",
+        _format_analytics_percentage(latest["confidence"]["reporting_rate"]),
+    )
+    latest_columns[2].metric(
+        "근거 있는 성공",
+        _format_analytics_percentage(
+            latest["answer_patterns"]["supported_success_rate"]
+        ),
+    )
+    latest_columns[3].metric(
+        "확신한 오답",
+        _format_analytics_percentage(
+            latest["answer_patterns"]["confident_error_rate"]
+        ),
+    )
+
+    st.subheader("세션 분석 — 현재 주제")
+    current_columns = st.columns(4)
+    current_columns[0].metric("완료 라운드", current["round_count"])
+    current_columns[1].metric("분석 문항", current["question_count"])
+    current_columns[2].metric(
+        "가중 정확도", _format_analytics_percentage(current["weighted_accuracy"])
+    )
+    current_columns[3].metric(
+        "최근 변화",
+        "—"
+        if current["latest_change"] is None
+        else f"{current['latest_change']:+.1f}%p",
+    )
+    st.write(current["learning_summary"]["headline"])
+    st.caption(
+        "가중 정확도는 모든 정답 수를 모든 문항 수로 나눈 값입니다. "
+        f"평균 라운드 정확도: {_format_analytics_percentage(current['mean_round_accuracy'])}"
+    )
+
+    st.subheader("전체 학습 분석 — 현재 세션")
+    overall_columns = st.columns(4)
+    overall_columns[0].metric("보존된 주제", overall["topic_count"])
+    overall_columns[1].metric("완료 라운드", overall["round_count"])
+    overall_columns[2].metric("분석 문항", overall["question_count"])
+    overall_columns[3].metric(
+        "가중 정확도", _format_analytics_percentage(overall["weighted_accuracy"])
+    )
+    st.write(overall["learning_summary"]["headline"])
+    st.caption(
+        f"전체 확신도 보고율: {_format_analytics_percentage(overall['confidence']['reporting_rate'])} | "
+        f"평균 라운드 정확도: {_format_analytics_percentage(overall['mean_round_accuracy'])}"
+    )
+
+    st.subheader("강점 / 약점 요약")
+    strengths = overall["concise_strengths"]
+    weaknesses = overall["concise_weaknesses"]
+    mixed = overall["mixed_evidence"]
+    if strengths:
+        st.markdown("**현재 증거에서 확인된 강점**")
+        for item in strengths:
+            st.write(f"- {item['evidence_text']}")
+    else:
+        st.info("현재 보존된 증거만으로 명확한 강점이 확립되지 않았습니다.")
+    if weaknesses:
+        st.markdown("**현재 증거에서 확인된 약점**")
+        for item in weaknesses:
+            reasons = ", ".join(item["matched_rules"])
+            st.write(f"- {item['evidence_text']} 근거 규칙: {reasons}")
+    else:
+        st.info("현재 보존된 증거만으로 명확한 약점이 확립되지 않았습니다.")
+    for item in mixed:
+        st.warning(f"혼합 증거: {item['evidence_text']}")
+    st.caption(
+        "강점/약점 표시는 같은 주제·난이도에서 최소 2라운드와 10문항의 "
+        "증거가 있을 때만 적용됩니다. 개념별 숙달을 의미하지 않습니다."
+    )
+
+    with st.expander("라운드별 분석"):
+        st.dataframe(_analytics_round_rows(current["rounds"]), hide_index=True)
+    with st.expander("주제별 분석"):
+        st.dataframe(
+            _analytics_aggregate_rows(overall["topic_summaries"], "주제"),
+            hide_index=True,
+        )
+    with st.expander("난이도별 분석"):
+        st.dataframe(
+            _analytics_aggregate_rows(overall["difficulty_summaries"], "난이도"),
+            hide_index=True,
+        )
+    with st.expander("확신도 및 학습 패턴 상세"):
+        confidence = overall["confidence"]["counts"]
+        st.write(
+            "보고된 확신도 — "
+            f"높음 {confidence['high']}, 보통 {confidence['medium']}, "
+            f"낮음 {confidence['low']}, 미선택 {confidence['unset']}"
+        )
+        if overall["learning_pattern_frequencies"]:
+            for name, count in overall["learning_pattern_frequencies"].items():
+                st.write(f"- {name}: {count}개 라운드")
+        else:
+            st.write("표시할 학습 패턴 신호가 없습니다.")
+        if overall["skipped_record_count"]:
+            st.warning(
+                f"유효하지 않은 분석 레코드 {overall['skipped_record_count']}개를 제외했습니다."
+            )
 
 
 def main() -> None:

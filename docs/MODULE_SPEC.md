@@ -2,7 +2,7 @@
 
 ## Scope
 
-This specification describes the current v0.4 application. Most responsibilities remain in `app.py`; deterministic adaptive rules are separated into `adaptive.py`.
+This specification describes the implemented v0.5 working tree. Most runtime responsibilities remain in `app.py`; deterministic adaptive rules are separated into `adaptive.py`, and deterministic Learning Analytics are separated into `analytics.py`.
 
 ## Configuration module
 
@@ -147,6 +147,44 @@ Responsibilities:
 - Queue and explicitly apply a recommended selector value without starting generation.
 - Clear adaptive state on Home.
 
+## Learning Analytics module
+
+File: `analytics.py`
+
+Public functions: `percentage`, `build_round_analytics`, `normalize_adaptation_records`, `build_aggregate`, `build_evidence_summaries`, `build_learning_analytics`
+
+Responsibilities:
+
+- Consume v0.4 completed adaptive summaries without mutating them.
+- Validate required round fields and normalize optional analytics evidence.
+- Skip duplicate or unusable records independently with stable issue codes.
+- Produce versioned Round Analytics.
+- Calculate weighted accuracy, mean round accuracy, totals, ranges, and ordered same-topic changes.
+- Aggregate current-topic, overall-session, topic, difficulty, confidence, answer-pattern, and v0.4 signal evidence.
+- Produce deterministic learning summaries.
+- Produce evidence-qualified strength, weakness, mixed, and insufficient-evidence structures.
+- Expose stable matched-rule names and quantitative fields for later extension without calculating a Weakness Score or making a learning decision.
+
+The module has no Streamlit, OpenAI, database, persistence, scheduling, notification, Living OS, or autonomous-action dependency.
+
+## v0.5 presentation integration
+
+Functions in `app.py`: `_format_analytics_percentage`, `_analytics_round_rows`, `_analytics_aggregate_rows`, `render_learning_analytics`
+
+Responsibilities:
+
+- Render analytics only after the complete v0.4 result and adaptive guidance.
+- Show latest-round, current-topic, overall-session, accuracy, confidence, pattern, and strength/weakness summaries.
+- Label weighted accuracy separately from mean round accuracy.
+- Keep detailed round/topic/difficulty evidence in expanders.
+- Add no action-producing analytics control.
+- Catch analytics errors and preserve every v0.4 result and navigation control.
+
+## v0.5 test modules
+
+- `tests/test_analytics.py` covers pure calculations, grouping, record order, confidence handling, evidence minimums, policy thresholds, duplicate/invalid records, non-mutation, and learning summaries.
+- `tests/test_streamlit_v05.py` covers additive rendering, metric reconciliation, optional confidence, absence of analytics actions, Home compatibility, and non-fatal analytics failure.
+
 ## Future module reservation
 
-Learning Timeline, Knowledge Retention, Decision Engine behavior, durable learner profiles, recovery-content generation, scheduling, and notifications have no v0.4 module contract and must not be implemented without later approval.
+Weakness Score, Learning Decision Engine behavior, new Recovery Priority behavior, Learning Timeline, Knowledge Retention, durable learner profiles, recovery-content generation, database, background scheduling, notifications, Living OS integration, and autonomous actions have no v0.5 module contract and must not be implemented without later approval.

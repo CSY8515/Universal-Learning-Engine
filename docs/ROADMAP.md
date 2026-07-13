@@ -2,7 +2,7 @@
 
 ## Roadmap rules
 
-- The implemented v0.3.1 baseline is preserved.
+- The implemented v0.4 baseline, including all preserved v0.3.1 behavior, is preserved.
 - A roadmap entry is not an implementation.
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
@@ -39,14 +39,25 @@ The implementation uses deterministic session-only data, documented thresholds, 
 
 Recovery Engine, Learning Analytics, Dashboard, Expansion Pack structure, persistence, and review scheduling appeared previously as v0.4 candidates. They are not automatically part of the approved Adaptive Learning implementation; each requires explicit scope approval.
 
-### v0.5 — Longitudinal learning candidates
+### v0.5 — Learning Analytics
 
-Proposed placement, not implementation approval:
+Design approval, implementation, and automated verification are complete in the working tree. The detailed implemented contract is `ROADMAP_v0.5.md`. Release preparation and all Git/release/deployment operations remain pending separate approval.
 
-- **Learning Timeline:** ordered learning activity across rounds or sessions.
-- **Knowledge Retention:** retention evidence across elapsed time and review activity.
+Implemented v0.5 scope:
 
-These concepts are placed after v0.4 because they imply durable history, time-aware behavior, and likely review scheduling. Storage, privacy, retention policy, identity, and review requirements must be approved before development.
+- Latest-round analytics
+- Current-topic session analytics
+- Overall analytics across all records retained in the active Streamlit session
+- Weighted accuracy and learning-result summaries
+- Round, confidence, and learning-pattern analysis
+- Evidence-qualified strength and weakness summaries
+- A pure, reusable analytics foundation and additive completed-round UI
+
+v0.5 consumes the session-only results already produced by v0.4. It does not add persistence, autonomous decisions, a Decision Engine, background scheduling, notifications, or Living OS integration. Existing v0.4 Home behavior continues to clear the source records and therefore all derived analytics.
+
+Learning Timeline and Knowledge Retention are not assigned to v0.5. They remain unapproved future candidates because they require timestamp, persistence, identity, privacy, and retention-policy decisions that are outside the Learning Analytics proposal.
+
+Weakness Score, Learning Decision Engine, new Recovery Priority behavior, autonomous actions, database, background scheduling, notifications, Living OS integration, and Expansion features remain unimplemented.
 
 ### v0.6 through v1.0 — TBD
 

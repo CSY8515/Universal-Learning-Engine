@@ -2,6 +2,34 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v0.5 - Learning Analytics (Unreleased)
+
+### Added
+
+- Independent, pure `analytics.py` domain module
+- Latest-round, current-topic Session, and Overall Learning Analytics
+- Weighted accuracy and separately labeled mean-round accuracy
+- Learning-result summaries and round/topic/difficulty breakdowns
+- Reported-confidence coverage and correctness-confidence aggregation
+- v0.4 learning-pattern frequency and recent repetition analysis
+- Evidence-qualified strength and weakness summaries
+- Pure analytics and Streamlit v0.5 test suites
+
+### Preserved
+
+- Complete v0.4 generation, validation, CBT, scoring, feedback, adaptive guidance, Retry, Home, and explicit recommendation behavior
+- Session-only storage and Home clearing policy
+- Existing Recovery Priority behavior without v0.5 extension
+
+### Excluded
+
+- Weakness Score, Learning Decision Engine, autonomous actions, new Recovery Priority behavior, database, persistence, background scheduler, notifications, Living OS integration, and Expansion features
+
+### Release status
+
+- Implementation and automated verification are complete in the working tree.
+- `VERSION`, release notes, commit, push, tag, GitHub Release, and deployment require separate approval.
+
 ## v0.4 - Adaptive Learning
 
 ### Added

@@ -1,6 +1,6 @@
-# Universal Learning Engine v0.4 Adaptive Learning
+# Universal Learning Engine v0.5 Learning Analytics
 
-![Version](https://img.shields.io/badge/version-v0.4-blue)
+![Version](https://img.shields.io/badge/version-v0.5%20implementation-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,7 +9,7 @@ Universal Learning Engine is a Streamlit learning MVP that generates a consisten
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The current version is **v0.4 Adaptive Learning**, built on the preserved v0.3.1 Quality & Reliability baseline. The release files are prepared, but no commit, tag, GitHub Release, or deployment has been performed.
+The working tree implements **v0.5 Learning Analytics** on the preserved v0.4 Adaptive Learning baseline. `VERSION` remains `v0.4` until separate release-preparation approval. No commit, push, tag, GitHub Release, or deployment has been performed for v0.5.
 
 ## Current features
 
@@ -31,6 +31,14 @@ The current version is **v0.4 Adaptive Learning**, built on the preserved v0.3.1
 - Bounded next-difficulty recommendations with explanations
 - Advisory recovery priority and relative interval guidance
 - Explicit user-controlled application of a recommended difficulty
+- Latest-round Learning Analytics
+- Current-topic Session Analytics
+- Overall analytics across all completed records retained in the active session
+- Weighted accuracy, mean-round accuracy, result totals, and learning summaries
+- Reported-confidence coverage and correctness-confidence analytics
+- Topic, difficulty, round, and learning-pattern breakdowns
+- Evidence-qualified strength and weakness summaries
+- Independent, deterministic analytics logic with non-fatal UI integration
 
 Hard questions emphasize application, comparison, cases, and plausible distractors while connecting at least two concepts. Nightmare questions require a concrete scenario, multi-step reasoning, competing trade-offs, plausible traps, at least three connected concepts, and explanations of both correct and incorrect choices.
 
@@ -42,8 +50,9 @@ The repository is the single source of truth. Use these documents in this order:
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
-5. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-6. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
+5. [ROADMAP_v0.5.md](./docs/ROADMAP_v0.5.md) — implemented v0.5 analytics contract
+6. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+7. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 If a future proposal conflicts with the implemented baseline, the conflict must be resolved in the canonical documents before implementation.
 
@@ -85,15 +94,19 @@ streamlit run app.py
 python -m unittest discover
 ```
 
-The suite verifies the preserved v0.3.1 behavior, adaptive rule boundaries, confidence categories, topic-isolated progress, recovery precedence, and controlled Streamlit v0.4 flows.
+The suite verifies preserved v0.4 behavior, adaptive rule boundaries, analytics calculations, weighted accuracy, topic isolation, evidence thresholds, failure isolation, and controlled Streamlit v0.5 flows.
 
 ## Explicit exclusions
 
-The following are not implemented in v0.4:
+The following are not implemented in v0.5:
 
-- Recovery content-generation engine
-- Learning Analytics or Dashboard
+- Learning Decision Engine or Weakness Score
+- New Recovery Priority behavior or recovery content-generation engine
 - Learning history persistence or review scheduling
+- Database, background scheduler, or notifications
+- Autonomous learning actions
+- Living OS integration
+- Separate persistent analytics dashboard
 - Expansion Packs
 - Login, PDF, OCR, voice, or image features
 
@@ -105,14 +118,18 @@ See [ROADMAP.md](./docs/ROADMAP.md) for approved placement. Roadmap entries are 
 Universal-Learning-Engine/
 ├─ app.py
 ├─ adaptive.py
+├─ analytics.py
 ├─ tests/
 │  ├─ __init__.py
 │  ├─ test_app_quality.py
 │  ├─ test_adaptive.py
-│  └─ test_streamlit_v04.py
+│  ├─ test_streamlit_v04.py
+│  ├─ test_analytics.py
+│  └─ test_streamlit_v05.py
 ├─ docs/
 │  ├─ ROADMAP.md
 │  ├─ ROADMAP_v0.4.md
+│  ├─ ROADMAP_v0.5.md
 │  ├─ MASTER_DESIGN.md
 │  ├─ ARCHITECTURE.md
 │  └─ MODULE_SPEC.md
@@ -146,6 +163,8 @@ Universal-Learning-Engine/
 - Adaptive state exists only in the current Streamlit session; Home clears it and there is no durable learner history.
 - Confidence is self-reported and recommendations are deterministic guidance, not a diagnosis.
 - Five-question rounds can produce volatile percentage changes.
+- Overall analytics cover only records still retained in the active Streamlit session.
+- Strength and weakness summaries are limited to topic/difficulty evidence because v0.4 records contain no concept tags or timestamps.
 
 ## License
 

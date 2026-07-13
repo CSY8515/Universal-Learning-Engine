@@ -2,9 +2,11 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and the implemented v0.3.1 Quality & Reliability baseline. It records what the repository does today; it does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1, v0.4, and v0.5 behavior. It does not authorize future functionality.
 
-Current version: **v0.4**  
+- Implemented working-tree design: **v0.5**
+- Release version file: **v0.4 pending separate v0.5 release preparation**
+
 Runtime entry point: `app.py`  
 Interface: Streamlit  
 Persistence: Streamlit session state only
@@ -137,3 +139,23 @@ v0.4 adds a deterministic, session-only advisory layer while preserving the v0.3
 - Adaptive-analysis failure must not prevent the v0.3.1 round result from rendering.
 
 The adaptive layer does not call an AI classifier and does not implement a Decision Engine, recovery-content engine, database, timeline, retention model, scheduler, notification, or autonomous action.
+
+## v0.5 Learning Analytics design
+
+v0.5 adds deterministic, read-only analytics over completed summaries already retained by v0.4.
+
+- `analytics.py` is independent of Streamlit, OpenAI, persistence, scheduling, notifications, and adaptive action selection.
+- Round Analytics reconcile counts, accuracy, reported-confidence coverage, correctness-confidence categories, and v0.4 signals.
+- Session Analytics aggregate the active normalized topic in record order.
+- Overall Learning Analytics aggregate all valid records still retained in the active Streamlit session.
+- Weighted accuracy is primary; mean round accuracy is separately labeled.
+- Topic and difficulty summaries expose exact counts and evidence sizes.
+- Learning summaries describe observed totals, accuracy, confidence coverage, and available same-topic direction.
+- Strengths require at least two rounds, ten answers, 85% weighted accuracy, and 60% supported success for the same topic and difficulty.
+- Weaknesses require the same evidence minimum and either weighted accuracy below 60% or confident errors of at least 20%.
+- Stable rule names and quantitative evidence support future extension without implementing a Weakness Score or Decision Engine.
+- Invalid analytics records are excluded independently and reported without changing source records.
+- Analytics failures cannot hide or replace the v0.4 result or adaptive UI.
+- Home preserves its v0.4 behavior and clears all analytics source records.
+
+The v0.5 layer does not add new Recovery Priority behavior, a Weakness Score, Learning Decision Engine, autonomous action, database, background scheduler, notification, Living OS integration, durable history, timeline, retention model, or Expansion feature.

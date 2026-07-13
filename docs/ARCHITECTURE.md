@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v0.4 is a single-process Streamlit application. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, and UI rendering. `adaptive.py` contains pure deterministic adaptive rules.
+Universal Learning Engine v0.5 is a single-process Streamlit application. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, and UI rendering. `adaptive.py` contains pure deterministic v0.4 adaptive rules. `analytics.py` contains pure deterministic v0.5 Learning Analytics.
 
 ```text
 User
@@ -24,6 +24,8 @@ Prompt builder ──► OpenAI API
 ```
 
 After a round completes, validated answer evidence flows through `adaptive.py` to produce Round Status, pattern signals, difficulty advice, and recovery advice. There is no database, background worker, external analytics system, account system, or durable learner profile.
+
+The retained completed summaries then flow read-only through `analytics.py`. It normalizes valid records independently and produces latest-round, current-topic, overall-session, topic, difficulty, confidence, pattern, and strength/weakness views. Analytics do not call OpenAI, modify adaptive records, select a learning action, or persist a second copy of state.
 
 ## Runtime boundaries
 
@@ -89,3 +91,23 @@ API secrets are excluded from tracked source through `.gitignore`. The repositor
 Adaptive analysis occurs only after the existing scoring path and never bypasses input, output, or scoring validation. The pure adaptive module receives completed-round evidence and returns advisory dictionaries without Streamlit or API dependencies.
 
 The interface applies a recommended difficulty through a queued state value before the selector widget is created. This avoids autonomous generation and preserves explicit learner control. Learning Timeline, Knowledge Retention, and Decision Engine capabilities remain outside this architecture.
+
+## v0.5 analytics boundary
+
+Analytics execute only after the existing v0.4 result and adaptive summary paths. `adaptation_records` remains the sole completed-round source of truth. Analytics outputs are derived during rendering and are not stored in a database or a new session-state cache.
+
+The pure module owns:
+
+- Required-field validation and independent invalid-record exclusion
+- Versioned Round Analytics dictionaries
+- Weighted accuracy, round-average accuracy, totals, ranges, and ordered same-topic comparisons
+- Confidence coverage and correctness-confidence aggregation
+- Topic, difficulty, current-topic, and overall retained-session summaries
+- v0.4 signal frequency and recent same-topic repetition
+- Evidence summaries with stable rule names for possible later consumers
+
+Strength and weakness classification is limited to topic-and-difficulty groups with at least two rounds and ten answered questions. It does not calculate a Weakness Score or make a decision. The UI renders at most three concise strengths and weaknesses and keeps detailed evidence available.
+
+Analytics failures are caught at the presentation boundary. The complete v0.4 result, adaptive guidance, Retry, Home, and recommendation controls remain available. Existing v0.4 Recovery Priority is preserved but not extended by v0.5.
+
+Overall analytics cover only records still present in the active Streamlit session. Home clears `adaptation_records`, so all derived analytics also disappear. No timestamp, cross-session timeline, retention model, scheduler, notification, Living OS integration, or autonomous action exists.
