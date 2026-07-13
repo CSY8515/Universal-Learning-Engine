@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v0.5 is a single-process Streamlit application. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, and UI rendering. `adaptive.py` contains pure deterministic v0.4 adaptive rules. `analytics.py` contains pure deterministic v0.5 Learning Analytics.
+Universal Learning Engine v0.6 remains a single-process Streamlit application on the preserved v0.5 baseline. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, reliability logging, and UI rendering. `adaptive.py` contains pure deterministic v0.4 adaptive rules. `analytics.py` contains pure deterministic v0.5 Learning Analytics.
 
 ```text
 User
@@ -63,6 +63,8 @@ Streamlit session state contains:
 | `latest_adaptive_summary` | Current advisory output rendered after the round result |
 | `adaptation_error` | Non-fatal analysis failure state |
 | `pending_recommended_difficulty` | Explicitly queued selector update |
+| `analytics_cache` | Revision-bound derived v0.5 analytics output |
+| `analytics_revision` | Invalidates derived analytics when source evidence changes |
 
 State normalization removes invalid answers, bounds the active index, repairs invalid flags, and clears malformed feedback.
 
@@ -94,7 +96,7 @@ The interface applies a recommended difficulty through a queued state value befo
 
 ## v0.5 analytics boundary
 
-Analytics execute only after the existing v0.4 result and adaptive summary paths. `adaptation_records` remains the sole completed-round source of truth. Analytics outputs are derived during rendering and are not stored in a database or a new session-state cache.
+Analytics execute only after the existing v0.4 result and adaptive summary paths. `adaptation_records` remains the sole completed-round source of truth. Analytics outputs are derived during rendering and are not stored in a database. v0.6 may retain one revision-bound session cache of derived output; it is invalidated whenever a completed record is added or Home clears the source records.
 
 The pure module owns:
 
@@ -104,10 +106,23 @@ The pure module owns:
 - Confidence coverage and correctness-confidence aggregation
 - Topic, difficulty, current-topic, and overall retained-session summaries
 - v0.4 signal frequency and recent same-topic repetition
-- Evidence summaries with stable rule names for possible later consumers
+- Evidence summaries with stable rule names and quantitative fields
 
 Strength and weakness classification is limited to topic-and-difficulty groups with at least two rounds and ten answered questions. It does not calculate a Weakness Score or make a decision. The UI renders at most three concise strengths and weaknesses and keeps detailed evidence available.
 
 Analytics failures are caught at the presentation boundary. The complete v0.4 result, adaptive guidance, Retry, Home, and recommendation controls remain available. Existing v0.4 Recovery Priority is preserved but not extended by v0.5.
 
 Overall analytics cover only records still present in the active Streamlit session. Home clears `adaptation_records`, so all derived analytics also disappear. No timestamp, cross-session timeline, retention model, scheduler, notification, Living OS integration, or autonomous action exists.
+
+## v0.6 reliability boundary
+
+The lesson schema and UI flow remain unchanged. Model text must resolve to one
+unambiguous JSON object, indices must be exact integers rather than booleans, and
+submitted answer evidence is locked while feedback is active. The OpenAI client
+uses an explicit timeout with SDK retries disabled so the application owns the
+documented single compatibility fallback decision.
+
+Operational logs contain event metadata and failure types only. They do not log
+API keys, prompts, generated lesson text, answer text, or raw learner content.
+Unexpected exceptions are logged by type and mapped to a stable learner-facing
+message.

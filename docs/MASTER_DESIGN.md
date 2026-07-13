@@ -2,10 +2,10 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1, v0.4, and v0.5 behavior. It does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v0.6 behavior. It does not authorize future functionality.
 
-- Implemented working-tree design: **v0.5**
-- Release version file: **v0.4 pending separate v0.5 release preparation**
+- Implemented working-tree design: **v0.6 Quality & Reliability**
+- Release version file: **v0.6**
 
 Runtime entry point: `app.py`  
 Interface: Streamlit  
@@ -153,9 +153,24 @@ v0.5 adds deterministic, read-only analytics over completed summaries already re
 - Learning summaries describe observed totals, accuracy, confidence coverage, and available same-topic direction.
 - Strengths require at least two rounds, ten answers, 85% weighted accuracy, and 60% supported success for the same topic and difficulty.
 - Weaknesses require the same evidence minimum and either weighted accuracy below 60% or confident errors of at least 20%.
-- Stable rule names and quantitative evidence support future extension without implementing a Weakness Score or Decision Engine.
+- Stable rule names and quantitative evidence are exposed without implementing a Weakness Score or Decision Engine.
 - Invalid analytics records are excluded independently and reported without changing source records.
 - Analytics failures cannot hide or replace the v0.4 result or adaptive UI.
 - Home preserves its v0.4 behavior and clears all analytics source records.
 
 The v0.5 layer does not add new Recovery Priority behavior, a Weakness Score, Learning Decision Engine, autonomous action, database, background scheduler, notification, Living OS integration, durable history, timeline, retention model, or Expansion feature.
+
+## v0.6 Quality & Reliability design
+
+v0.6 preserves the complete v0.5 learning flow and adds no new learning
+capability. It strengthens system boundaries through strict index scoring, safer
+single-object JSON extraction, normalized duplicate-choice detection, immutable
+submitted answers during feedback, explicit API timeout and fallback behavior,
+safe exception presentation, privacy-conscious operational logs, reduced repeated
+analytics work, and automated regression and startup verification.
+
+Existing valid lesson JSON, UI controls, session-state meaning, adaptive rules,
+recovery guidance, recommendations, and analytics semantics remain unchanged.
+Decision Engine expansion, new Recovery behavior, persistence, Living OS
+integration, Expansion features, and a new UI or learning-flow structure remain
+outside v0.6.

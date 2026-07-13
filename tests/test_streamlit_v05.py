@@ -82,6 +82,8 @@ class StreamlitV05Tests(unittest.TestCase):
         home = [item for item in self.app.button if item.label == "처음으로"][0]
         home.click().run()
         self.assertEqual(self.app.session_state["adaptation_records"], {})
+        self.assertIsNone(self.app.session_state["analytics_cache"])
+        self.assertEqual(self.app.session_state["analytics_revision"], 0)
         self.assertIsNone(self.app.session_state["lesson"])
         self.assertFalse(self.app.exception)
 
@@ -97,6 +99,23 @@ class StreamlitV05Tests(unittest.TestCase):
         self.assertIn("다음 난이도 추천", subheaders)
         warnings = [item.value for item in self.app.warning]
         self.assertTrue(any("v0.5 학습 분석" in item for item in warnings))
+        self.assertFalse(self.app.exception)
+
+    def test_analytics_result_is_reused_until_evidence_changes(self):
+        self.complete_round()
+        cached_revision = self.app.session_state["analytics_revision"]
+        with patch(
+            "analytics.build_learning_analytics",
+            side_effect=RuntimeError("cache should avoid recalculation"),
+        ):
+            self.app.run()
+
+        headers = [item.value for item in self.app.header]
+        self.assertIn("v0.5 학습 분석", headers)
+        self.assertEqual(
+            self.app.session_state["analytics_revision"],
+            cached_revision,
+        )
         self.assertFalse(self.app.exception)
 
 

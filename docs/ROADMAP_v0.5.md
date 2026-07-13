@@ -2,7 +2,7 @@
 
 ## Document status
 
-This document is the approved and implemented v0.5 Learning Analytics contract. Implementation and automated verification are complete in the working tree. `VERSION`, release notes, commit, push, tag, GitHub Release, and deployment remain pending separate approval.
+This document is the approved and implemented v0.5 Learning Analytics contract and the released runtime baseline preserved by v0.6.
 
 The v0.5 implementation is additive. It expands the Learning Analytics layer using results already produced and retained by v0.4. It does not change lesson generation, CBT scoring, adaptive recommendation rules, recovery guidance, reset behavior, persistence, or learner control.
 
@@ -400,7 +400,7 @@ evidence_text: non-empty string
 
 ### State policy
 
-Analytics outputs are derived views, not a second source of truth. v0.5 should calculate them from `adaptation_records` when rendering and should not change the v0.4 completed-round schema. No new persistent state key is required unless profiling demonstrates a verified need and a later design review approves caching semantics.
+Analytics outputs are derived views, not a second source of truth. v0.5 calculates them from `adaptation_records` and does not change the v0.4 completed-round schema. The later approved v0.6 reliability design adds only a revision-bound, session-local derived cache; `adaptation_records` remains authoritative and Home clears both source and cache.
 
 ## 13. Expected file changes
 

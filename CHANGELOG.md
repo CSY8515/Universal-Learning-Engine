@@ -2,7 +2,41 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
-## v0.5 - Learning Analytics (Unreleased)
+## v0.6 - Quality & Reliability
+
+### Added
+
+- Privacy-conscious operational event logging
+- Explicit OpenAI timeout and application-owned fallback policy
+- Revision-bound session analytics cache with evidence-change invalidation
+- GitHub Actions compile and regression automation for Python 3.10 and 3.13
+- Focused v0.6 JSON, scoring, exception, API, and UI reliability tests
+
+### Changed
+
+- Parse model output as one unambiguous plain, fenced, or lightly wrapped JSON object
+- Normalize whitespace, Unicode compatibility forms, and case for duplicate-choice detection
+- Sanitize unexpected and provider error messages shown to learners
+- Lock submitted answer and confidence controls while feedback is active
+
+### Fixed
+
+- Boolean values can no longer pass as integer answer indices
+- Transient 5xx failures can use the single approved compatibility fallback
+- Billing and authentication indicators take precedence over transient status fallback
+- Malformed completed records no longer break duplicate-round detection
+
+### Preserved
+
+- Complete v0.5 CBT, recovery, adaptive, analytics, recommendation, JSON field, UI, Retry, and Home behavior
+
+### Verification
+
+- 57 automated tests passing
+- Python compile verification passing
+- Streamlit headless startup and health endpoint verification passing
+
+## v0.5 - Learning Analytics
 
 ### Added
 
@@ -27,8 +61,7 @@ All notable changes to Universal Learning Engine are documented here.
 
 ### Release status
 
-- Implementation and automated verification are complete in the working tree.
-- `VERSION`, release notes, commit, push, tag, GitHub Release, and deployment require separate approval.
+- Released baseline for v0.6 Quality & Reliability.
 
 ## v0.4 - Adaptive Learning
 

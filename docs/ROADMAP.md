@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- Versions v0.6 through v1.0 remain TBD until separately approved.
+- The next version is v0.7 Expansion Platform.
 
 ## Version sequence
 
@@ -41,7 +41,7 @@ Recovery Engine, Learning Analytics, Dashboard, Expansion Pack structure, persis
 
 ### v0.5 — Learning Analytics
 
-Design approval, implementation, and automated verification are complete in the working tree. The detailed implemented contract is `ROADMAP_v0.5.md`. Release preparation and all Git/release/deployment operations remain pending separate approval.
+The released v0.5 baseline is defined by the detailed implemented contract in `ROADMAP_v0.5.md` and is preserved by v0.6.
 
 Implemented v0.5 scope:
 
@@ -55,13 +55,29 @@ Implemented v0.5 scope:
 
 v0.5 consumes the session-only results already produced by v0.4. It does not add persistence, autonomous decisions, a Decision Engine, background scheduling, notifications, or Living OS integration. Existing v0.4 Home behavior continues to clear the source records and therefore all derived analytics.
 
-Learning Timeline and Knowledge Retention are not assigned to v0.5. They remain unapproved future candidates because they require timestamp, persistence, identity, privacy, and retention-policy decisions that are outside the Learning Analytics proposal.
+Learning Timeline and Knowledge Retention are not assigned to v0.5 and are not implemented.
 
 Weakness Score, Learning Decision Engine, new Recovery Priority behavior, autonomous actions, database, background scheduling, notifications, Living OS integration, and Expansion features remain unimplemented.
 
-### v0.6 through v1.0 — TBD
+### v0.6 — Quality & Reliability
 
-No features are assigned. This range is reserved for future approved planning and must not be populated by assumption.
+The implemented and verified v0.6 release strengthens the preserved v0.5
+application without adding a new learning capability. It covers scoring
+correctness, JSON validation, exception isolation, bounded API behavior,
+automated testing, performance, backward-compatible UI fixes, operational
+logging, and documentation.
+
+The detailed contract is `ROADMAP_v0.6.md`. Decision Engine expansion, new
+Recovery behavior, persistence, Living OS integration, Expansion Platform work,
+and learning-flow changes remain excluded.
+
+### v0.7 — Expansion Platform
+
+- Expansion Pack
+- Pack Loader
+- Pack Registry
+- Expansion API
+- Living OS Integration
 
 ## v0.4 preparation gates — complete
 

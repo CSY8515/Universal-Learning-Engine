@@ -1,5 +1,8 @@
 import json
+import logging
 import os
+import time
+import unicodedata
 
 import streamlit as st
 
@@ -10,6 +13,7 @@ import analytics
 APP_TITLE = "Universal Learning Engine"
 APP_DESCRIPTION = "학습할 주제를 입력하면 동일한 학습 엔진이 해당 주제에 맞게 동작합니다."
 DEFAULT_MODEL = "gpt-4.1-mini"
+API_TIMEOUT_SECONDS = 60.0
 MAX_TOPIC_LENGTH = 80
 QUESTION_COUNT_OPTIONS = [5, 10, 15, 20]
 DIFFICULTY_OPTIONS = ["Easy", "Normal", "Hard", "Nightmare"]
@@ -36,8 +40,26 @@ NON_RETRYABLE_API_ERROR_KEYWORDS = [
     "rate_limit",
 ]
 NON_RETRYABLE_STATUS_CODES = {400, 401, 403, 404, 429}
+RETRYABLE_STATUS_CODES = {500, 502, 503, 504}
 AI_RESPONSE_FORMAT_ERROR = "AI 응답 형식 오류입니다. 다시 시도해주세요."
 AI_RESPONSE_DATA_ERROR = "AI 응답 데이터가 예상과 다릅니다. 다시 시도해주세요."
+LOGGER = logging.getLogger("universal_learning_engine")
+
+
+class ResponseFormatError(ValueError):
+    """Model text could not be reduced to one unambiguous JSON object."""
+
+
+class ResponseValidationError(ValueError):
+    """Model JSON violated the preserved lesson contract."""
+
+
+class ApiRequestError(RuntimeError):
+    """The external API request failed after the approved fallback policy."""
+
+
+class ConfigurationError(RuntimeError):
+    """Required local or deployment configuration is unavailable."""
 
 
 def load_local_env() -> None:
@@ -64,6 +86,18 @@ def load_local_env() -> None:
 
 
 load_local_env()
+
+
+def configure_logging() -> None:
+    """Configure concise operational logs once without recording learner content."""
+    level_name = os.getenv("LOG_LEVEL", "INFO").upper()
+    level = getattr(logging, level_name, logging.INFO)
+    if not logging.getLogger().handlers:
+        logging.basicConfig(
+            level=level,
+            format="%(asctime)s %(levelname)s %(name)s %(message)s",
+        )
+    LOGGER.setLevel(level)
 
 
 def get_secret_value(key: str) -> str | None:
@@ -261,16 +295,22 @@ JSON 형식:
 
 def extract_text(response) -> str:
     if hasattr(response, "output_text"):
-        return response.output_text
+        text = response.output_text
+    elif hasattr(response, "choices"):
+        try:
+            text = response.choices[0].message.content
+        except (AttributeError, IndexError, TypeError) as exc:
+            raise ResponseFormatError(AI_RESPONSE_FORMAT_ERROR) from exc
+    else:
+        text = str(response)
 
-    if hasattr(response, "choices"):
-        return response.choices[0].message.content
-
-    return str(response)
+    if not isinstance(text, str) or not text.strip():
+        raise ResponseFormatError(AI_RESPONSE_FORMAT_ERROR)
+    return text
 
 
 def parse_json_response(text: str) -> dict:
-    """Parse OpenAI text as JSON, including fenced or lightly wrapped JSON."""
+    """Parse plain, fenced, or lightly wrapped text as one JSON object."""
     cleaned = str(text).strip()
     if cleaned.startswith("```"):
         lines = cleaned.splitlines()
@@ -281,23 +321,39 @@ def parse_json_response(text: str) -> dict:
         cleaned = "\n".join(lines).strip()
 
     try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError as exc:
-        json_start = cleaned.find("{")
-        json_end = cleaned.rfind("}")
-        if json_start != -1 and json_end != -1 and json_start < json_end:
+        parsed = json.loads(cleaned)
+        if not isinstance(parsed, dict):
+            raise ResponseFormatError(AI_RESPONSE_FORMAT_ERROR)
+        return parsed
+    except json.JSONDecodeError as original_error:
+        decoder = json.JSONDecoder()
+        objects = []
+        search_from = 0
+        while True:
+            json_start = cleaned.find("{", search_from)
+            if json_start == -1:
+                break
             try:
-                return json.loads(cleaned[json_start : json_end + 1])
+                candidate, json_end = decoder.raw_decode(cleaned, json_start)
             except json.JSONDecodeError:
-                pass
-        raise ValueError(f"{AI_RESPONSE_FORMAT_ERROR} 원인: {exc}") from exc
+                search_from = json_start + 1
+                continue
+            if isinstance(candidate, dict):
+                objects.append(candidate)
+            search_from = max(json_end, json_start + 1)
+
+        if len(objects) == 1:
+            return objects[0]
+        reason = "multiple_json_objects" if len(objects) > 1 else "json_object_missing"
+        LOGGER.warning("json_parse_rejected reason=%s", reason)
+        raise ResponseFormatError(AI_RESPONSE_FORMAT_ERROR) from original_error
 
 
-def build_api_error_message(error: Exception) -> str:
+def build_api_error_message() -> str:
+    """Return a stable user message without exposing provider exception text."""
     return (
         "OpenAI API 호출에 실패했습니다. "
-        "API 키, 결제 상태, 모델 이름, 네트워크 연결을 확인해주세요. "
-        f"원인: {error}"
+        "API 키, 결제 상태, 모델 이름, 네트워크 연결을 확인해주세요."
     )
 
 
@@ -310,6 +366,8 @@ def should_try_api_fallback(error: Exception) -> bool:
     error_text = f"{type(error).__name__} {error}".lower()
     if any(keyword in error_text for keyword in NON_RETRYABLE_API_ERROR_KEYWORDS):
         return False
+    if status_code in RETRYABLE_STATUS_CODES:
+        return True
 
     retryable_keywords = ["connection", "timeout", "temporarily", "server", "service unavailable"]
     return any(keyword in error_text for keyword in retryable_keywords)
@@ -319,26 +377,59 @@ def build_response_data_error(reason: str) -> str:
     return f"{AI_RESPONSE_DATA_ERROR} 원인: {reason}"
 
 
+def user_facing_error_message(error: Exception) -> str:
+    """Expose only errors intentionally designed for learner display."""
+    if isinstance(
+        error,
+        (ApiRequestError, ConfigurationError, ResponseFormatError, ResponseValidationError),
+    ):
+        return str(error)
+    return "학습 내용을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+
+
+def normalize_choice_text(value: str) -> str:
+    """Normalize choice identity without changing the rendered source text."""
+    normalized = unicodedata.normalize("NFKC", value)
+    return " ".join(normalized.strip().casefold().split())
+
+
 def is_correct_answer(selected_index: int, answer_index: int) -> bool:
     """Compare answers by index so duplicate choice text cannot cause misgrading."""
-    return selected_index == answer_index
+    return (
+        type(selected_index) is int
+        and type(answer_index) is int
+        and selected_index == answer_index
+    )
 
 
 def generate_lesson(topic: str, question_count: int, difficulty: str) -> dict:
     api_key = get_api_key()
     if not api_key:
-        raise RuntimeError("OPENAI_API_KEY가 설정되어 있지 않습니다. 로컬에서는 .env, Streamlit Cloud에서는 Secrets를 설정해주세요.")
+        raise ConfigurationError("OPENAI_API_KEY가 설정되어 있지 않습니다. 로컬에서는 .env, Streamlit Cloud에서는 Secrets를 설정해주세요.")
     if difficulty not in DIFFICULTY_OPTIONS:
-        raise ValueError(build_response_data_error("지원하지 않는 난이도입니다."))
+        raise ResponseValidationError(build_response_data_error("지원하지 않는 난이도입니다."))
+    if type(question_count) is not int or question_count not in QUESTION_COUNT_OPTIONS:
+        raise ResponseValidationError(build_response_data_error("지원하지 않는 CBT 문제 수입니다."))
 
     try:
         from openai import OpenAI
     except ImportError as exc:
-        raise RuntimeError("openai 패키지가 설치되어 있지 않습니다. requirements.txt를 설치해주세요.") from exc
+        raise ConfigurationError("openai 패키지가 설치되어 있지 않습니다. requirements.txt를 설치해주세요.") from exc
 
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(
+        api_key=api_key,
+        timeout=API_TIMEOUT_SECONDS,
+        max_retries=0,
+    )
     model = get_model()
     prompt = build_prompt(topic, question_count, difficulty)
+    started_at = time.perf_counter()
+    LOGGER.info(
+        "lesson_generation_started model=%s question_count=%s difficulty=%s",
+        model,
+        question_count,
+        difficulty,
+    )
 
     try:
         response = client.responses.create(
@@ -347,47 +438,70 @@ def generate_lesson(topic: str, question_count: int, difficulty: str) -> dict:
             temperature=0.2,
         )
     except Exception as first_error:
-        if not should_try_api_fallback(first_error):
-            raise RuntimeError(build_api_error_message(first_error)) from first_error
+        status_code = getattr(first_error, "status_code", None)
+        retryable = should_try_api_fallback(first_error)
+        LOGGER.warning(
+            "primary_api_failed error_type=%s status_code=%s fallback=%s",
+            type(first_error).__name__,
+            status_code,
+            retryable,
+        )
+        if not retryable:
+            raise ApiRequestError(build_api_error_message()) from first_error
         try:
+            LOGGER.info("compatibility_fallback_started model=%s", model)
             response = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.2,
             )
         except Exception as second_error:
-            raise RuntimeError(build_api_error_message(second_error)) from first_error
+            LOGGER.warning(
+                "fallback_api_failed error_type=%s status_code=%s",
+                type(second_error).__name__,
+                getattr(second_error, "status_code", None),
+            )
+            raise ApiRequestError(build_api_error_message()) from second_error
 
-    data = parse_json_response(extract_text(response))
-    validate_lesson(data, question_count)
+    try:
+        data = parse_json_response(extract_text(response))
+        validate_lesson(data, question_count)
+    except (ResponseFormatError, ResponseValidationError) as exc:
+        LOGGER.warning("lesson_response_rejected error_type=%s", type(exc).__name__)
+        raise
     data["difficulty"] = difficulty
     data["requested_question_count"] = question_count
+    LOGGER.info(
+        "lesson_generation_completed duration_ms=%s question_count=%s",
+        round((time.perf_counter() - started_at) * 1000),
+        len(data["cbt"]),
+    )
     return data
 
 
 def validate_lesson(data: dict, question_count: int) -> None:
     """Validate and normalize the lesson JSON returned by the AI model."""
-    if question_count not in QUESTION_COUNT_OPTIONS:
-        raise ValueError(build_response_data_error("지원하지 않는 CBT 문제 수입니다."))
+    if type(question_count) is not int or question_count not in QUESTION_COUNT_OPTIONS:
+        raise ResponseValidationError(build_response_data_error("지원하지 않는 CBT 문제 수입니다."))
     if not isinstance(data, dict):
-        raise ValueError(build_response_data_error("응답이 객체 형식이 아닙니다."))
+        raise ResponseValidationError(build_response_data_error("응답이 객체 형식이 아닙니다."))
 
     required_keys = ["topic", "tutorial", "example", "direct_task", "practice", "cbt"]
     for key in required_keys:
         if key not in data:
-            raise ValueError(build_response_data_error(f"필요한 값이 없습니다({key})."))
+            raise ResponseValidationError(build_response_data_error(f"필요한 값이 없습니다({key})."))
 
     text_keys = ["topic", "tutorial", "example", "direct_task", "practice"]
     for key in text_keys:
         if not isinstance(data[key], str) or not data[key].strip():
-            raise ValueError(build_response_data_error(f"{key} 값이 비어 있거나 문자 형식이 아닙니다."))
+            raise ResponseValidationError(build_response_data_error(f"{key} 값이 비어 있거나 문자 형식이 아닙니다."))
 
     if not isinstance(data["cbt"], list):
-        raise ValueError(build_response_data_error("CBT 문제가 배열 형식이 아닙니다."))
+        raise ResponseValidationError(build_response_data_error("CBT 문제가 배열 형식이 아닙니다."))
 
     actual_question_count = len(data["cbt"])
     if actual_question_count == 0:
-        raise ValueError(build_response_data_error("생성된 CBT 문제가 없습니다. 다시 시도해주세요."))
+        raise ResponseValidationError(build_response_data_error("생성된 CBT 문제가 없습니다. 다시 시도해주세요."))
     if actual_question_count < question_count:
         data["cbt_count_notice"] = (
             f"요청한 문제 수는 {question_count}문제였지만 "
@@ -403,24 +517,24 @@ def validate_lesson(data: dict, question_count: int) -> None:
 
     for index, question in enumerate(data["cbt"], start=1):
         if not isinstance(question, dict):
-            raise ValueError(build_response_data_error(f"CBT {index}번 문제가 객체 형식이 아닙니다."))
+            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제가 객체 형식이 아닙니다."))
         for key in ["question", "choices", "answer_index", "explanation"]:
             if key not in question:
-                raise ValueError(build_response_data_error(f"CBT {index}번 문제에 {key} 값이 없습니다."))
+                raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제에 {key} 값이 없습니다."))
         if not isinstance(question["question"], str) or not question["question"].strip():
-            raise ValueError(build_response_data_error(f"CBT {index}번 문제 내용이 비어 있습니다."))
+            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제 내용이 비어 있습니다."))
         if not isinstance(question["choices"], list) or len(question["choices"]) != 4:
-            raise ValueError(build_response_data_error(f"CBT {index}번 문제는 선택지 4개가 필요합니다."))
+            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제는 선택지 4개가 필요합니다."))
         if not all(isinstance(choice, str) and choice.strip() for choice in question["choices"]):
-            raise ValueError(build_response_data_error(f"CBT {index}번 선택지가 비어 있거나 문자 형식이 아닙니다."))
-        normalized_choices = [choice.strip() for choice in question["choices"]]
+            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 선택지가 비어 있거나 문자 형식이 아닙니다."))
+        normalized_choices = [normalize_choice_text(choice) for choice in question["choices"]]
         if len(set(normalized_choices)) != len(normalized_choices):
-            raise ValueError(build_response_data_error(f"CBT {index}번 문제에 중복 선택지가 있습니다."))
+            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제에 중복 선택지가 있습니다."))
         answer_index = question.get("answer_index")
-        if not isinstance(answer_index, int) or answer_index not in [0, 1, 2, 3]:
-            raise ValueError(build_response_data_error(f"CBT {index}번 문제의 정답 번호가 올바르지 않습니다."))
+        if type(answer_index) is not int or answer_index not in [0, 1, 2, 3]:
+            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제의 정답 번호가 올바르지 않습니다."))
         if not isinstance(question["explanation"], str) or not question["explanation"].strip():
-            raise ValueError(build_response_data_error(f"CBT {index}번 해설이 비어 있습니다."))
+            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 해설이 비어 있습니다."))
 
 
 def validate_topic_input(topic: str) -> tuple[bool, str, str]:
@@ -453,6 +567,8 @@ def reset_learning_state(clear_adaptation: bool = True) -> None:
         st.session_state.latest_adaptive_summary = None
         st.session_state.adaptation_error = None
         st.session_state.pending_recommended_difficulty = None
+        st.session_state.analytics_cache = None
+        st.session_state.analytics_revision = 0
 
 
 def init_state() -> None:
@@ -481,6 +597,10 @@ def init_state() -> None:
         st.session_state.adaptation_error = None
     if "pending_recommended_difficulty" not in st.session_state:
         st.session_state.pending_recommended_difficulty = None
+    if "analytics_cache" not in st.session_state:
+        st.session_state.analytics_cache = None
+    if "analytics_revision" not in st.session_state:
+        st.session_state.analytics_revision = 0
 
 
 def apply_pending_difficulty_recommendation() -> None:
@@ -503,7 +623,12 @@ def normalize_round_state(lesson: dict) -> None:
 
     safe_answers = {}
     for key, value in st.session_state.answers.items():
-        if isinstance(key, int) and 0 <= key < total_questions and value in [0, 1, 2, 3]:
+        if (
+            type(key) is int
+            and 0 <= key < total_questions
+            and type(value) is int
+            and value in [0, 1, 2, 3]
+        ):
             safe_answers[key] = value
     st.session_state.answers = safe_answers
 
@@ -512,10 +637,10 @@ def normalize_round_state(lesson: dict) -> None:
     st.session_state.answer_confidence = {
         key: adaptive.normalize_confidence(value)
         for key, value in st.session_state.answer_confidence.items()
-        if isinstance(key, int) and 0 <= key < total_questions
+        if type(key) is int and 0 <= key < total_questions
     }
 
-    if not isinstance(st.session_state.current_question_index, int):
+    if type(st.session_state.current_question_index) is not int:
         st.session_state.current_question_index = 0
     st.session_state.current_question_index = max(
         0,
@@ -533,9 +658,10 @@ def normalize_round_state(lesson: dict) -> None:
     feedback_index = feedback.get("index")
     selected_index = feedback.get("selected_index")
     if (
-        not isinstance(feedback_index, int)
+        type(feedback_index) is not int
         or feedback_index < 0
         or feedback_index >= total_questions
+        or type(selected_index) is not int
         or selected_index not in [0, 1, 2, 3]
         or not isinstance(feedback.get("is_correct"), bool)
     ):
@@ -588,7 +714,13 @@ def record_completed_round(lesson: dict) -> dict:
     round_id = st.session_state.cbt_round_id
     records = st.session_state.adaptation_records.setdefault(topic_key, [])
     existing = next(
-        (item for item in records if item["round_status"]["round_id"] == round_id),
+        (
+            item
+            for item in records
+            if isinstance(item, dict)
+            and isinstance(item.get("round_status"), dict)
+            and item["round_status"].get("round_id") == round_id
+        ),
         None,
     )
     if existing is not None:
@@ -602,7 +734,7 @@ def record_completed_round(lesson: dict) -> dict:
                 "question_index": index,
                 "selected_index": selected_index,
                 "answer_index": question["answer_index"],
-                "is_correct": selected_index == question["answer_index"],
+                "is_correct": is_correct_answer(selected_index, question["answer_index"]),
                 "confidence": st.session_state.answer_confidence.get(index),
             }
         )
@@ -615,7 +747,33 @@ def record_completed_round(lesson: dict) -> dict:
     summary = adaptive.build_adaptive_summary(status)
     records.append(summary)
     summary["learning_progress"] = calculate_learning_progress(records)
+    st.session_state.analytics_revision += 1
+    st.session_state.analytics_cache = None
     return summary
+
+
+def get_cached_learning_analytics(topic_key: str) -> dict:
+    """Reuse analytics until completed-round evidence changes."""
+    cache = st.session_state.analytics_cache
+    revision = st.session_state.analytics_revision
+    if (
+        isinstance(cache, dict)
+        and cache.get("topic_key") == topic_key
+        and cache.get("revision") == revision
+        and isinstance(cache.get("result"), dict)
+    ):
+        return cache["result"]
+
+    result = analytics.build_learning_analytics(
+        st.session_state.adaptation_records,
+        topic_key,
+    )
+    st.session_state.analytics_cache = {
+        "topic_key": topic_key,
+        "revision": revision,
+        "result": result,
+    }
+    return result
 
 
 def render_learning_status(lesson: dict) -> None:
@@ -678,6 +836,10 @@ def render_cbt(lesson: dict) -> None:
         except Exception as exc:
             st.session_state.latest_adaptive_summary = None
             st.session_state.adaptation_error = str(exc)
+            LOGGER.warning(
+                "adaptive_summary_failed error_type=%s",
+                type(exc).__name__,
+            )
         render_round_summary(lesson)
         if st.button("다시 학습"):
             reset_round_state()
@@ -688,21 +850,29 @@ def render_cbt(lesson: dict) -> None:
         return
 
     st.markdown(f"**문제 {current_index + 1} / {total_questions}. {question['question']}**")
+    feedback = st.session_state.current_feedback
+    answer_locked = (
+        isinstance(feedback, dict)
+        and feedback.get("index") == current_index
+        and current_index in st.session_state.answers
+    )
     selected_index = st.radio(
         "답을 선택하세요.",
         range(len(question["choices"])),
         format_func=lambda index: question["choices"][index],
         key=f"cbt_{st.session_state.cbt_round_id}_{current_index}",
         index=None,
+        disabled=answer_locked,
     )
     confidence_label = st.selectbox(
         "답변 확신도 (선택)",
         list(CONFIDENCE_OPTIONS),
         key=f"confidence_{st.session_state.cbt_round_id}_{current_index}",
         help="현재 답변에 대해 스스로 느끼는 확신도입니다. 선택하지 않아도 됩니다.",
+        disabled=answer_locked,
     )
 
-    if st.button("정답 확인"):
+    if st.button("정답 확인", disabled=answer_locked):
         if selected_index is None:
             st.warning("답을 선택해주세요.")
         else:
@@ -716,6 +886,7 @@ def render_cbt(lesson: dict) -> None:
                 "is_correct": is_correct,
                 "selected_index": selected_index,
             }
+            st.rerun()
 
     render_current_feedback(question, current_index, total_questions)
 
@@ -911,10 +1082,12 @@ def render_learning_analytics(lesson: dict) -> None:
     """Render additive v0.5 analytics without affecting the v0.4 result path."""
     try:
         topic_key = normalize_topic_key(lesson["topic"])
-        result = analytics.build_learning_analytics(
-            st.session_state.adaptation_records, topic_key
+        result = get_cached_learning_analytics(topic_key)
+    except Exception as exc:
+        LOGGER.warning(
+            "learning_analytics_failed error_type=%s",
+            type(exc).__name__,
         )
-    except Exception:
         st.warning(
             "기존 v0.4 학습 결과는 정상적으로 완료되었지만 "
             "v0.5 학습 분석을 표시할 수 없습니다."
@@ -1044,6 +1217,7 @@ def render_learning_analytics(lesson: dict) -> None:
 
 
 def main() -> None:
+    configure_logging()
     st.set_page_config(page_title=APP_TITLE, page_icon="📘")
     init_state()
     apply_pending_difficulty_recommendation()
@@ -1071,7 +1245,11 @@ def main() -> None:
                 try:
                     st.session_state.lesson = generate_lesson(cleaned_topic, question_count, difficulty)
                 except Exception as exc:
-                    st.error(str(exc))
+                    LOGGER.warning(
+                        "lesson_generation_failed error_type=%s",
+                        type(exc).__name__,
+                    )
+                    st.error(user_facing_error_message(exc))
                 finally:
                     st.session_state.is_generating = False
 

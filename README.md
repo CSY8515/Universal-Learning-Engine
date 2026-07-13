@@ -1,6 +1,6 @@
-# Universal Learning Engine v0.5 Learning Analytics
+# Universal Learning Engine v0.6 Quality & Reliability
 
-![Version](https://img.shields.io/badge/version-v0.5%20implementation-blue)
+![Version](https://img.shields.io/badge/version-v0.6-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,7 +9,7 @@ Universal Learning Engine is a Streamlit learning MVP that generates a consisten
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The working tree implements **v0.5 Learning Analytics** on the preserved v0.4 Adaptive Learning baseline. `VERSION` remains `v0.4` until separate release-preparation approval. No commit, push, tag, GitHub Release, or deployment has been performed for v0.5.
+The repository is prepared for the **v0.6 Quality & Reliability** release on the preserved v0.5 Learning Analytics baseline. The runtime version is `v0.6`; publishing operations remain separately controlled.
 
 ## Current features
 
@@ -39,6 +39,12 @@ The working tree implements **v0.5 Learning Analytics** on the preserved v0.4 Ad
 - Topic, difficulty, round, and learning-pattern breakdowns
 - Evidence-qualified strength and weakness summaries
 - Independent, deterministic analytics logic with non-fatal UI integration
+- Strict integer-only scoring indices and immutable submitted answers
+- Unambiguous single-object JSON extraction and normalized duplicate detection
+- Explicit API timeout, bounded compatibility fallback, and sanitized errors
+- Privacy-conscious operational event logging
+- Revision-bound analytics reuse within the active session
+- Automated compile and regression checks for Python 3.10 and 3.13
 
 Hard questions emphasize application, comparison, cases, and plausible distractors while connecting at least two concepts. Nightmare questions require a concrete scenario, multi-step reasoning, competing trade-offs, plausible traps, at least three connected concepts, and explanations of both correct and incorrect choices.
 
@@ -46,15 +52,14 @@ Hard questions emphasize application, comparison, cases, and plausible distracto
 
 The repository is the single source of truth. Use these documents in this order:
 
-1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — frozen v0.2 scope and implemented v0.3.1 baseline
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v0.6
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
 5. [ROADMAP_v0.5.md](./docs/ROADMAP_v0.5.md) — implemented v0.5 analytics contract
-6. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-7. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
-
-If a future proposal conflicts with the implemented baseline, the conflict must be resolved in the canonical documents before implementation.
+6. [ROADMAP_v0.6.md](./docs/ROADMAP_v0.6.md) — approved v0.6 reliability contract
+7. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+8. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 ## Installation
 
@@ -94,11 +99,11 @@ streamlit run app.py
 python -m unittest discover
 ```
 
-The suite verifies preserved v0.4 behavior, adaptive rule boundaries, analytics calculations, weighted accuracy, topic isolation, evidence thresholds, failure isolation, and controlled Streamlit v0.5 flows.
+The 57-test suite verifies preserved v0.5 behavior, adaptive rule boundaries, analytics calculations, strict scoring and JSON boundaries, bounded API fallback, exception sanitization, answer immutability, failure isolation, and controlled Streamlit flows. GitHub Actions is configured to run compile and regression checks on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following are not implemented in v0.5:
+The following are not implemented or expanded in v0.6:
 
 - Learning Decision Engine or Weakness Score
 - New Recovery Priority behavior or recovery content-generation engine
@@ -125,22 +130,27 @@ Universal-Learning-Engine/
 │  ├─ test_adaptive.py
 │  ├─ test_streamlit_v04.py
 │  ├─ test_analytics.py
-│  └─ test_streamlit_v05.py
+│  ├─ test_streamlit_v05.py
+│  └─ test_v06_quality.py
 ├─ docs/
 │  ├─ ROADMAP.md
 │  ├─ ROADMAP_v0.4.md
 │  ├─ ROADMAP_v0.5.md
+│  ├─ ROADMAP_v0.6.md
 │  ├─ MASTER_DESIGN.md
 │  ├─ ARCHITECTURE.md
 │  └─ MODULE_SPEC.md
 ├─ .streamlit/
 │  ├─ config.toml
 │  └─ secrets.toml.example
+├─ .github/workflows/tests.yml
 ├─ README.md
 ├─ CHANGELOG.md
 ├─ RELEASE_NOTES_v0.3.0.md
 ├─ RELEASE_NOTES_v0.3.1.md
 ├─ RELEASE_NOTES_v0.4.md
+├─ RELEASE_NOTES_v0.5.md
+├─ RELEASE_NOTES_v0.6.md
 ├─ VERSION
 ├─ requirements.txt
 ├─ LICENSE
@@ -150,6 +160,8 @@ Universal-Learning-Engine/
 
 ## Release information
 
+- [v0.6 release notes](./RELEASE_NOTES_v0.6.md)
+- [v0.5 release notes](./RELEASE_NOTES_v0.5.md)
 - [v0.4 release notes](./RELEASE_NOTES_v0.4.md)
 - [v0.3.1 release notes](./RELEASE_NOTES_v0.3.1.md)
 - [v0.3.0 release notes](./RELEASE_NOTES_v0.3.0.md)

@@ -45,6 +45,37 @@ class StreamlitV04Tests(unittest.TestCase):
         self.assertEqual(len(confidence), 1)
         self.assertEqual(confidence[0].value, "선택 안 함")
 
+    def test_submitted_answer_and_confidence_are_locked_during_feedback(self):
+        self.app.session_state["lesson"] = make_lesson()
+        self.app.run()
+
+        answer = [item for item in self.app.radio if item.label == "답을 선택하세요."][0]
+        confidence = [
+            item for item in self.app.selectbox if item.label == "답변 확신도 (선택)"
+        ][0]
+        answer.set_value(0).run()
+        confidence = [
+            item for item in self.app.selectbox if item.label == "답변 확신도 (선택)"
+        ][0]
+        confidence.set_value("높음").run()
+        confirm = [item for item in self.app.button if item.label == "정답 확인"][0]
+        confirm.click().run()
+
+        locked_answer = [
+            item for item in self.app.radio if item.label == "답을 선택하세요."
+        ][0]
+        locked_confidence = [
+            item for item in self.app.selectbox if item.label == "답변 확신도 (선택)"
+        ][0]
+        locked_confirm = [
+            item for item in self.app.button if item.label == "정답 확인"
+        ][0]
+        self.assertTrue(locked_answer.disabled)
+        self.assertTrue(locked_confidence.disabled)
+        self.assertTrue(locked_confirm.disabled)
+        self.assertEqual(self.app.session_state["answers"], {0: 0})
+        self.assertEqual(self.app.session_state["answer_confidence"], {0: "high"})
+
     def test_completed_round_renders_adaptive_summary_without_hiding_result(self):
         self.app.session_state["lesson"] = make_lesson()
         self.app.session_state["answers"] = {0: 0}

@@ -2,7 +2,7 @@
 
 ## Scope
 
-This specification describes the implemented v0.5 working tree. Most runtime responsibilities remain in `app.py`; deterministic adaptive rules are separated into `adaptive.py`, and deterministic Learning Analytics are separated into `analytics.py`.
+This specification describes the implemented v0.6 Quality & Reliability working tree on the preserved v0.5 baseline. Most runtime responsibilities remain in `app.py`; deterministic adaptive rules are separated into `adaptive.py`, and deterministic Learning Analytics are separated into `analytics.py`.
 
 ## Configuration module
 
@@ -101,11 +101,11 @@ Responsibilities:
 - Calculate and display correct count, wrong count, accuracy, wrong-answer details, and explanations.
 - Provide retry and home actions.
 
-## Current test module
+## Core quality test module
 
 File: `tests/test_app_quality.py`
 
-The current tests cover:
+The core quality tests cover:
 
 - Three supported JSON response shapes
 - Question-count truncation and notice creation
@@ -115,7 +115,11 @@ The current tests cover:
 - Retryable and non-retryable API error examples
 - Required v0.3.1 Hard and Nightmare prompt phrases
 
-The suite does not currently claim live API, full Streamlit UI, browser, persistence, performance, or security integration coverage.
+The complete suite also covers adaptive rules, analytics, Streamlit v0.4/v0.5
+regression behavior, v0.6 failure boundaries, answer immutability, and analytics
+cache reuse. Release review additionally verifies the rendered landing UI and
+browser console. It does not claim a paid live API call, persistence integration,
+load benchmarking, or security penetration testing.
 
 ## Adaptive rule module
 
@@ -163,7 +167,7 @@ Responsibilities:
 - Aggregate current-topic, overall-session, topic, difficulty, confidence, answer-pattern, and v0.4 signal evidence.
 - Produce deterministic learning summaries.
 - Produce evidence-qualified strength, weakness, mixed, and insufficient-evidence structures.
-- Expose stable matched-rule names and quantitative fields for later extension without calculating a Weakness Score or making a learning decision.
+- Expose stable matched-rule names and quantitative fields without calculating a Weakness Score or making a learning decision.
 
 The module has no Streamlit, OpenAI, database, persistence, scheduling, notification, Living OS, or autonomous-action dependency.
 
@@ -185,6 +189,24 @@ Responsibilities:
 - `tests/test_analytics.py` covers pure calculations, grouping, record order, confidence handling, evidence minimums, policy thresholds, duplicate/invalid records, non-mutation, and learning summaries.
 - `tests/test_streamlit_v05.py` covers additive rendering, metric reconciliation, optional confidence, absence of analytics actions, Home compatibility, and non-fatal analytics failure.
 
-## Future module reservation
+## v0.6 reliability integration
 
-Weakness Score, Learning Decision Engine behavior, new Recovery Priority behavior, Learning Timeline, Knowledge Retention, durable learner profiles, recovery-content generation, database, background scheduling, notifications, Living OS integration, and autonomous actions have no v0.5 module contract and must not be implemented without later approval.
+Functions in `app.py`: `configure_logging`, `extract_text`,
+`parse_json_response`, `normalize_choice_text`, `user_facing_error_message`,
+`should_try_api_fallback`, `is_correct_answer`, and
+`get_cached_learning_analytics`.
+
+Responsibilities:
+
+- Accept one plain, fenced, or lightly wrapped JSON lesson object.
+- Reject ambiguous objects, boolean indices, and normalized duplicate choices.
+- Lock submitted answer and confidence evidence during feedback.
+- Bound API work with explicit timeout, no hidden SDK retry, and at most one
+  approved compatibility fallback.
+- Separate safe learner errors from operational failure metadata.
+- Invalidate derived analytics cache data whenever completed evidence changes.
+- Preserve all v0.5 module contracts and user-visible flow.
+
+`tests/test_v06_quality.py` and the preserved suites cover the v0.6 reliability
+contract. The complete local Python 3.13.14 suite contains 57 passing tests.
+GitHub Actions is configured for Python 3.10 and 3.13.
