@@ -2,6 +2,40 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.0.0 - Stable
+
+### Added
+
+- Official ULE Signal Grid dark interface
+- Dashboard Home, Learning, and Review navigation
+- Session-only Dashboard for current topic, recommendation, accuracy, recovery,
+  recent results, weakness evidence, progress, and activity
+- Responsive, keyboard-focus, and reduced-motion presentation rules
+- Dedicated `ui` presentation package and trusted static stylesheet
+- Stable Expansion public API compatibility tests and documentation
+- Developer Guide, Security Policy, v1.0 roadmap, and release review
+- Tested direct dependency constraints
+
+### Changed
+
+- Result metrics are prioritized while detailed mistakes and explanations are
+  collapsed by default
+- Major views render selectively to reduce unnecessary page work
+- Navigation changes use queued session transitions compatible with Streamlit
+  widget-state rules
+- Documentation and release metadata now identify `v1.0.0` as the Stable line
+
+### Removed
+
+- Inactive legacy difficulty-rule function superseded by the preserved active
+  v0.3.1 quality prompt rules
+
+### Preserved
+
+- Complete v0.9 learning, adaptive, recovery, analytics, session, Expansion,
+  Runtime, error, security, and public API behavior
+- Expansion interface version `0.7` and lifecycle-only v0.7 Pack compatibility
+
 ## v0.9 - Final Stabilization
 
 ### Added

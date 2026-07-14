@@ -1,4 +1,4 @@
-"""Public facade for the Expansion Platform through v0.9."""
+"""Stable public facade for the Expansion Platform."""
 
 from .interfaces import ExpansionPack, PackManifest
 from .manager import PackManager, PackStatus

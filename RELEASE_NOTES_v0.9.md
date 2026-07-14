@@ -2,7 +2,7 @@
 
 ## Status
 
-The approved v0.9 implementation and local release review are complete. Commit, push, tag, GitHub Release, and deployment have not been performed. The GitHub Actions Python 3.10/3.13 matrix is configured and requires an authorized push before remote results can exist.
+The approved v0.9 implementation and local release review were completed and committed as `770c7d9`, which is also the local `origin/main` tracking baseline reviewed for v1.0. No v0.9 tag exists in the reviewed repository. GitHub Release, deployment, and live remote CI status are not asserted by this historical document.
 
 ## Added
 
@@ -48,4 +48,4 @@ Operational logs contain operation, Pack identity, and exception type only. Call
 - Direct Registry mutation is not Runtime-coordinated; lifecycle and execution changes must use Pack Manager or Expansion API.
 - No concrete Living OS integration, discovery, marketplace, network, IPC, background worker, or cross-Pack messaging exists.
 - Live OpenAI behavior and generated content quality still require environment-specific manual verification.
-- Python 3.10 remote CI evidence cannot exist until an authorized push runs GitHub Actions.
+- Historical remote CI evidence is not asserted by this local release note.

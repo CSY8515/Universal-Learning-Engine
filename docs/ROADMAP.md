@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v0.9 Final Stabilization; publishing
+- The implemented working-tree version is v1.0.0 Stable; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -114,6 +114,21 @@ v0.9-or-v1.0 features remain excluded.
 - Release checklist and explicit v1.0 design entry gate
 
 The approved detailed contract is `ROADMAP_v0.9.md`. v0.9 adds no learning feature, persistent state, external integration, background work, new UI, or v1.0 capability. Public Expansion methods and interface version `0.7` remain unchanged.
+
+### v1.0.0 — Stable
+
+- Official ULE Signal Grid interface
+- Dashboard Home, Learning, and Review workspaces
+- Read-only session Dashboard and evidence-based next-step presentation
+- Result readability and selective major-view rendering
+- Presentation-layer separation and tested direct dependency constraints
+- Developer, security, public API, compatibility, and release documentation
+- Stable release verification and publication gates
+
+The approved contract is `ROADMAP_v1.0.md`. v1.0 preserves all v0.9 learning,
+session, adaptive, analytics, Expansion, Runtime, public API, and security
+behavior. It adds no persistence, new learning algorithm, autonomous action,
+external transport, remote Pack capability, or concrete Living OS behavior.
 ## v0.4 preparation gates — complete
 
 Implementation may begin only after approval of:

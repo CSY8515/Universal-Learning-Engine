@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v0.9 preserves the single-process Streamlit learning application and extends the independent in-process Expansion Platform with a Pack Runtime and isolated Pack Sessions. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, reliability logging, and UI rendering. `adaptive.py` contains pure deterministic v0.4 adaptive rules. `analytics.py` contains pure deterministic v0.5 Learning Analytics. The `expansion` package contains the preserved v0.7 common interface, Registry, Loader, Manager, API, and connection-only Living OS boundary plus the preserved v0.8 execution layer and the v0.9 shared transition guard.
+Universal Learning Engine v1.0 preserves the single-process Streamlit learning application and independent in-process Expansion Platform. `app.py` remains the composition, configuration, OpenAI, validation, session, and compatibility boundary. `ui/` owns the official theme, navigation, Dashboard, Review, and reusable presentation components. `adaptive.py` contains pure deterministic adaptive rules. `analytics.py` contains pure deterministic Learning Analytics. The `expansion` package preserves the common interface, Registry, Loader, Manager, API, connection-only Living OS boundary, execution layer, and shared transition guard.
 
 ```text
 User
@@ -65,6 +65,9 @@ Streamlit session state contains:
 | `pending_recommended_difficulty` | Explicitly queued selector update |
 | `analytics_cache` | Revision-bound derived v0.5 analytics output |
 | `analytics_revision` | Invalidates derived analytics when source evidence changes |
+| `active_view` | Current Dashboard, Learning, or Review workspace |
+| `pending_view` | Queued view change applied before navigation widget creation |
+| `navigation_explicit` | Distinguishes explicit Dashboard navigation from first lesson entry |
 
 State normalization removes invalid answers, bounds the active index, repairs invalid flags, and clears malformed feedback.
 
@@ -202,3 +205,27 @@ The transition guard records only conflicting lifecycle/runtime transitions and 
 Streamlit initialization repairs malformed session metadata before use. Completed-round evidence and derived analytics revision/cache changes are prepared before source replacement. Retry removes CBT and confidence widget state. Learning data remains session-only and Home retains its clearing behavior.
 
 The v0.9 boundary adds no new UI, learning rule, persistence, external integration, transport, background execution, or v1.0 capability.
+
+## v1.0 presentation boundary
+
+```text
+app.py composition root
+  -> ui.theme (trusted static CSS only)
+  -> ui.navigation (session-safe major view selection)
+  -> ui.dashboard (read-only session evidence)
+  -> existing Learning and Review renderers
+  -> adaptive.py / analytics.py (unchanged policy authorities)
+```
+
+Dashboard is the initial Home view. Selecting Dashboard never clears source
+evidence. Home reset queues a Dashboard transition and preserves the established
+clear-all learning-data contract. Only the selected major view is rendered.
+
+Static brand markup and `assets/ule.css` are repository-controlled. Topics,
+generated content, answers, secrets, provider errors, and Pack state are not
+interpolated into unsafe HTML. Dashboard makes no external request and stores no
+second copy of analytics evidence.
+
+The v1.0 boundary changes no lesson schema, scoring rule, adaptive threshold,
+analytics classification, Expansion state authority, Pack callback, public API,
+or interface version.

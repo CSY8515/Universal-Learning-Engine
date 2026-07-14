@@ -2,7 +2,7 @@
 
 ## Scope
 
-This specification describes the implemented v0.8 Pack Runtime working tree on the preserved v0.7 baseline. Existing learning-runtime responsibilities remain in `app.py`; deterministic adaptive rules remain in `adaptive.py`, deterministic Learning Analytics remain in `analytics.py`, and all expansion responsibilities remain isolated in the `expansion` package.
+This specification describes the implemented v1.0 Stable application on the preserved v0.9 runtime baseline. Learning-runtime coordination remains in `app.py`; presentation responsibilities are separated into `ui/`; deterministic adaptive rules remain in `adaptive.py`, deterministic Learning Analytics remain in `analytics.py`, and all expansion responsibilities remain isolated in the `expansion` package.
 
 ## Configuration module
 
@@ -19,7 +19,7 @@ The module must not hardcode credentials or expose them in rendered output.
 
 ## Difficulty and prompt module
 
-Functions: `get_difficulty_rules`, `get_quality_difficulty_rules`, `build_prompt`
+Functions: `get_quality_difficulty_rules`, `build_prompt`
 
 Responsibilities:
 
@@ -28,7 +28,7 @@ Responsibilities:
 - Insert the topic, question count, and selected difficulty into the prompt.
 - Declare the JSON response contract and v0.3 exclusions.
 
-`get_quality_difficulty_rules` is the active rule source used by `build_prompt`. The older difficulty-rule function remains implemented and must not be represented as active prompt behavior.
+`get_quality_difficulty_rules` is the single active rule source used by `build_prompt`. The inactive pre-v0.3.1 duplicate was removed in v1.0 without changing generated prompt behavior.
 
 ## API integration module
 
@@ -366,3 +366,25 @@ Responsibilities:
 Files: `tests/test_v09_stability.py`, `.coveragerc`, `.github/workflows/tests.yml`
 
 The focused tests cover cross-layer reentrancy, direct Loader bypass prevention, structured cleanup failure, session repair, atomic recording, and widget cleanup. CI compiles the complete runtime, measures branch coverage, and verifies the headless Streamlit health endpoint on Python 3.10 and 3.13.
+
+## v1.0 presentation modules
+
+Modules: `ui.theme`, `ui.navigation`, `ui.components`, `ui.dashboard`,
+`ui.results`
+
+Responsibilities:
+
+- Load repository-owned static CSS once without dynamic content interpolation.
+- Render Dashboard, Learning, and Review navigation.
+- Read current lesson, adaptive summary, and cached analytics without mutation.
+- Present compact metrics, controlled empty states, and recent session evidence.
+- Preserve explicit recommendation application and Home/Retry state contracts.
+- Render responsive, focus-visible, and reduced-motion UI rules.
+
+## v1.0 verification modules
+
+`tests/test_streamlit_v10.py` covers Dashboard Home, navigation, session
+preservation, evidence rendering, Review empty state, and metadata repair.
+`tests/test_v10_ui_contract.py` covers official theme, static-style safety,
+responsive rules, focus, and reduced motion. `tests/test_v10_public_api.py`
+freezes the recommended Expansion facade operations and interface compatibility.

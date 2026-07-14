@@ -8,6 +8,13 @@ import streamlit as st
 
 import adaptive
 import analytics
+from ui import (
+    NAVIGATION_OPTIONS,
+    apply_official_theme,
+    render_dashboard,
+    render_navigation,
+)
+from ui.results import render_review_intro
 
 
 APP_TITLE = "Universal Learning Engine"
@@ -117,79 +124,6 @@ def get_api_key() -> str | None:
 
 def get_model() -> str:
     return os.getenv("OPENAI_MODEL") or get_secret_value("OPENAI_MODEL") or DEFAULT_MODEL
-
-
-def get_difficulty_rules(difficulty: str) -> str:
-    """Return prompt rules for the selected v0.3 difficulty level."""
-    rules = {
-        "Easy": """
-Easy 난이도 기준:
-- 기본 용어를 묻는다.
-- 단순 개념을 확인한다.
-- 암기형 문제를 포함한다.
-- 완전 초보자도 풀 수 있는 수준으로 만든다.
-- 선택지는 너무 꼬지 말고 명확하게 만든다.
-""",
-        "Normal": """
-Normal 난이도 기준:
-- 기본 개념과 간단한 적용을 함께 묻는다.
-- 쉬운 사례 문제를 포함한다.
-- 기초 이해 여부를 확인한다.
-- 단순 암기만 묻지 말고, 쉬운 상황 판단을 1~2문제 포함한다.
-""",
-        "Hard": """
-Hard 난이도 기준:
-- 응용 문제를 포함한다.
-- 사례 기반 문제를 포함한다.
-- 혼동하기 쉬운 개념 비교 문제를 포함한다.
-- 실무형 또는 시험형 판단 문제를 포함한다.
-- 너무 쉬운 정의형 문제는 금지한다.
-- 정의만 묻는 초급 문제를 출제하지 말 것.
-- 응용·사례·비교·판단형 문제를 포함할 것.
-
-Hard 주제별 예시 기준:
-- 투자: "투자의 목적은?" 같은 단순 정의 문제 금지. ETF, 분산투자, 금리, 채권, 리스크, 장기투자 판단 문제를 포함한다.
-- 제과제빵: "이스트 역할은?" 같은 단순 정의 문제 금지. 글루텐, 발효, 온도, 믹싱, 반죽 상태, 기능사 시험형 문제를 포함한다.
-- 영어: 알파벳 개수 같은 문제 금지. 문법, 시제, 어순, 독해, 문장 수정 문제를 포함한다.
-""",
-        "Nightmare": """
-Nightmare 난이도 기준:
-- Hard보다 더 어렵게 만든다.
-- 단순 정의형 문제를 반복하지 않는다.
-- 복합 사례 기반 문제를 포함한다.
-- 둘 이상의 개념을 비교하거나 함께 판단해야 하는 문제를 포함한다.
-- 오답 선택지도 그럴듯하게 만든다.
-- 실무형, 시험형, 함정형 판단 문제를 포함한다.
-- 정답 해설에는 왜 다른 선택지가 틀렸는지도 간단히 설명한다.
-- 쉬운 용어 암기 문제만 출제하지 말 것.
-
-Nightmare 주제별 예시 기준:
-- 투자: ETF, 분산투자, 금리 변화, 채권 가격, 리스크 관리, 장기투자 판단을 복합적으로 묻는다.
-- 제과제빵: 글루텐 형성, 발효 온도, 믹싱 단계, 반죽 상태, 굽기 조건, 기능사 시험형 판단을 함께 묻는다.
-- 영어: 시제, 어순, 문법 오류 수정, 짧은 독해, 문장 의미 판단을 함께 묻는다.
-""",
-        "입문": """
-Easy 난이도 기준:
-- 기본 용어를 묻는다.
-- 단순 개념을 확인한다.
-- 암기형 문제를 포함한다.
-- 완전 초보자도 풀 수 있는 수준으로 만든다.
-""",
-        "초급": """
-Normal 난이도 기준:
-- 기본 개념과 간단한 적용을 함께 묻는다.
-- 쉬운 사례 문제를 포함한다.
-- 기초 이해 여부를 확인한다.
-""",
-        "중급": """
-Hard 난이도 기준:
-- 응용 문제를 포함한다.
-- 사례 기반 문제를 포함한다.
-- 혼동하기 쉬운 개념 비교 문제를 포함한다.
-- 너무 쉬운 정의형 문제는 금지한다.
-""",
-    }
-    return rules.get(difficulty, rules["Easy"])
 
 
 def get_quality_difficulty_rules(difficulty: str) -> str:
@@ -563,6 +497,8 @@ def reset_round_state() -> None:
 def reset_learning_state(clear_adaptation: bool = True) -> None:
     st.session_state.lesson = None
     reset_round_state()
+    st.session_state.pending_view = "Dashboard"
+    st.session_state.navigation_explicit = False
     if clear_adaptation:
         st.session_state.adaptation_records = {}
         st.session_state.latest_adaptive_summary = None
@@ -570,6 +506,19 @@ def reset_learning_state(clear_adaptation: bool = True) -> None:
         st.session_state.pending_recommended_difficulty = None
         st.session_state.analytics_cache = None
         st.session_state.analytics_revision = 0
+
+
+def mark_navigation_explicit() -> None:
+    """Remember that Dashboard navigation was chosen by the learner."""
+    st.session_state.navigation_explicit = True
+
+
+def apply_pending_view() -> None:
+    """Apply queued navigation before the keyed navigation widget is created."""
+    pending = st.session_state.pending_view
+    if pending in NAVIGATION_OPTIONS:
+        st.session_state.active_view = pending
+    st.session_state.pending_view = None
 
 
 def init_state() -> None:
@@ -589,6 +538,9 @@ def init_state() -> None:
         "pending_recommended_difficulty": None,
         "analytics_cache": None,
         "analytics_revision": 0,
+        "active_view": "Dashboard",
+        "pending_view": None,
+        "navigation_explicit": False,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -631,6 +583,12 @@ def init_state() -> None:
         st.session_state.analytics_cache = None
     if type(st.session_state.analytics_revision) is not int or st.session_state.analytics_revision < 0:
         st.session_state.analytics_revision = 0
+    if st.session_state.active_view not in NAVIGATION_OPTIONS:
+        st.session_state.active_view = "Dashboard"
+    if st.session_state.pending_view not in (None, *NAVIGATION_OPTIONS):
+        st.session_state.pending_view = None
+    if not isinstance(st.session_state.navigation_explicit, bool):
+        st.session_state.navigation_explicit = False
 
 def apply_pending_difficulty_recommendation() -> None:
     """Apply a queued recommendation before Streamlit creates the selector widget."""
@@ -967,29 +925,31 @@ def render_round_summary(lesson: dict) -> None:
     accuracy = round((correct_count / total_questions) * 100) if total_questions else 0
 
     st.subheader("라운드 결과 요약")
-    st.write(f"난이도: {lesson.get('difficulty', 'Easy')}")
-    st.write(f"총 문제 수: {total_questions}")
-    st.write(f"정답 수: {correct_count}")
-    st.write(f"오답 수: {wrong_count}")
-    st.write(f"정답률: {accuracy}%")
+    result_columns = st.columns(4)
+    result_columns[0].metric("정답률", f"{accuracy}%")
+    result_columns[1].metric("정답", correct_count)
+    result_columns[2].metric("오답", wrong_count)
+    result_columns[3].metric("난이도", lesson.get("difficulty", "Easy"))
 
     st.subheader("오답노트")
     if not wrong_answers:
         st.success("틀린 문제가 없습니다.")
     else:
-        for index, question, user_answer in wrong_answers:
-            st.markdown(f"**문제 {index + 1}. {question['question']}**")
-            if user_answer is None:
-                st.write("사용자 답: 미응답")
-            else:
-                st.write(f"사용자 답: {question['choices'][user_answer]}")
-            st.write(f"정답: {question['choices'][question['answer_index']]}")
+        with st.expander(f"오답 {wrong_count}개 자세히 보기"):
+            for index, question, user_answer in wrong_answers:
+                st.markdown(f"**문제 {index + 1}. {question['question']}**")
+                if user_answer is None:
+                    st.write("사용자 답: 미응답")
+                else:
+                    st.write(f"사용자 답: {question['choices'][user_answer]}")
+                st.write(f"정답: {question['choices'][question['answer_index']]}")
 
     st.subheader("해설")
-    for index, question in enumerate(questions):
-        st.markdown(f"**문제 {index + 1}. {question['question']}**")
-        st.write(f"정답: {question['choices'][question['answer_index']]}")
-        st.write(question["explanation"])
+    with st.expander(f"전체 {total_questions}개 해설 보기"):
+        for index, question in enumerate(questions):
+            st.markdown(f"**문제 {index + 1}. {question['question']}**")
+            st.write(f"정답: {question['choices'][question['answer_index']]}")
+            st.write(question["explanation"])
 
     st.subheader("학습 종료")
     st.success("학습이 완료되었습니다.")
@@ -1250,45 +1210,134 @@ def render_learning_analytics(lesson: dict) -> None:
             )
 
 
-def main() -> None:
-    configure_logging()
-    st.set_page_config(page_title=APP_TITLE, page_icon="📘")
-    init_state()
-    apply_pending_difficulty_recommendation()
-
-    st.title(APP_TITLE)
-    st.write(APP_DESCRIPTION)
-
-    topic = st.text_input("학습할 주제를 입력하세요.", placeholder="예: 제과제빵, Python, 영어, 투자, 역사")
-    question_count = st.selectbox("CBT 문제 수를 선택하세요.", QUESTION_COUNT_OPTIONS, index=0)
-    difficulty = st.selectbox(
+def render_learning_setup() -> None:
+    """Render the preserved universal-topic lesson controls."""
+    st.caption("NEW LEARNING SESSION")
+    st.subheader("학습 설정")
+    topic = st.text_input(
+        "학습할 주제를 입력하세요.",
+        placeholder="예: 제과제빵, Python, 영어, 투자, 역사",
+    )
+    setup_columns = st.columns(2)
+    question_count = setup_columns[0].selectbox(
+        "CBT 문제 수를 선택하세요.", QUESTION_COUNT_OPTIONS, index=0
+    )
+    difficulty = setup_columns[1].selectbox(
         "난이도를 선택하세요.",
         DIFFICULTY_OPTIONS,
         index=0,
         key="difficulty_selector",
     )
 
-    if st.button("학습 시작", disabled=st.session_state.is_generating):
+    if st.button(
+        "학습 시작",
+        disabled=st.session_state.is_generating,
+        type="primary",
+        use_container_width=True,
+    ):
         is_valid, cleaned_topic, message = validate_topic_input(topic)
         if not is_valid:
             st.warning(message)
-        else:
-            reset_learning_state(clear_adaptation=False)
-            st.session_state.is_generating = True
-            with st.spinner("학습 내용을 생성하는 중입니다."):
-                try:
-                    st.session_state.lesson = generate_lesson(cleaned_topic, question_count, difficulty)
-                except Exception as exc:
-                    LOGGER.warning(
-                        "lesson_generation_failed error_type=%s",
-                        type(exc).__name__,
-                    )
-                    st.error(user_facing_error_message(exc))
-                finally:
-                    st.session_state.is_generating = False
+            return
 
-    if st.session_state.lesson:
-        render_lesson(st.session_state.lesson)
+        reset_learning_state(clear_adaptation=False)
+        st.session_state.is_generating = True
+        with st.spinner("학습 내용을 생성하는 중입니다."):
+            try:
+                st.session_state.lesson = generate_lesson(
+                    cleaned_topic, question_count, difficulty
+                )
+                st.session_state.pending_view = "Learning"
+                st.session_state.navigation_explicit = True
+            except Exception as exc:
+                LOGGER.warning(
+                    "lesson_generation_failed error_type=%s",
+                    type(exc).__name__,
+                )
+                st.error(user_facing_error_message(exc))
+            finally:
+                st.session_state.is_generating = False
+        if st.session_state.lesson:
+            st.rerun()
+
+
+def dashboard_analytics() -> dict | None:
+    """Return cached session analytics for Dashboard rendering when available."""
+    records = st.session_state.adaptation_records
+    if not isinstance(records, dict) or not records:
+        return None
+    lesson = st.session_state.lesson
+    if isinstance(lesson, dict):
+        topic_key = normalize_topic_key(lesson.get("topic", ""))
+    else:
+        topic_key = next(reversed(records), "")
+    if not topic_key:
+        return None
+    try:
+        return get_cached_learning_analytics(topic_key)
+    except Exception as exc:
+        LOGGER.warning("dashboard_analytics_failed error_type=%s", type(exc).__name__)
+        return None
+
+
+def render_review() -> None:
+    lesson = st.session_state.lesson
+    has_result = isinstance(lesson, dict) and st.session_state.round_finished
+    if not render_review_intro(st, has_result):
+        return
+    try:
+        st.session_state.latest_adaptive_summary = record_completed_round(lesson)
+        st.session_state.adaptation_error = None
+    except Exception as exc:
+        st.session_state.latest_adaptive_summary = None
+        st.session_state.adaptation_error = "adaptive_summary_failed"
+        LOGGER.warning("adaptive_summary_failed error_type=%s", type(exc).__name__)
+    render_round_summary(lesson)
+
+
+def main() -> None:
+    configure_logging()
+    st.set_page_config(
+        page_title=f"{APP_TITLE} v1.0",
+        page_icon="📘",
+        layout="wide",
+        initial_sidebar_state="collapsed",
+    )
+    init_state()
+    apply_pending_difficulty_recommendation()
+    apply_pending_view()
+
+    if (
+        st.session_state.lesson
+        and st.session_state.active_view == "Dashboard"
+        and not st.session_state.navigation_explicit
+    ):
+        st.session_state.active_view = "Learning"
+
+    apply_official_theme(st)
+    st.title(APP_TITLE)
+    st.write(APP_DESCRIPTION)
+    selected_view = render_navigation(st, on_change=mark_navigation_explicit)
+    st.divider()
+
+    if selected_view == "Dashboard":
+        render_dashboard(
+            st,
+            lesson=st.session_state.lesson,
+            adaptation_records=st.session_state.adaptation_records,
+            latest_summary=st.session_state.latest_adaptive_summary,
+            analytics_result=dashboard_analytics(),
+        )
+        if not st.session_state.lesson:
+            st.divider()
+            render_learning_setup()
+    elif selected_view == "Review":
+        render_review()
+    else:
+        render_learning_setup()
+        if st.session_state.lesson:
+            st.divider()
+            render_lesson(st.session_state.lesson)
 
 
 if __name__ == "__main__":

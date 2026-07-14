@@ -2,10 +2,10 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v0.9 behavior. It does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.0 behavior. It does not authorize future functionality.
 
-- Implemented working-tree design: **v0.9 Final Stabilization**
-- Release version file: **v0.9**
+- Implemented working-tree design: **v1.0 Stable**
+- Release version file: **v1.0.0**
 
 Runtime entry point: `app.py`  
 Interface: Streamlit  
@@ -235,3 +235,26 @@ v0.9 preserves the complete v0.8 product and adds no learning capability. It str
 Registry, Loader, and Runtime remain the sole authorities for installed, loaded, and active-session state respectively. The internal coordinator owns conflict information only and cannot become a second state source. Public Expansion methods, return types, interface version `0.7`, the v0.7 lifecycle contract, the v0.8 execution contract, and all existing learning behavior remain unchanged.
 
 v0.9 adds no persistence, external transport, background work, discovery, Living OS behavior, cross-Pack messaging, new UI, new adaptive or analytics rule, or v1.0 feature.
+
+## v1.0 Stable design
+
+v1.0 preserves the complete v0.9 runtime and establishes the first official
+production interface. The ULE Signal Grid presentation is dark, restrained,
+responsive, and accessibility-aware. Dashboard is the initial Home view, while
+Learning and Review provide explicit workspaces without changing the universal
+lesson flow.
+
+Dashboard reads only existing session evidence. Navigation is non-destructive;
+the preserved Home reset remains the explicit action that clears lesson,
+adaptive, analytics, and widget state. Recommended Next Step is deterministic
+session guidance and is not represented as an AI Decision Engine.
+
+Presentation responsibilities are separated into `ui/` and trusted static style
+content in `assets/`. Dynamic learner and generated content continues through
+normal Streamlit rendering and is never interpolated into unsafe HTML or CSS.
+
+Expansion interface version `0.7`, all public facade operations and status types,
+lifecycle-only v0.7 compatibility, synchronous Runtime behavior, and structured
+errors remain unchanged. v1.0 adds no persistence, autonomous learning, external
+transport, remote Packs, background work, concrete Living OS behavior, or new
+learning algorithm.

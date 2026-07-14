@@ -1,18 +1,23 @@
-# Universal Learning Engine v0.9 Final Stabilization
+# Universal Learning Engine v1.0 Stable
 
-![Version](https://img.shields.io/badge/version-v0.9-blue)
+![Version](https://img.shields.io/badge/version-v1.0.0-35C8DD)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-Universal Learning Engine is a Streamlit learning MVP that generates a consistent learning flow for any topic:
+Universal Learning Engine is a production-ready Streamlit learning application that generates a consistent learning flow for any topic:
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository is prepared as the **v0.9 Final Stabilization** baseline on the preserved v0.8 Pack Runtime. The repository version is `v0.9`; commit, push, tag, GitHub Release, and deployment remain separately controlled.
+The repository contains the approved **v1.0 Stable** implementation on the preserved v0.9 runtime. Publication operations remain separately controlled.
 
 ## Current features
 
+- Official ULE Signal Grid dark interface
+- Dashboard Home, Learning, and Review navigation
+- Session Dashboard for current topic, recommendation, accuracy, recovery,
+  recent results, weakness evidence, learning progress, and recent activity
+- Mobile-first responsive presentation, visible focus, and reduced-motion support
 - Topic input with empty-input and 80-character validation
 - CBT question counts of 5, 10, 15, or 20
 - Easy, Normal, Hard, and Nightmare difficulty levels
@@ -66,7 +71,7 @@ Hard questions emphasize application, comparison, cases, and plausible distracto
 
 The repository is the single source of truth. Use these documents in this order:
 
-1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v0.9
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.0
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
@@ -75,9 +80,12 @@ The repository is the single source of truth. Use these documents in this order:
 7. [ROADMAP_v0.7.md](./docs/ROADMAP_v0.7.md) — approved v0.7 expansion contract
 8. [ROADMAP_v0.8.md](./docs/ROADMAP_v0.8.md) — approved v0.8 Pack Runtime contract
 9. [ROADMAP_v0.9.md](./docs/ROADMAP_v0.9.md) — approved v0.9 final-stabilization contract
-10. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and remaining publication gates
-11. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-12. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
+10. [ROADMAP_v1.0.md](./docs/ROADMAP_v1.0.md) — approved v1.0 Stable contract
+11. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
+12. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
+13. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
+14. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+15. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 ## Installation
 
@@ -117,11 +125,11 @@ streamlit run app.py
 python -m unittest discover
 ```
 
-The 90-test suite preserves all 80 v0.8 tests and adds ten v0.9 stability tests for cross-layer transitions, structured errors, session repair, atomic recording, and widget cleanup. GitHub Actions runs complete compilation, branch coverage with an 84% floor, regression checks, and a headless health check on Python 3.10 and 3.13.
+The 101-test suite preserves all 90 v0.9 tests and adds 11 v1.0 Dashboard, UI contract, navigation-state, and public API tests. GitHub Actions runs complete compilation, branch coverage with an 84% floor, regression checks, and a headless health check on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following are not implemented or expanded in v0.9:
+The following remain outside v1.0 Stable:
 
 - Learning Decision Engine or Weakness Score
 - New Recovery Priority behavior or recovery content-generation engine
@@ -129,10 +137,10 @@ The following are not implemented or expanded in v0.9:
 - Database, background scheduler, or notifications
 - Autonomous learning actions
 - Concrete Living OS functionality
-- Separate persistent analytics dashboard
+- Persistent or cross-session Dashboard history
 - Remote pack acquisition, durable pack persistence, dependency resolution, or automatic updates
 - Network, IPC, shared files, synchronization, command execution, background pack work, or cross-pack messaging
-- v1.0 functionality or any unapproved post-v0.9 capability
+- Unapproved post-v1.0 capability
 - Login, PDF, OCR, voice, or image features
 
 See [ROADMAP.md](./docs/ROADMAP.md) for approved placement. Roadmap entries are documentation, not implemented functionality.
@@ -141,14 +149,24 @@ See [ROADMAP.md](./docs/ROADMAP.md) for approved placement. Roadmap entries are 
 
 ```text
 Universal-Learning-Engine/
-├─ expansion/                 # v0.9-stabilized Expansion Platform and Pack Runtime
+├─ assets/                    # Official static ULE stylesheet
+├─ ui/                        # Dashboard, navigation, theme, and view components
+├─ expansion/                 # Stable Expansion Platform and Pack Runtime
+├─ tests/test_streamlit_v10.py
+├─ tests/test_v10_ui_contract.py
+├─ tests/test_v10_public_api.py
 ├─ tests/test_v09_stability.py
 ├─ tests/test_pack_runtime.py
 ├─ tests/test_expansion_platform.py
+├─ docs/ROADMAP_v1.0.md
+├─ docs/DEVELOPER_GUIDE.md
+├─ docs/EXPANSION_API.md
+├─ docs/RELEASE_REVIEW_v1.0.md
 ├─ docs/ROADMAP_v0.9.md
 ├─ docs/RELEASE_CHECKLIST.md
 ├─ docs/ROADMAP_v0.8.md
 ├─ docs/ROADMAP_v0.7.md
+├─ RELEASE_NOTES_v1.0.md
 ├─ RELEASE_NOTES_v0.9.md
 ├─ RELEASE_NOTES_v0.8.md
 ├─ RELEASE_NOTES_v0.7.md
@@ -184,6 +202,8 @@ Universal-Learning-Engine/
 ├─ RELEASE_NOTES_v0.6.md
 ├─ VERSION
 ├─ requirements.txt
+├─ constraints.txt
+├─ SECURITY.md
 ├─ LICENSE
 ├─ .env.example
 └─ .gitignore
@@ -191,6 +211,8 @@ Universal-Learning-Engine/
 
 ## Release information
 
+- [v1.0 Stable release notes](./RELEASE_NOTES_v1.0.md)
+- [v1.0 release review](./docs/RELEASE_REVIEW_v1.0.md)
 - [v0.9 release notes](./RELEASE_NOTES_v0.9.md)
 - [v0.8 release notes](./RELEASE_NOTES_v0.8.md)
 - [v0.7 release notes](./RELEASE_NOTES_v0.7.md)
@@ -210,11 +232,13 @@ Universal-Learning-Engine/
 - Confidence is self-reported and recommendations are deterministic guidance, not a diagnosis.
 - Five-question rounds can produce volatile percentage changes.
 - Overall analytics cover only records still retained in the active Streamlit session.
+- Dashboard evidence is session-only; Dashboard navigation preserves it while Home reset clears it.
 - Strength and weakness summaries are limited to topic/difficulty evidence because v0.4 records contain no concept tags or timestamps.
 - Expansion Pack state is process-local, version selection is exact, and no concrete Living OS adapter is included.
 - Direct Registry mutation is a low-level operation; coordinated lifecycle and Runtime changes must use Pack Manager or Expansion API.
 - Pack Runtime execution is synchronous and in-process; session separation is not an operating-system security sandbox.
-- GitHub Actions Python 3.10/3.13 release evidence becomes available only after an authorized push.
+- The official skin uses Streamlit DOM selectors that require review after Streamlit upgrades.
+- Python 3.10/3.13 remote CI evidence remains a publication gate.
 
 ## License
 
