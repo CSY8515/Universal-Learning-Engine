@@ -2,8 +2,7 @@
 
 ## Status
 
-The v0.8 working tree has passed release review. Commit, push, GitHub Release,
-and deployment remain pending explicit user approval.
+The v0.8 implementation is committed on `main` and present on `origin/main`. A v0.8 tag, GitHub Release, and deployment are not recorded in this repository and remain separately controlled.
 
 ## Added
 

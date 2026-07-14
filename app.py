@@ -555,7 +555,8 @@ def reset_round_state() -> None:
     current_round_id = st.session_state.get("cbt_round_id", 0)
     st.session_state.cbt_round_id = current_round_id + 1
     for key in list(st.session_state.keys()):
-        if key.startswith("cbt_") and key != "cbt_round_id":
+        is_cbt_widget = key.startswith("cbt_") and key != "cbt_round_id"
+        if is_cbt_widget or key.startswith("confidence_"):
             del st.session_state[key]
 
 
@@ -572,36 +573,64 @@ def reset_learning_state(clear_adaptation: bool = True) -> None:
 
 
 def init_state() -> None:
-    """Initialize Streamlit session state used by the learning round."""
-    if "lesson" not in st.session_state:
-        st.session_state.lesson = None
-    if "answers" not in st.session_state:
-        st.session_state.answers = {}
-    if "answer_confidence" not in st.session_state:
-        st.session_state.answer_confidence = {}
-    if "current_question_index" not in st.session_state:
-        st.session_state.current_question_index = 0
-    if "current_feedback" not in st.session_state:
-        st.session_state.current_feedback = None
-    if "round_finished" not in st.session_state:
-        st.session_state.round_finished = False
-    if "cbt_round_id" not in st.session_state:
-        st.session_state.cbt_round_id = 0
-    if "is_generating" not in st.session_state:
-        st.session_state.is_generating = False
-    if "adaptation_records" not in st.session_state:
-        st.session_state.adaptation_records = {}
-    if "latest_adaptive_summary" not in st.session_state:
-        st.session_state.latest_adaptive_summary = None
-    if "adaptation_error" not in st.session_state:
-        st.session_state.adaptation_error = None
-    if "pending_recommended_difficulty" not in st.session_state:
-        st.session_state.pending_recommended_difficulty = None
-    if "analytics_cache" not in st.session_state:
-        st.session_state.analytics_cache = None
-    if "analytics_revision" not in st.session_state:
-        st.session_state.analytics_revision = 0
+    """Initialize and repair Streamlit session state used by the learning flow."""
+    defaults = {
+        "lesson": None,
+        "answers": {},
+        "answer_confidence": {},
+        "current_question_index": 0,
+        "current_feedback": None,
+        "round_finished": False,
+        "cbt_round_id": 0,
+        "is_generating": False,
+        "adaptation_records": {},
+        "latest_adaptive_summary": None,
+        "adaptation_error": None,
+        "pending_recommended_difficulty": None,
+        "analytics_cache": None,
+        "analytics_revision": 0,
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value.copy() if isinstance(value, dict) else value
 
+    if st.session_state.lesson is not None and not isinstance(st.session_state.lesson, dict):
+        st.session_state.lesson = None
+    if not isinstance(st.session_state.answers, dict):
+        st.session_state.answers = {}
+    if not isinstance(st.session_state.answer_confidence, dict):
+        st.session_state.answer_confidence = {}
+    if type(st.session_state.current_question_index) is not int:
+        st.session_state.current_question_index = 0
+    if st.session_state.current_feedback is not None and not isinstance(
+        st.session_state.current_feedback, dict
+    ):
+        st.session_state.current_feedback = None
+    if not isinstance(st.session_state.round_finished, bool):
+        st.session_state.round_finished = False
+    if type(st.session_state.cbt_round_id) is not int or st.session_state.cbt_round_id < 0:
+        st.session_state.cbt_round_id = 0
+    if not isinstance(st.session_state.is_generating, bool):
+        st.session_state.is_generating = False
+    if not isinstance(st.session_state.adaptation_records, dict):
+        st.session_state.adaptation_records = {}
+    if st.session_state.latest_adaptive_summary is not None and not isinstance(
+        st.session_state.latest_adaptive_summary, dict
+    ):
+        st.session_state.latest_adaptive_summary = None
+    if st.session_state.adaptation_error not in (None, "adaptive_summary_failed"):
+        st.session_state.adaptation_error = None
+    if st.session_state.pending_recommended_difficulty not in (
+        None,
+        *DIFFICULTY_OPTIONS,
+    ):
+        st.session_state.pending_recommended_difficulty = None
+    if st.session_state.analytics_cache is not None and not isinstance(
+        st.session_state.analytics_cache, dict
+    ):
+        st.session_state.analytics_cache = None
+    if type(st.session_state.analytics_revision) is not int or st.session_state.analytics_revision < 0:
+        st.session_state.analytics_revision = 0
 
 def apply_pending_difficulty_recommendation() -> None:
     """Apply a queued recommendation before Streamlit creates the selector widget."""
@@ -709,10 +738,11 @@ def calculate_learning_progress(records: list[dict]) -> dict:
 
 
 def record_completed_round(lesson: dict) -> dict:
-    """Record one completed round and return its session-only adaptive summary."""
+    """Atomically record one completed round and invalidate derived analytics."""
     topic_key = normalize_topic_key(lesson["topic"])
     round_id = st.session_state.cbt_round_id
-    records = st.session_state.adaptation_records.setdefault(topic_key, [])
+    source_records = st.session_state.adaptation_records.get(topic_key, [])
+    records = source_records if isinstance(source_records, list) else []
     existing = next(
         (
             item
@@ -745,12 +775,16 @@ def record_completed_round(lesson: dict) -> dict:
         topic_key,
     )
     summary = adaptive.build_adaptive_summary(status)
-    records.append(summary)
-    summary["learning_progress"] = calculate_learning_progress(records)
-    st.session_state.analytics_revision += 1
+    next_records = [*records, summary]
+    summary["learning_progress"] = calculate_learning_progress(next_records)
+    next_adaptation_records = dict(st.session_state.adaptation_records)
+    next_adaptation_records[topic_key] = next_records
+    next_revision = st.session_state.analytics_revision + 1
+
+    st.session_state.adaptation_records = next_adaptation_records
+    st.session_state.analytics_revision = next_revision
     st.session_state.analytics_cache = None
     return summary
-
 
 def get_cached_learning_analytics(topic_key: str) -> dict:
     """Reuse analytics until completed-round evidence changes."""
@@ -835,7 +869,7 @@ def render_cbt(lesson: dict) -> None:
             st.session_state.adaptation_error = None
         except Exception as exc:
             st.session_state.latest_adaptive_summary = None
-            st.session_state.adaptation_error = str(exc)
+            st.session_state.adaptation_error = "adaptive_summary_failed"
             LOGGER.warning(
                 "adaptive_summary_failed error_type=%s",
                 type(exc).__name__,

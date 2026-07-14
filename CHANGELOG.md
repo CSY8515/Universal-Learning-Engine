@@ -2,6 +2,36 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v0.9 - Final Stabilization
+
+### Added
+
+- Shared internal Loader/Runtime transition guard
+- Runtime-aware direct-unload protection
+- Structured sanitized lifecycle and execution error context
+- Session metadata repair and atomic completed-round updates
+- Ten focused v0.9 stability tests
+- Branch coverage and headless Streamlit health automation
+- Release checklist and v1.0 design entry criteria
+
+### Changed
+
+- Dependency ranges now reject unapproved future major versions
+- Retry clears both CBT and confidence widget state
+- CI compiles the complete Expansion package and records branch coverage
+
+### Preserved
+
+- All public Expansion API operations and interface version `0.7`
+- Complete v0.8 learning UI, Runtime, Loader, Session, adaptive, and analytics behavior
+
+### Verification
+
+- 90 automated tests passing locally on Python 3.13.14
+- Full compilation passing
+- 84% branch coverage baseline
+- Headless Streamlit health endpoint returning HTTP 200 and `ok`
+- Python 3.10/3.13 GitHub Actions matrix configured; remote result pending authorized push
 ## v0.8 - Pack Runtime
 
 ### Added

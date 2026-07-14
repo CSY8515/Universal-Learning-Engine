@@ -2,10 +2,10 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v0.8 behavior. It does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v0.9 behavior. It does not authorize future functionality.
 
-- Implemented working-tree design: **v0.8 Pack Runtime**
-- Release version file: **v0.8**
+- Implemented working-tree design: **v0.9 Final Stabilization**
+- Release version file: **v0.9**
 
 Runtime entry point: `app.py`  
 Interface: Streamlit  
@@ -227,3 +227,11 @@ synchronization, command execution, durable state, discovery, remote packs,
 dependency resolution, background work, automatic restart, new UI, learning
 hook, cross-pack messaging, or v0.9-or-v1.0 capability. In-process reference
 separation is not an operating-system security sandbox.
+
+## v0.9 Final Stabilization design
+
+v0.9 preserves the complete v0.8 product and adds no learning capability. It strengthens the release boundary before v1.0 through a shared internal Loader/Runtime transition guard, Runtime-aware unload protection, structured sanitized error context, repaired Streamlit session metadata, atomic completed-round updates, bounded dependency ranges, branch coverage, complete compilation, headless health verification, and synchronized release evidence.
+
+Registry, Loader, and Runtime remain the sole authorities for installed, loaded, and active-session state respectively. The internal coordinator owns conflict information only and cannot become a second state source. Public Expansion methods, return types, interface version `0.7`, the v0.7 lifecycle contract, the v0.8 execution contract, and all existing learning behavior remain unchanged.
+
+v0.9 adds no persistence, external transport, background work, discovery, Living OS behavior, cross-Pack messaging, new UI, new adaptive or analytics rule, or v1.0 feature.

@@ -28,6 +28,19 @@ class AmbiguousPackVersionError(ExpansionError, LookupError):
 class PackLoadError(ExpansionError):
     """A pack lifecycle operation failed."""
 
+    def __init__(
+        self,
+        message: str,
+        *,
+        operation: str | None = None,
+        pack_id: str | None = None,
+        version: str | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.operation = operation
+        self.pack_id = pack_id
+        self.version = version
+
 
 class PackStateError(ExpansionError):
     """A pack lifecycle operation conflicts with its current state."""
@@ -35,6 +48,21 @@ class PackStateError(ExpansionError):
 
 class PackExecutionError(ExpansionError):
     """A pack execution or termination callback failed."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        operation: str | None = None,
+        pack_id: str | None = None,
+        version: str | None = None,
+        cleanup_failed: bool = False,
+    ) -> None:
+        super().__init__(message)
+        self.operation = operation
+        self.pack_id = pack_id
+        self.version = version
+        self.cleanup_failed = cleanup_failed
 
 
 class PackSessionNotFoundError(ExpansionError, LookupError):

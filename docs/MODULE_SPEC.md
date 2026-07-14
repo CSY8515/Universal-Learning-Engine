@@ -325,3 +325,44 @@ status, start/stop identity, single-session enforcement, failure cleanup,
 termination-state preservation, unload/remove order, exact-version and
 cross-pack state separation, private-state non-exposure, and Loader reentrancy.
 The complete suite contains 80 tests: 68 preserved tests and 12 v0.8 tests.
+
+## v0.9 shared transition-state module
+
+File: `expansion/_state.py`
+
+Responsibilities:
+
+- Reject same-identity overlap between Loader lifecycle and Runtime transitions.
+- Track active runtime identities only for conflict validation.
+- Own no installed, loaded, Pack Session, or learner state.
+- Remain internal and add no public API.
+
+## v0.9 Runtime, Loader, and error stabilization
+
+Files: `expansion/runtime.py`, `expansion/loader.py`, `expansion/errors.py`
+
+Responsibilities:
+
+- Prevent direct unload of an active Runtime identity.
+- Reject cross-layer reentrant start, stop, load, and unload operations.
+- Preserve state after failed execution, cleanup, termination, load, or unload.
+- Expose stable operation and exact-identity error attributes without callback payloads.
+- Record best-effort execute cleanup failure using `cleanup_failed`.
+
+## v0.9 session integration
+
+File: `app.py`
+
+Responsibilities:
+
+- Repair invalid session containers, flags, revisions, cache values, and stable error codes.
+- Prepare completed-round records and analytics invalidation before replacing source state.
+- Avoid partial record creation when adaptive analysis fails.
+- Remove both CBT and confidence widget keys during round reset.
+- Preserve all v0.8 learning behavior and session-only boundaries.
+
+## v0.9 verification module
+
+Files: `tests/test_v09_stability.py`, `.coveragerc`, `.github/workflows/tests.yml`
+
+The focused tests cover cross-layer reentrancy, direct Loader bypass prevention, structured cleanup failure, session repair, atomic recording, and widget cleanup. CI compiles the complete runtime, measures branch coverage, and verifies the headless Streamlit health endpoint on Python 3.10 and 3.13.

@@ -1,4 +1,4 @@
-"""Public facade for the Expansion Platform through v0.8."""
+"""Public facade for the Expansion Platform through v0.9."""
 
 from .interfaces import ExpansionPack, PackManifest
 from .manager import PackManager, PackStatus
@@ -6,7 +6,7 @@ from .runtime import PackSessionStatus
 
 
 class ExpansionAPI:
-    """Expose only the approved v0.7 pack-management operations."""
+    """Expose only the preserved version-aware Pack operations."""
 
     def __init__(self, manager: PackManager | None = None) -> None:
         self._manager = manager if manager is not None else PackManager()

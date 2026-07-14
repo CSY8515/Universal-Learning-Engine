@@ -1,4 +1,4 @@
-"""Universal Learning Engine v0.8 Expansion Platform and Pack Runtime."""
+"""Universal Learning Engine v0.9-stabilized Expansion Platform and Pack Runtime."""
 
 from .errors import (
     AmbiguousPackVersionError,

@@ -1,8 +1,9 @@
-"""Synchronous, in-process Pack Runtime and isolated Pack Sessions for v0.8."""
+"""Synchronous, in-process Pack Runtime and isolated Pack Sessions for v0.9."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import logging
 from typing import Any
 from uuid import uuid4
 
@@ -15,6 +16,9 @@ from .errors import (
 from .interfaces import ExecutableExpansionPack, validate_pack
 from .loader import PackLoader
 from .registry import PackRegistry
+
+
+LOGGER = logging.getLogger("universal_learning_engine.expansion")
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,9 +57,9 @@ class PackRuntime:
             raise ValueError("loader must use the supplied registry")
         self._registry = registry
         self._loader = loader
+        self._state = loader._state
         self._sessions_by_identity: dict[tuple[str, str], PackSession] = {}
         self._sessions_by_id: dict[str, PackSession] = {}
-        self._transitioning: set[tuple[str, str]] = set()
 
     @staticmethod
     def _required_session_id(session_id: object) -> str:
@@ -83,7 +87,7 @@ class PackRuntime:
     ) -> PackSessionStatus:
         identity = self._registry.resolve_identity(pack_id, version)
         self._loader.require_loaded(*identity)
-        if identity in self._sessions_by_identity or identity in self._transitioning:
+        if identity in self._sessions_by_identity:
             raise PackStateError(
                 f"pack {identity[0]!r} version {identity[1]!r} is already running"
             )
@@ -95,22 +99,32 @@ class PackRuntime:
             raise PackContractError("installed pack manifest changed")
 
         session = PackSession(self._new_session_id(), *identity)
-        self._transitioning.add(identity)
+        self._state.begin_start(identity)
+        cleanup_failed = False
         try:
             pack.execute(session)
         except Exception as error:
             try:
                 pack.terminate(session)
-            except Exception:
-                pass
+            except Exception as cleanup_error:
+                cleanup_failed = True
+                LOGGER.warning(
+                    "pack_runtime_cleanup_failed pack_id=%s version=%s error_type=%s",
+                    identity[0], identity[1], type(cleanup_error).__name__,
+                )
             raise PackExecutionError(
-                f"pack {identity[0]!r} version {identity[1]!r} failed to execute"
+                f"pack {identity[0]!r} version {identity[1]!r} failed to execute",
+                operation="execute",
+                pack_id=identity[0],
+                version=identity[1],
+                cleanup_failed=cleanup_failed,
             ) from error
+        else:
+            self._sessions_by_identity[identity] = session
+            self._sessions_by_id[session.session_id] = session
+            self._state.mark_active(identity)
         finally:
-            self._transitioning.remove(identity)
-
-        self._sessions_by_identity[identity] = session
-        self._sessions_by_id[session.session_id] = session
+            self._state.end_runtime(identity)
         return self._status(session, True)
 
     def stop(self, session_id: str) -> PackSessionStatus:
@@ -120,28 +134,27 @@ class PackRuntime:
             raise PackSessionNotFoundError(
                 f"pack session {normalized_id!r} is not active"
             )
-        if session.identity in self._transitioning:
-            raise PackStateError(
-                f"pack {session.pack_id!r} version {session.version!r} "
-                "is changing runtime state"
-            )
 
         pack = self._registry.get(*session.identity)
         if not isinstance(pack, ExecutableExpansionPack):
             raise PackContractError("running pack lost its executable contract")
-        self._transitioning.add(session.identity)
+        self._state.begin_stop(session.identity)
         try:
             pack.terminate(session)
         except Exception as error:
             raise PackExecutionError(
                 f"pack {session.pack_id!r} version {session.version!r} "
-                "failed to terminate"
+                "failed to terminate",
+                operation="terminate",
+                pack_id=session.pack_id,
+                version=session.version,
             ) from error
+        else:
+            del self._sessions_by_id[normalized_id]
+            del self._sessions_by_identity[session.identity]
+            self._state.mark_inactive(session.identity)
         finally:
-            self._transitioning.remove(session.identity)
-
-        del self._sessions_by_id[normalized_id]
-        del self._sessions_by_identity[session.identity]
+            self._state.end_runtime(session.identity)
         return self._status(session, False)
 
     def stop_pack(

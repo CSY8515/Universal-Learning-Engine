@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v0.8 Pack Runtime; publishing
+- The implemented working-tree version is v0.9 Final Stabilization; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -103,6 +103,17 @@ only synchronous in-process execution. Living OS functionality, network, IPC,
 file sharing, synchronization, command execution, persistence, new UI, and
 v0.9-or-v1.0 features remain excluded.
 
+### v0.9 — Final Stabilization
+
+- Shared Runtime/Loader transition protection
+- Runtime-aware direct-unload prevention
+- Structured and sanitized failure context
+- Streamlit session repair and atomic completed-round updates
+- Bounded dependency ranges and branch-coverage evidence
+- Complete compile, regression, and headless health automation
+- Release checklist and explicit v1.0 design entry gate
+
+The approved detailed contract is `ROADMAP_v0.9.md`. v0.9 adds no learning feature, persistent state, external integration, background work, new UI, or v1.0 capability. Public Expansion methods and interface version `0.7` remain unchanged.
 ## v0.4 preparation gates — complete
 
 Implementation may begin only after approval of:

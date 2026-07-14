@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v0.8 preserves the single-process Streamlit learning application and extends the independent in-process Expansion Platform with a Pack Runtime and isolated Pack Sessions. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, reliability logging, and UI rendering. `adaptive.py` contains pure deterministic v0.4 adaptive rules. `analytics.py` contains pure deterministic v0.5 Learning Analytics. The `expansion` package contains the preserved v0.7 common interface, Registry, Loader, Manager, API, and connection-only Living OS boundary plus the additive v0.8 execution layer.
+Universal Learning Engine v0.9 preserves the single-process Streamlit learning application and extends the independent in-process Expansion Platform with a Pack Runtime and isolated Pack Sessions. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, reliability logging, and UI rendering. `adaptive.py` contains pure deterministic v0.4 adaptive rules. `analytics.py` contains pure deterministic v0.5 Learning Analytics. The `expansion` package contains the preserved v0.7 common interface, Registry, Loader, Manager, API, and connection-only Living OS boundary plus the preserved v0.8 execution layer and the v0.9 shared transition guard.
 
 ```text
 User
@@ -183,3 +183,22 @@ threads, workers, subprocesses, network calls, IPC, shared files,
 synchronization, commands, persistence, discovery, or new UI. Reference
 separation is not an operating-system security sandbox against malicious pack
 code.
+
+## v0.9 stability boundary
+
+```text
+PackManager
+  -> PackRegistry (installed authority)
+  -> PackLoader (loaded authority)
+       -> shared internal transition guard
+  -> PackRuntime (active-session authority)
+       -> shared internal transition guard
+```
+
+The transition guard records only conflicting lifecycle/runtime transitions and active runtime identities. It does not duplicate Registry, Loader, or Runtime state. It prevents direct unload of a running Pack and rejects lifecycle/runtime reentrancy for the same exact identity. Different exact identities remain independent.
+
+`PackLoadError` and `PackExecutionError` expose stable operation and exact-identity context. `PackExecutionError.cleanup_failed` records best-effort cleanup failure. Messages and logs do not expose callback exception text or session state.
+
+Streamlit initialization repairs malformed session metadata before use. Completed-round evidence and derived analytics revision/cache changes are prepared before source replacement. Retry removes CBT and confidence widget state. Learning data remains session-only and Home retains its clearing behavior.
+
+The v0.9 boundary adds no new UI, learning rule, persistence, external integration, transport, background execution, or v1.0 capability.

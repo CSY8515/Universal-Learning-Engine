@@ -1,6 +1,6 @@
-# Universal Learning Engine v0.8 Pack Runtime
+# Universal Learning Engine v0.9 Final Stabilization
 
-![Version](https://img.shields.io/badge/version-v0.8-blue)
+![Version](https://img.shields.io/badge/version-v0.9-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,7 +9,7 @@ Universal Learning Engine is a Streamlit learning MVP that generates a consisten
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository is prepared for the **v0.8 Pack Runtime** release on the preserved v0.7 Expansion Platform baseline. The runtime version is `v0.8`; publishing operations remain separately controlled.
+The repository is prepared as the **v0.9 Final Stabilization** baseline on the preserved v0.8 Pack Runtime. The repository version is `v0.9`; commit, push, tag, GitHub Release, and deployment remain separately controlled.
 
 ## Current features
 
@@ -54,6 +54,11 @@ The repository is prepared for the **v0.8 Pack Runtime** release on the preserve
 - One isolated active Pack Session per exact pack identity
 - Private per-session state and immutable public session status
 - Runtime-aware unload/removal and failure-safe termination behavior
+- Shared Loader/Runtime transition protection for exact Pack identities
+- Runtime-aware prevention of direct unload while a Pack Session is active
+- Structured sanitized lifecycle/execution errors and cleanup-failure status
+- Session metadata repair and atomic completed-round analytics invalidation
+- Branch coverage reporting and automated headless Streamlit health verification
 
 Hard questions emphasize application, comparison, cases, and plausible distractors while connecting at least two concepts. Nightmare questions require a concrete scenario, multi-step reasoning, competing trade-offs, plausible traps, at least three connected concepts, and explanations of both correct and incorrect choices.
 
@@ -61,7 +66,7 @@ Hard questions emphasize application, comparison, cases, and plausible distracto
 
 The repository is the single source of truth. Use these documents in this order:
 
-1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v0.8
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v0.9
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
@@ -69,8 +74,10 @@ The repository is the single source of truth. Use these documents in this order:
 6. [ROADMAP_v0.6.md](./docs/ROADMAP_v0.6.md) — approved v0.6 reliability contract
 7. [ROADMAP_v0.7.md](./docs/ROADMAP_v0.7.md) — approved v0.7 expansion contract
 8. [ROADMAP_v0.8.md](./docs/ROADMAP_v0.8.md) — approved v0.8 Pack Runtime contract
-9. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-10. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
+9. [ROADMAP_v0.9.md](./docs/ROADMAP_v0.9.md) — approved v0.9 final-stabilization contract
+10. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and remaining publication gates
+11. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+12. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 ## Installation
 
@@ -110,11 +117,11 @@ streamlit run app.py
 python -m unittest discover
 ```
 
-The 80-test suite verifies all preserved behavior plus the v0.8 executable contract, Pack Runtime, isolated sessions, exact-version independence, lifecycle stability, and prohibited-boundary preservation. GitHub Actions is configured to run compile and regression checks on Python 3.10 and 3.13.
+The 90-test suite preserves all 80 v0.8 tests and adds ten v0.9 stability tests for cross-layer transitions, structured errors, session repair, atomic recording, and widget cleanup. GitHub Actions runs complete compilation, branch coverage with an 84% floor, regression checks, and a headless health check on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following are not implemented or expanded in v0.8:
+The following are not implemented or expanded in v0.9:
 
 - Learning Decision Engine or Weakness Score
 - New Recovery Priority behavior or recovery content-generation engine
@@ -125,7 +132,7 @@ The following are not implemented or expanded in v0.8:
 - Separate persistent analytics dashboard
 - Remote pack acquisition, durable pack persistence, dependency resolution, or automatic updates
 - Network, IPC, shared files, synchronization, command execution, background pack work, or cross-pack messaging
-- v0.9 or v1.0 functionality
+- v1.0 functionality or any unapproved post-v0.9 capability
 - Login, PDF, OCR, voice, or image features
 
 See [ROADMAP.md](./docs/ROADMAP.md) for approved placement. Roadmap entries are documentation, not implemented functionality.
@@ -134,11 +141,15 @@ See [ROADMAP.md](./docs/ROADMAP.md) for approved placement. Roadmap entries are 
 
 ```text
 Universal-Learning-Engine/
-├─ expansion/                 # v0.8 Expansion Platform and Pack Runtime
+├─ expansion/                 # v0.9-stabilized Expansion Platform and Pack Runtime
+├─ tests/test_v09_stability.py
 ├─ tests/test_pack_runtime.py
 ├─ tests/test_expansion_platform.py
+├─ docs/ROADMAP_v0.9.md
+├─ docs/RELEASE_CHECKLIST.md
 ├─ docs/ROADMAP_v0.8.md
 ├─ docs/ROADMAP_v0.7.md
+├─ RELEASE_NOTES_v0.9.md
 ├─ RELEASE_NOTES_v0.8.md
 ├─ RELEASE_NOTES_v0.7.md
 ├─ app.py
@@ -180,6 +191,7 @@ Universal-Learning-Engine/
 
 ## Release information
 
+- [v0.9 release notes](./RELEASE_NOTES_v0.9.md)
 - [v0.8 release notes](./RELEASE_NOTES_v0.8.md)
 - [v0.7 release notes](./RELEASE_NOTES_v0.7.md)
 - [v0.6 release notes](./RELEASE_NOTES_v0.6.md)
@@ -200,7 +212,9 @@ Universal-Learning-Engine/
 - Overall analytics cover only records still retained in the active Streamlit session.
 - Strength and weakness summaries are limited to topic/difficulty evidence because v0.4 records contain no concept tags or timestamps.
 - Expansion Pack state is process-local, version selection is exact, and no concrete Living OS adapter is included.
+- Direct Registry mutation is a low-level operation; coordinated lifecycle and Runtime changes must use Pack Manager or Expansion API.
 - Pack Runtime execution is synchronous and in-process; session separation is not an operating-system security sandbox.
+- GitHub Actions Python 3.10/3.13 release evidence becomes available only after an authorized push.
 
 ## License
 

@@ -1,4 +1,4 @@
-"""Pack management and exact-version coordination through v0.8."""
+"""Pack management and exact-version coordination through v0.9."""
 
 from dataclasses import dataclass
 
