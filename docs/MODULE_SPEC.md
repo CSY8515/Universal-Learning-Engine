@@ -2,7 +2,7 @@
 
 ## Scope
 
-This specification describes the implemented v0.7 Expansion Platform working tree on the preserved v0.6 baseline. Existing runtime responsibilities remain in `app.py`; deterministic adaptive rules remain in `adaptive.py`, deterministic Learning Analytics remain in `analytics.py`, and v0.7 expansion responsibilities are isolated in the `expansion` package.
+This specification describes the implemented v0.8 Pack Runtime working tree on the preserved v0.7 baseline. Existing learning-runtime responsibilities remain in `app.py`; deterministic adaptive rules remain in `adaptive.py`, deterministic Learning Analytics remain in `analytics.py`, and all expansion responsibilities remain isolated in the `expansion` package.
 
 ## Configuration module
 
@@ -272,3 +272,56 @@ File: `tests/test_expansion_platform.py`
 The tests cover manifests, common-interface validation, exact version identity,
 Registry ambiguity, lifecycle transitions and failures, Manager removal,
 Expansion API behavior, and the abstract Living OS boundary.
+
+## v0.8 executable contract
+
+File: `expansion/interfaces.py`
+
+Responsibilities:
+
+- Preserve `ExpansionPack` and interface version `0.7` unchanged.
+- Define optional `ExecutableExpansionPack.execute(session)` and
+  `terminate(session)` callbacks.
+- Add no execution result schema, learning hook, UI hook, or external transport.
+
+## Pack Runtime and Session module
+
+File: `expansion/runtime.py`
+
+Public classes: `PackRuntime`, `PackSession`, `PackSessionStatus`
+
+Responsibilities:
+
+- Start only an installed, loaded, executable exact pack version.
+- Own at most one active session per exact identity.
+- Generate opaque session ids and separate state dictionaries.
+- Invoke execution and termination callbacks synchronously and once per valid
+  transition.
+- Publish no active session after execution failure.
+- Preserve the active session after termination failure.
+- Return immutable status values without exposing private session state.
+- Return deterministic session listings.
+
+## v0.8 Loader, Manager, and API integration
+
+Files: `expansion/loader.py`, `expansion/manager.py`, `expansion/api.py`
+
+Responsibilities:
+
+- Reject reentrant pack-level lifecycle transitions.
+- Require loaded state before runtime execution.
+- Terminate an exact active session before unload or removal.
+- Expose additive `start`, `stop`, `session`, and `sessions` methods.
+- Preserve every v0.7 method and return type.
+- Add no Streamlit, OpenAI, adaptive, analytics, network, IPC, filesystem,
+  synchronization, command, Living OS, persistence, or background dependency.
+
+## v0.8 test module
+
+File: `tests/test_pack_runtime.py`
+
+The tests cover legacy-pack compatibility, loaded-state requirements, immutable
+status, start/stop identity, single-session enforcement, failure cleanup,
+termination-state preservation, unload/remove order, exact-version and
+cross-pack state separation, private-state non-exposure, and Loader reentrancy.
+The complete suite contains 80 tests: 68 preserved tests and 12 v0.8 tests.

@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v0.7 Expansion Platform; publishing
+- The implemented working-tree version is v0.8 Pack Runtime; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -85,8 +85,23 @@ It also defines the Pack Manager and lifecycle-only common interface required to
 coordinate these roadmap components. Actual Living OS functionality remains
 excluded.
 
-The v0.7 contract is implemented and verified in the working tree. Commit,
-push, GitHub Release, and deployment remain pending explicit approval.
+The v0.7 contract is implemented, verified, and committed on `main` as the
+preserved v0.8 baseline. GitHub Release and deployment remain separately
+controlled.
+
+### v0.8 - Pack Runtime
+
+- Executable Expansion Pack contract
+- Pack Runtime management
+- Isolated Pack Sessions
+- Stable start and stop lifecycle
+- Exact-version and cross-pack independence
+
+The approved detailed v0.8 implementation contract is `ROADMAP_v0.8.md`.
+It preserves the v0.7 interface version and management behavior while adding
+only synchronous in-process execution. Living OS functionality, network, IPC,
+file sharing, synchronization, command execution, persistence, new UI, and
+v0.9-or-v1.0 features remain excluded.
 
 ## v0.4 preparation gates — complete
 

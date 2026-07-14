@@ -1,4 +1,4 @@
-"""Stable errors raised by the v0.7 Expansion Platform."""
+"""Stable errors raised by the Expansion Platform."""
 
 
 class ExpansionError(Exception):
@@ -31,6 +31,14 @@ class PackLoadError(ExpansionError):
 
 class PackStateError(ExpansionError):
     """A pack lifecycle operation conflicts with its current state."""
+
+
+class PackExecutionError(ExpansionError):
+    """A pack execution or termination callback failed."""
+
+
+class PackSessionNotFoundError(ExpansionError, LookupError):
+    """No active Pack Session matches the requested session identity."""
 
 
 class LivingOSIntegrationError(ExpansionError):

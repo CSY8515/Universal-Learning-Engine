@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v0.7 preserves the single-process Streamlit v0.6 application and adds an independent in-process Expansion Platform. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, reliability logging, and UI rendering. `adaptive.py` contains pure deterministic v0.4 adaptive rules. `analytics.py` contains pure deterministic v0.5 Learning Analytics. The `expansion` package contains the v0.7 common interface, Registry, Loader, Manager, API, and connection-only Living OS boundary.
+Universal Learning Engine v0.8 preserves the single-process Streamlit learning application and extends the independent in-process Expansion Platform with a Pack Runtime and isolated Pack Sessions. `app.py` contains configuration access, prompt construction, OpenAI integration, response parsing and validation, session integration, scoring, reliability logging, and UI rendering. `adaptive.py` contains pure deterministic v0.4 adaptive rules. `analytics.py` contains pure deterministic v0.5 Learning Analytics. The `expansion` package contains the preserved v0.7 common interface, Registry, Loader, Manager, API, and connection-only Living OS boundary plus the additive v0.8 execution layer.
 
 ```text
 User
@@ -151,3 +151,35 @@ Registry and Loader state is process-local. There is no filesystem discovery,
 database, remote repository, dependency resolution, automatic update, or
 background worker. The Living OS boundary has no concrete implementation and
 performs no communication or Living OS action.
+
+## v0.8 Pack Runtime boundary
+
+```text
+ExpansionAPI
+  -> PackManager
+       -> PackRegistry (installed exact versions)
+       -> PackLoader (pack-level loaded state)
+       -> PackRuntime (execution state)
+            -> PackSession (one private state object per exact identity)
+            -> ExecutableExpansionPack.execute / terminate
+
+LivingOSIntegrationInterface (unchanged abstract boundary only)
+```
+
+The existing interface version remains `0.7`. A lifecycle-only v0.7 pack keeps
+all management behavior. An `ExecutableExpansionPack` adds synchronous
+`execute(session)` and `terminate(session)` callbacks and may run only while its
+exact version is installed and loaded.
+
+One exact identity has at most one active session. Sessions have opaque ids,
+immutable ownership fields, and separate private mutable state dictionaries.
+Public status snapshots never expose this state. Runtime start/stop failures are
+isolated by exact identity; a failed termination leaves that session active.
+Unload and removal terminate an active session before pack-level unload.
+
+The runtime passes no learning-engine, Manager, API, Living OS, or external
+transport reference to callbacks. It is synchronous and in process: there are no
+threads, workers, subprocesses, network calls, IPC, shared files,
+synchronization, commands, persistence, discovery, or new UI. Reference
+separation is not an operating-system security sandbox against malicious pack
+code.

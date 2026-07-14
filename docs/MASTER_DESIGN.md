@@ -2,10 +2,10 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v0.7 behavior. It does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v0.8 behavior. It does not authorize future functionality.
 
-- Implemented working-tree design: **v0.7 Expansion Platform**
-- Release version file: **v0.7**
+- Implemented working-tree design: **v0.8 Pack Runtime**
+- Release version file: **v0.8**
 
 Runtime entry point: `app.py`  
 Interface: Streamlit  
@@ -201,3 +201,29 @@ v0.7 does not add a new UI, learning hook, content type, AI Tutor, Voice, 3D
 Learning, Memory Curve, Knowledge Engine, Rule Engine expansion, durable
 storage, remote pack acquisition, dependency resolution, background work, or
 any v0.8 capability.
+
+## v0.8 Pack Runtime design
+
+v0.8 preserves the complete v0.7 Expansion Platform and adds an independent,
+synchronous, in-process execution layer. The detailed contract is
+`ROADMAP_v0.8.md`.
+
+- The v0.7 `ExpansionPack`, manifest, exact identity, and interface version
+  `0.7` remain valid and unchanged.
+- `ExecutableExpansionPack` is an optional subtype with `execute(session)` and
+  `terminate(session)` callbacks.
+- Pack Runtime starts only installed and loaded executable exact versions.
+- One exact identity owns at most one active Pack Session.
+- Each session has immutable identity, an opaque id, and its own mutable state
+  dictionary; public status does not expose state.
+- Execution failure publishes no active session. Termination failure preserves
+  active, loaded, and installed state.
+- Unload and removal terminate the exact active session before pack unload.
+- Loader and Runtime reject reentrant state transitions.
+- Exact versions and separate packs have independent runtime/session state.
+
+v0.8 adds no concrete Living OS behavior, network, IPC, shared-file behavior,
+synchronization, command execution, durable state, discovery, remote packs,
+dependency resolution, background work, automatic restart, new UI, learning
+hook, cross-pack messaging, or v0.9-or-v1.0 capability. In-process reference
+separation is not an operating-system security sandbox.

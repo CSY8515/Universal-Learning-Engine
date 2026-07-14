@@ -2,6 +2,40 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v0.8 - Pack Runtime
+
+### Added
+
+- Optional `ExecutableExpansionPack` execution and termination contract
+- Synchronous in-process Pack Runtime
+- Isolated per-identity Pack Sessions with private mutable state
+- Immutable public Pack Session status snapshots
+- Expansion API start, stop, session lookup, and session listing operations
+- Runtime-aware unload and removal coordination
+- Pack Runtime contract, independence, and failure-path tests
+
+### Changed
+
+- Pack Loader now rejects reentrant lifecycle transitions
+- Manager unload and removal terminate an active exact-version session first
+
+### Preserved
+
+- Interface version `0.7` and all lifecycle-only v0.7 pack behavior
+- Complete existing Runtime, UI, Streamlit session, API, adaptive, analytics,
+  reliability, Registry, Loader, Manager, Expansion API, and Living OS boundary
+
+### Excluded
+
+- Concrete Living OS functionality, network, IPC, file sharing,
+  synchronization, command execution, persistence, background work, new UI,
+  cross-pack messaging, and v0.9-or-v1.0 features
+
+### Verification
+
+- 80 automated tests passing
+- Python compilation and headless Streamlit startup passing
+
 ## v0.7 - Expansion Platform
 
 ### Added

@@ -1,7 +1,8 @@
-"""Public facade for the v0.7 Expansion Platform."""
+"""Public facade for the Expansion Platform through v0.8."""
 
 from .interfaces import ExpansionPack, PackManifest
 from .manager import PackManager, PackStatus
+from .runtime import PackSessionStatus
 
 
 class ExpansionAPI:
@@ -23,6 +24,20 @@ class ExpansionAPI:
 
     def unload(self, pack_id: str, version: str | None = None) -> PackStatus:
         return self._manager.unload(pack_id, version)
+
+    def start(
+        self, pack_id: str, version: str | None = None
+    ) -> PackSessionStatus:
+        return self._manager.start(pack_id, version)
+
+    def stop(self, session_id: str) -> PackSessionStatus:
+        return self._manager.stop(session_id)
+
+    def session(self, session_id: str) -> PackSessionStatus:
+        return self._manager.session(session_id)
+
+    def sessions(self) -> tuple[PackSessionStatus, ...]:
+        return self._manager.sessions()
 
     def get(self, pack_id: str, version: str | None = None) -> PackStatus:
         return self._manager.get(pack_id, version)

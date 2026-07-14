@@ -1,9 +1,15 @@
-"""Common v0.7 Expansion Pack contracts."""
+"""Common Expansion Pack contracts preserved and extended by v0.8."""
+
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from .errors import IncompatiblePackError, PackContractError
+
+if TYPE_CHECKING:
+    from .runtime import PackSession
 
 
 EXPANSION_INTERFACE_VERSION = "0.7"
@@ -52,6 +58,18 @@ class ExpansionPack(ABC):
     @abstractmethod
     def on_unload(self) -> None:
         """Deactivate this exact loaded pack version."""
+
+
+class ExecutableExpansionPack(ExpansionPack):
+    """Optional v0.8 synchronous execution contract for a loaded pack."""
+
+    @abstractmethod
+    def execute(self, session: PackSession) -> None:
+        """Start work using only this pack's isolated in-process session."""
+
+    @abstractmethod
+    def terminate(self, session: PackSession) -> None:
+        """Stop work for the supplied active session."""
 
 
 def validate_pack(pack: object) -> PackManifest:

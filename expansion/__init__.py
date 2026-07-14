@@ -1,4 +1,4 @@
-"""Universal Learning Engine v0.7 Expansion Platform."""
+"""Universal Learning Engine v0.8 Expansion Platform and Pack Runtime."""
 
 from .errors import (
     AmbiguousPackVersionError,
@@ -7,12 +7,15 @@ from .errors import (
     IncompatiblePackError,
     LivingOSIntegrationError,
     PackContractError,
+    PackExecutionError,
     PackLoadError,
     PackNotFoundError,
+    PackSessionNotFoundError,
     PackStateError,
 )
 from .interfaces import (
     EXPANSION_INTERFACE_VERSION,
+    ExecutableExpansionPack,
     ExpansionPack,
     PackManifest,
     validate_pack,
@@ -22,6 +25,7 @@ from .loader import PackLoader
 from .manager import PackManager, PackStatus
 from .api import ExpansionAPI
 from .living_os import LivingOSIntegrationInterface
+from .runtime import PackRuntime, PackSession, PackSessionStatus
 
 __all__ = [
     "AmbiguousPackVersionError",
@@ -29,11 +33,13 @@ __all__ = [
     "EXPANSION_INTERFACE_VERSION",
     "ExpansionError",
     "ExpansionAPI",
+    "ExecutableExpansionPack",
     "ExpansionPack",
     "IncompatiblePackError",
     "LivingOSIntegrationError",
     "LivingOSIntegrationInterface",
     "PackContractError",
+    "PackExecutionError",
     "PackLoadError",
     "PackLoader",
     "PackManifest",
@@ -42,5 +48,9 @@ __all__ = [
     "PackRegistry",
     "PackStateError",
     "PackStatus",
+    "PackRuntime",
+    "PackSession",
+    "PackSessionNotFoundError",
+    "PackSessionStatus",
     "validate_pack",
 ]
