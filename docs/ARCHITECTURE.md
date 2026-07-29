@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v1.03 preserves the single-process Streamlit learning
+Universal Learning Engine v1.04 preserves the single-process Streamlit learning
 application and independent in-process Expansion Platform. `app.py` remains the
 composition, configuration, OpenAI, validation, session, and World presentation
 boundary. `world_state.py` owns normalized persistent cross-World evidence and
@@ -52,7 +52,10 @@ The application builds one text prompt from the topic, requested question count,
 
 ### External API boundary
 
-The OpenAI client receives the resolved API key and model. The Responses interface is primary. A chat-completions call is a conditional compatibility fallback, not an unconditional retry.
+The OpenAI client receives only the current user's session-memory BYOK value and
+the resolved model. The Responses interface is primary. A chat-completions call
+is a conditional compatibility fallback for validated lesson generation, not an
+unconditional retry. Connection testing and AI World actions use Responses only.
 
 ### Validation boundary
 
@@ -83,32 +86,40 @@ Streamlit session state contains:
 | `pending_learning_topic` | Planner-selected topic waiting to enter Learning |
 | `pending_challenge` | Recovery recommendation waiting to enter Challenge |
 | `active_challenge_source_recommendation_id` | Recovery source linked to the next Challenge Session |
-| `world_data` | Active normalized v1.03 cross-World evidence |
+| `world_data` | Active normalized v1.04 cross-World evidence; never contains an API key |
+| `user_openai_api_key` | Current user's API key in session server memory only |
+| `openai_connection_status` | Missing, registered, connected, or failed BYOK state |
+| `openai_api_notice` | One-time sanitized BYOK lifecycle notice |
 
 State normalization removes invalid answers, bounds the active index, repairs invalid flags, and clears malformed feedback.
 
 ## Configuration architecture
 
-- `.env` may populate local environment variables.
+- `.env` may populate non-secret local configuration.
 - Existing environment variables are not overwritten by the fallback `.env` loader.
-- Streamlit Secrets are consulted when an environment value is absent.
-- `OPENAI_API_KEY` has no built-in default.
+- Streamlit Secrets are consulted for model configuration when an environment value is absent.
+- API keys are accepted only through Management and retained in the current
+  Streamlit session's server memory.
+- No developer-owned environment or Streamlit Secret key is used as a fallback.
 - `OPENAI_MODEL` defaults to `gpt-4.1-mini`.
 - `.streamlit/config.toml` defines presentation theme only.
 
 ## Error behavior
 
-- Missing API configuration and dependencies produce controlled runtime errors.
+- Missing API configuration and dependencies disable only AI-dependent actions
+  or produce controlled AI errors.
 - Invalid model JSON and invalid lesson data produce user-facing validation errors.
 - Authentication, permission, quota, billing, payment, and rate-limit failures do not trigger a second API call.
 - Likely transient connection or service failures may trigger one fallback call.
 
 ## Security and privacy boundary
 
-API secrets are excluded from tracked source through `.gitignore`. Tracked
-configuration files contain example values only. World evidence is persisted
-locally in `.ule_data` after explicit actions; topics and generated requests are
-sent to the configured OpenAI API.
+API secrets are accepted only through a password input and retained in
+Streamlit session server memory. They are excluded from World evidence,
+`.ule_data`, backup export, logs, tracked configuration, commits, and releases.
+The deployed app does not use a shared developer key. World evidence is
+persisted locally in `.ule_data` after explicit actions; topics and generated
+requests are sent to OpenAI only through the explicitly registered user key.
 
 ## v0.4 adaptive boundary
 
@@ -301,3 +312,21 @@ the same normalized World state and include all World record categories.
 The removed Dashboard, Review, shared presentation helpers, explicit-navigation
 metadata, and callback routing are not part of the v1.03 runtime. No background
 action, notification, UI redesign, or autonomous learning start is added.
+
+## v1.04 AI and BYOK boundary
+
+Management owns explicit API registration, change, deletion, and connection
+testing. The key remains outside normalized World state and all persistence
+paths. Losing or deleting it disables lesson generation and AI World execution
+without affecting Recovery, Challenge, Analytics, Planner, Library, Management,
+My Learning, or Report.
+
+AI owns four learner-triggered actions: question, explanation, recommendation,
+and summary. Sanitized provider failures are contained at the AI boundary and do
+not expose keys, raw response objects, JSON, stack traces, or internal state.
+Successful AI output enters the existing AI history and Library path. An
+explicit recommendation connection continues into Planner; Planner continues
+into Learning; all resulting records continue into My Learning and Report.
+
+v1.04 changes no theme, layout, World background, Hover, Animation, or Glass
+behavior.

@@ -1,6 +1,6 @@
-# Universal Learning Engine v1.03 Learning Flow Integration
+# Universal Learning Engine v1.04 AI Integration & BYOK
 
-![Version](https://img.shields.io/badge/version-v1.03-35C8DD)
+![Version](https://img.shields.io/badge/version-v1.04-35C8DD)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,9 +9,8 @@ Universal Learning Engine is a production-ready Streamlit learning application t
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository contains the **v1.03 Learning Flow Integration** implementation
-on the preserved learning and Expansion runtime. Publication operations remain
-separately controlled.
+The repository contains the **v1.04 AI Integration & BYOK** implementation on
+the preserved v1.03 learning-flow and Expansion runtime.
 
 ## Current features
 
@@ -25,7 +24,13 @@ separately controlled.
   Challenge recommendations
 - Independent Exam, Hard, Nightmare, and mock-exam Challenge sessions, history,
   and results
-- AI question, recommendation, and summary actions using current learning context
+- Per-user BYOK registration, change, deletion, and connection testing
+- Session-memory-only API key handling outside World state, backups, logs, and
+  tracked configuration
+- AI question, explanation, recommendation, and summary actions using current
+  learning context
+- AI-only disablement when no user key is registered
+- Sanitized, isolated AI failures that do not terminate the application
 - Explicit AI Recommendation conversion into real Planner goals and schedules
 - Planner Learning schedules that transfer their selected topic into Learning
 - Automatic Library collection from Learning, Recovery, Challenge, AI, and
@@ -87,7 +92,7 @@ Hard questions emphasize application, comparison, cases, and plausible distracto
 
 The repository is the single source of truth. Use these documents in this order:
 
-1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.03
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.04
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
@@ -99,11 +104,12 @@ The repository is the single source of truth. Use these documents in this order:
 10. [ROADMAP_v1.0.md](./docs/ROADMAP_v1.0.md) — approved v1.0 Stable contract
 11. [ROADMAP_v1.02.md](./docs/ROADMAP_v1.02.md) — v1.02 World Integration contract
 12. [ROADMAP_v1.03.md](./docs/ROADMAP_v1.03.md) — v1.03 Learning Flow Integration contract
-13. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
-14. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
-15. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
-16. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-17. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
+13. [ROADMAP_v1.04.md](./docs/ROADMAP_v1.04.md) — v1.04 AI Integration & BYOK contract
+14. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
+15. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
+16. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
+17. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+18. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 ## Installation
 
@@ -115,21 +121,20 @@ Python 3.10 or newer is expected.
 
 ## Configuration
 
-Do not hardcode an API key. The app resolves configuration in this order:
+Each user registers their own OpenAI API key in **Management → OpenAI API**.
+The key is retained only in that browser session's server memory. It is never
+written to World state, local backups, logs, tracked configuration, commits, or
+releases. Register the key again after the Streamlit session ends.
 
-1. Local `.env` values loaded into the environment
-2. Existing environment variables
-3. Streamlit Cloud Secrets
-4. `gpt-4.1-mini` as the model default when no model is configured
-
-Create a local `.env` from `.env.example`:
+Only the optional model setting is resolved from local `.env`, environment
+variables, or Streamlit Secrets. It defaults to `gpt-4.1-mini`:
 
 ```env
-OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
-For Streamlit Cloud, use the equivalent keys shown in `.streamlit/secrets.toml.example`.
+When no user key is registered, the four AI actions and AI lesson generation
+are disabled while every non-AI World remains available.
 
 ## Run locally
 
@@ -143,15 +148,16 @@ streamlit run app.py
 python -m unittest discover
 ```
 
-The 120-test suite covers the preserved learning and Expansion contracts,
-v1.02 World behavior, v1.03 cross-World data flow, isolated persistence,
-navigation context transfer, integrated reports, and headless Streamlit behavior.
+The regression suite covers the preserved learning and Expansion contracts,
+v1.02 World behavior, v1.03 cross-World data flow, v1.04 BYOK lifecycle and AI
+error isolation, isolated persistence, navigation context transfer, integrated
+reports, and headless Streamlit behavior.
 GitHub Actions runs complete compilation, branch coverage, regression checks,
 and a headless health check on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following remain outside v1.03:
+The following remain outside v1.04:
 
 - Learning Decision Engine or Weakness Score
 - Background scheduler or notifications
@@ -172,6 +178,8 @@ Universal-Learning-Engine/
 ├─ expansion/                 # Stable Expansion Platform and Pack Runtime
 ├─ tests/test_streamlit_v10.py
 ├─ tests/test_streamlit_v103.py
+├─ tests/test_byok_v104.py
+├─ tests/test_streamlit_v104.py
 ├─ tests/test_world_integration_v103.py
 ├─ tests/test_v10_ui_contract.py
 ├─ tests/test_v10_public_api.py
@@ -181,6 +189,7 @@ Universal-Learning-Engine/
 ├─ docs/ROADMAP_v1.0.md
 ├─ docs/ROADMAP_v1.02.md
 ├─ docs/ROADMAP_v1.03.md
+├─ docs/ROADMAP_v1.04.md
 ├─ docs/DEVELOPER_GUIDE.md
 ├─ docs/EXPANSION_API.md
 ├─ docs/RELEASE_REVIEW_v1.0.md
@@ -249,7 +258,8 @@ Universal-Learning-Engine/
 
 - Generated content quality depends on model behavior and prompt interpretation.
 - Live API behavior and generated difficulty quality require manual verification.
-- Streamlit Cloud requires an `OPENAI_API_KEY` Secret.
+- API keys are session-only and must be registered again after the browser
+  session ends.
 - Detailed adaptive evidence remains session-local, while normalized World
   history is stored locally.
 - Confidence is self-reported and recommendations are deterministic guidance, not a diagnosis.

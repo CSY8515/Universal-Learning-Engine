@@ -9,15 +9,20 @@
 
 ## Configuration
 
-Copy `.env.example` to `.env` and set `OPENAI_API_KEY`. The optional
-`OPENAI_MODEL` value defaults to `gpt-4.1-mini`. Never commit `.env` or
-`.streamlit/secrets.toml`.
+Users enter their own OpenAI API key through **Management → OpenAI API**. The
+application retains it only in the current Streamlit session's server memory.
+Do not place a user or developer key in `.env`, environment variables,
+Streamlit Secrets, World state, backups, logs, tests, or tracked files.
+
+The optional `OPENAI_MODEL` value may be set through `.env`, environment
+variables, or Streamlit Secrets and defaults to `gpt-4.1-mini`. Never commit
+`.env` or `.streamlit/secrets.toml`.
 
 ## Architecture
 
 - `app.py`: composition, OpenAI boundary, validation, session coordination, and
   preserved learning renderers
-- `ui/`: official theme, navigation, Dashboard, Review, and reusable components
+- `ui/`: official theme and nine-World navigation
 - `adaptive.py`: pure deterministic learning recommendations
 - `analytics.py`: pure deterministic session analytics
 - `expansion/`: independent Expansion Platform and synchronous Pack Runtime

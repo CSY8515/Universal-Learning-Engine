@@ -2,17 +2,26 @@
 
 ## Scope
 
-This specification describes the implemented v1.0 Stable application on the preserved v0.9 runtime baseline. Learning-runtime coordination remains in `app.py`; presentation responsibilities are separated into `ui/`; deterministic adaptive rules remain in `adaptive.py`, deterministic Learning Analytics remain in `analytics.py`, and all expansion responsibilities remain isolated in the `expansion` package.
+This specification describes the implemented v1.04 application on the preserved
+v1.03 learning-flow and v0.9 Expansion runtime baselines. Learning-runtime and
+BYOK coordination remain in `app.py`; presentation responsibilities are
+separated into `ui/`; deterministic adaptive rules remain in `adaptive.py`,
+deterministic Learning Analytics remain in `analytics.py`, and all expansion
+responsibilities remain isolated in the `expansion` package.
 
 ## Configuration module
 
-Functions: `load_local_env`, `get_secret_value`, `get_api_key`, `get_model`
+Functions: `load_local_env`, `get_secret_value`, `get_api_key`, `get_model`,
+`normalize_api_key_input`, `register_api_key`, `delete_api_key`
 
 Responsibilities:
 
 - Load local `.env` values without replacing existing environment variables.
 - Read Streamlit Secrets without breaking local execution.
-- Resolve the API key from environment then Streamlit Secrets.
+- Accept API keys only through explicit user entry in Management.
+- Retain the key only in current Streamlit session server memory.
+- Register, replace, and delete the key without writing it to World state,
+  backups, logs, repository configuration, commits, or releases.
 - Resolve the model from environment, Streamlit Secrets, then the default.
 
 The module must not hardcode credentials or expose them in rendered output.
@@ -32,17 +41,23 @@ Responsibilities:
 
 ## API integration module
 
-Functions: `extract_text`, `build_api_error_message`, `should_try_api_fallback`, `generate_lesson`
+Functions: `extract_text`, `build_api_error_message`, `should_try_api_fallback`,
+`create_openai_client`, `test_openai_connection`, `generate_lesson`,
+`generate_ai_world_text`
 
 Responsibilities:
 
 - Create the OpenAI client with resolved configuration.
+- Test the user key with one bounded Responses request.
 - Make the primary Responses call.
 - Classify the first failure before any fallback.
 - Make at most one chat-completions fallback when classified as retryable.
 - Extract response text across the supported response shapes.
 - Parse and validate the lesson before returning it.
 - Add selected difficulty and requested count metadata to valid lesson data.
+- Execute AI question, explanation, recommendation, and summary actions.
+- Sanitize configuration and provider errors without exposing key material,
+  raw payloads, stack traces, or internal state.
 
 ## Parsing and validation module
 
@@ -468,3 +483,28 @@ The tests cover Recovery-to-Challenge transfer, independent Challenge results,
 AI-to-Planner records, Planner-to-Learning topic transfer, multi-source Library
 storage, integrated Analytics/My Learning/Report evidence, v1.02 state
 normalization, and isolated Streamlit persistence.
+
+## v1.04 BYOK and AI integration
+
+Modules: `app.py`, `world_state.py`
+
+Responsibilities:
+
+- Render registration, change, deletion, and connection-test controls inside
+  the existing Management World.
+- Disable only AI-dependent controls when no user key exists.
+- Store question, explanation, recommendation, and summary results through the
+  existing AI history and Library path.
+- Preserve explicit AI Recommendation to Planner conversion and downstream
+  Learning, My Learning, and Report integration.
+- Contain API failures inside the affected AI action.
+- Keep the key outside all normalized and durable data.
+
+## v1.04 verification modules
+
+Files: `tests/test_byok_v104.py`, `tests/test_streamlit_v104.py`
+
+The tests cover input normalization, registration/change/deletion, bounded
+Responses connection testing, safe failure messages, no-key AI isolation,
+explanation generation, Library integration, and the absence of key material
+from normalized World state.

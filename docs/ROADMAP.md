@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v1.03; publishing
+- The implemented working-tree version is v1.04; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -150,6 +150,20 @@ The implemented contract is `ROADMAP_v1.02.md`.
 - Dashboard, Review, and legacy routing removal
 
 The implemented contract is `ROADMAP_v1.03.md`. v1.03 adds no UI redesign,
+background action, notification, autonomous learning, or concrete Living OS
+behavior.
+
+### v1.04 — AI Integration & BYOK
+
+- Per-user API key registration, change, deletion, and connection testing
+- Session-memory-only key isolation with no repository, backup, or logging path
+- AI question, explanation, recommendation, and summary actions
+- AI-only disablement when no key is registered
+- AI output integration into Planner, Library, My Learning, and Report
+- Sanitized, non-fatal AI error handling
+
+The implemented contract is `ROADMAP_v1.04.md`. v1.04 preserves the existing UI
+and v1.03 World structure. It adds no shared developer key, durable key storage,
 background action, notification, autonomous learning, or concrete Living OS
 behavior.
 

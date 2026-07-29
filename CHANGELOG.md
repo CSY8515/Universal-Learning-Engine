@@ -2,6 +2,30 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.04 - AI Integration & BYOK
+
+### Added
+
+- Per-user OpenAI API key registration, change, deletion, and connection testing
+- Session-memory-only BYOK storage outside World data, backups, logs, and
+  repository configuration
+- Independent AI question, explanation, recommendation, and summary actions
+- Focused BYOK lifecycle, sanitization, no-key isolation, and Streamlit tests
+
+### Changed
+
+- AI lesson generation and AI World actions use only the current user's
+  registered key
+- Missing or failed AI configuration disables only AI-dependent actions
+- AI explanations join the existing AI history, Library, My Learning, and Report
+  data flow
+
+### Preserved
+
+- v1.03 World structure and data flow
+- Existing theme, layout, backgrounds, Hover, Animation, and Glass behavior
+- Non-AI Worlds when no API key is registered
+
 ## v1.03 - Learning Flow Integration
 
 ### Added

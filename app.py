@@ -22,6 +22,9 @@ APP_TITLE = "Universal Learning Engine"
 APP_DESCRIPTION = "학습할 주제를 입력하면 동일한 학습 엔진이 해당 주제에 맞게 동작합니다."
 DEFAULT_MODEL = "gpt-4.1-mini"
 API_TIMEOUT_SECONDS = 60.0
+BYOK_API_KEY_STATE = "user_openai_api_key"
+BYOK_CONNECTION_STATE = "openai_connection_status"
+BYOK_NOTICE_STATE = "openai_api_notice"
 MAX_TOPIC_LENGTH = 80
 QUESTION_COUNT_OPTIONS = [5, 10, 15, 20]
 DIFFICULTY_OPTIONS = ["Easy", "Normal", "Hard", "Nightmare"]
@@ -120,11 +123,74 @@ def get_secret_value(key: str) -> str | None:
 
 
 def get_api_key() -> str | None:
-    return os.getenv("OPENAI_API_KEY") or get_secret_value("OPENAI_API_KEY")
+    try:
+        value = st.session_state.get(BYOK_API_KEY_STATE, "")
+    except Exception:
+        return None
+    return normalize_api_key_input(value) or None
+
+
+def normalize_api_key_input(value: object) -> str:
+    """Normalize a session-only BYOK value without exposing or persisting it."""
+    if not isinstance(value, str):
+        return ""
+    cleaned = value.strip()
+    if not cleaned or len(cleaned) > 512 or any(char.isspace() for char in cleaned):
+        return ""
+    return cleaned
+
+
+def register_api_key(value: object) -> None:
+    cleaned = normalize_api_key_input(value)
+    if not cleaned:
+        raise ConfigurationError("OpenAI API Key를 확인해주세요.")
+    st.session_state[BYOK_API_KEY_STATE] = cleaned
+    st.session_state[BYOK_CONNECTION_STATE] = "registered"
+
+
+def delete_api_key() -> None:
+    st.session_state[BYOK_API_KEY_STATE] = ""
+    st.session_state[BYOK_CONNECTION_STATE] = "missing"
 
 
 def get_model() -> str:
     return os.getenv("OPENAI_MODEL") or get_secret_value("OPENAI_MODEL") or DEFAULT_MODEL
+
+
+def create_openai_client(api_key: str):
+    try:
+        from openai import OpenAI
+    except ImportError as exc:
+        raise ConfigurationError(
+            "OpenAI 기능을 사용할 수 없습니다. 관리자에게 문의해주세요."
+        ) from exc
+    return OpenAI(
+        api_key=api_key,
+        timeout=API_TIMEOUT_SECONDS,
+        max_retries=0,
+    )
+
+
+def test_openai_connection(api_key: str) -> bool:
+    cleaned = normalize_api_key_input(api_key)
+    if not cleaned:
+        raise ConfigurationError("먼저 본인의 OpenAI API Key를 등록해주세요.")
+    client = create_openai_client(cleaned)
+    try:
+        response = client.responses.create(
+            model=get_model(),
+            input="Reply with OK.",
+            max_output_tokens=8,
+        )
+        extract_text(response)
+    except Exception as error:
+        LOGGER.warning(
+            "byok_connection_test_failed error_type=%s status_code=%s",
+            type(error).__name__,
+            getattr(error, "status_code", None),
+        )
+        raise ApiRequestError(build_api_error_message()) from error
+    return True
 
 
 def get_quality_difficulty_rules(difficulty: str) -> str:
@@ -340,22 +406,15 @@ def is_correct_answer(selected_index: int, answer_index: int) -> bool:
 def generate_lesson(topic: str, question_count: int, difficulty: str) -> dict:
     api_key = get_api_key()
     if not api_key:
-        raise ConfigurationError("OPENAI_API_KEY가 설정되어 있지 않습니다. 로컬에서는 .env, Streamlit Cloud에서는 Secrets를 설정해주세요.")
+        raise ConfigurationError(
+            "본인의 OpenAI API Key를 Management에서 먼저 등록해주세요."
+        )
     if difficulty not in DIFFICULTY_OPTIONS:
         raise ResponseValidationError(build_response_data_error("지원하지 않는 난이도입니다."))
     if type(question_count) is not int or question_count not in QUESTION_COUNT_OPTIONS:
         raise ResponseValidationError(build_response_data_error("지원하지 않는 CBT 문제 수입니다."))
 
-    try:
-        from openai import OpenAI
-    except ImportError as exc:
-        raise ConfigurationError("openai 패키지가 설치되어 있지 않습니다. requirements.txt를 설치해주세요.") from exc
-
-    client = OpenAI(
-        api_key=api_key,
-        timeout=API_TIMEOUT_SECONDS,
-        max_retries=0,
-    )
+    client = create_openai_client(api_key)
     model = get_model()
     prompt = build_prompt(topic, question_count, difficulty)
     started_at = time.perf_counter()
@@ -562,6 +621,9 @@ def init_state() -> None:
         "recovery_question_index": 0,
         "recovery_feedback": None,
         "expansion_api": None,
+        BYOK_API_KEY_STATE: "",
+        BYOK_CONNECTION_STATE: "missing",
+        BYOK_NOTICE_STATE: None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -644,6 +706,21 @@ def init_state() -> None:
         )
     if not isinstance(st.session_state.expansion_api, ExpansionAPI):
         st.session_state.expansion_api = ExpansionAPI()
+    if not normalize_api_key_input(st.session_state[BYOK_API_KEY_STATE]):
+        st.session_state[BYOK_API_KEY_STATE] = ""
+        st.session_state[BYOK_CONNECTION_STATE] = "missing"
+    elif st.session_state[BYOK_CONNECTION_STATE] not in (
+        "registered",
+        "connected",
+        "failed",
+    ):
+        st.session_state[BYOK_CONNECTION_STATE] = "registered"
+    if st.session_state[BYOK_NOTICE_STATE] not in (
+        None,
+        "registered",
+        "deleted",
+    ):
+        st.session_state[BYOK_NOTICE_STATE] = None
 
 
 def save_world_data() -> None:
@@ -1328,6 +1405,12 @@ def render_learning_setup(
     """Render the preserved universal-topic lesson controls."""
     st.caption("NEW LEARNING SESSION")
     st.subheader("학습 설정")
+    ai_ready = bool(get_api_key())
+    if not ai_ready:
+        st.info(
+            "AI 학습 생성을 사용하려면 Management에서 본인의 OpenAI API Key를 "
+            "등록해주세요. 다른 World 기능은 계속 사용할 수 있습니다."
+        )
     settings = st.session_state.world_data["management"]["settings"]
     topic = st.text_input(
         "학습할 주제를 입력하세요.",
@@ -1360,7 +1443,7 @@ def render_learning_setup(
 
     if st.button(
         "학습 시작",
-        disabled=st.session_state.is_generating,
+        disabled=st.session_state.is_generating or not ai_ready,
         type="primary",
         use_container_width=True,
     ):
@@ -1610,18 +1693,15 @@ def generate_ai_world_text(kind: str, request: str) -> str:
     api_key = get_api_key()
     if not api_key:
         raise ConfigurationError(
-            "OPENAI_API_KEY가 설정되어 있지 않습니다. "
-            "로컬에서는 .env, Streamlit Cloud에서는 Secrets를 설정해주세요."
+            "본인의 OpenAI API Key를 Management에서 먼저 등록해주세요."
         )
-    try:
-        from openai import OpenAI
-    except ImportError as exc:
-        raise ConfigurationError(
-            "openai 패키지가 설치되어 있지 않습니다. requirements.txt를 설치해주세요."
-        ) from exc
 
     task_rules = {
         "질문": "학습자의 질문에 정확하고 이해하기 쉬운 한국어로 답하세요.",
+        "해설": (
+            "현재 학습 기록과 사용자의 요청을 바탕으로 개념 또는 오답 원인을 "
+            "단계적으로 이해하기 쉽게 해설하세요."
+        ),
         "추천": (
             "제공된 학습 기록만 근거로 다음 학습 행동을 3개 이내로 추천하세요. "
             "자동으로 일정이나 학습을 시작했다고 표현하지 마세요."
@@ -1635,7 +1715,7 @@ def generate_ai_world_text(kind: str, request: str) -> str:
         f"{task_rules[kind]}\n\n[학습 맥락]\n{_ai_context()}\n\n"
         f"[사용자 요청]\n{request.strip() or kind}"
     )
-    client = OpenAI(api_key=api_key, timeout=API_TIMEOUT_SECONDS, max_retries=0)
+    client = create_openai_client(api_key)
     try:
         response = client.responses.create(
             model=get_model(),
@@ -1649,9 +1729,24 @@ def generate_ai_world_text(kind: str, request: str) -> str:
 
 def render_ai_world() -> None:
     st.header("AI")
-    kind = st.radio("AI 기능", ("질문", "추천", "요약"), horizontal=True)
+    ai_ready = bool(get_api_key())
+    if not ai_ready:
+        st.info(
+            "AI 기능을 사용하려면 Management에서 본인의 OpenAI API Key를 "
+            "등록해주세요."
+        )
+        if st.button("API 설정으로 이동"):
+            st.session_state.pending_view = "Management"
+            st.rerun()
+    kind = st.radio(
+        "AI 기능",
+        ("질문", "해설", "추천", "요약"),
+        horizontal=True,
+        disabled=not ai_ready,
+    )
     default_request = {
         "질문": "",
+        "해설": "최근 학습 내용과 오답을 이해하기 쉽게 해설해주세요.",
         "추천": "현재 기록을 기준으로 다음 학습을 추천해주세요.",
         "요약": "현재 학습 상태를 요약해주세요.",
     }[kind]
@@ -1659,8 +1754,13 @@ def render_ai_world() -> None:
         f"AI {kind}",
         value=default_request,
         key=f"ai_request_{kind}",
+        disabled=not ai_ready,
     )
-    if st.button(f"AI {kind} 실행", type="primary"):
+    if st.button(
+        f"AI {kind} 실행",
+        type="primary",
+        disabled=not ai_ready,
+    ):
         if kind == "질문" and not request.strip():
             st.warning("질문을 입력해주세요.")
         else:
@@ -1876,6 +1976,64 @@ def render_management_world() -> None:
             f"{'로드됨' if status.loaded else '설치됨'}"
         )
 
+    st.subheader("OpenAI API")
+    registered_key = get_api_key()
+    connection_status = st.session_state[BYOK_CONNECTION_STATE]
+    notice = st.session_state.pop(BYOK_NOTICE_STATE, None)
+    if notice == "registered":
+        st.success("OpenAI API Key가 현재 세션에 등록되었습니다.")
+    elif notice == "deleted":
+        st.success("현재 세션의 OpenAI API Key를 삭제했습니다.")
+    if not registered_key:
+        st.info("등록된 OpenAI API Key가 없습니다. AI 기능만 비활성화됩니다.")
+    elif connection_status == "connected":
+        st.success("OpenAI API 연결이 확인되었습니다.")
+    elif connection_status == "failed":
+        st.warning("OpenAI API 연결을 확인할 수 없습니다.")
+    else:
+        st.info("OpenAI API Key가 현재 세션에 등록되어 있습니다.")
+    st.caption(
+        "API Key는 현재 브라우저 세션의 서버 메모리에만 보관되며 "
+        "저장 파일, 백업, Repository, 로그에 포함되지 않습니다."
+    )
+    with st.form("byok_api_key_form", clear_on_submit=True):
+        api_key_input = st.text_input(
+            "OpenAI API Key",
+            type="password",
+        )
+        submitted = st.form_submit_button(
+            "API 변경" if registered_key else "API 등록"
+        )
+    if submitted:
+        try:
+            register_api_key(api_key_input)
+            st.session_state[BYOK_NOTICE_STATE] = "registered"
+            st.rerun()
+        except ConfigurationError as error:
+            st.warning(user_facing_error_message(error))
+
+    api_columns = st.columns(2)
+    if api_columns[0].button(
+        "연결 테스트",
+        disabled=not bool(registered_key),
+        use_container_width=True,
+    ):
+        try:
+            test_openai_connection(registered_key or "")
+            st.session_state[BYOK_CONNECTION_STATE] = "connected"
+            st.success("OpenAI API 연결이 정상입니다.")
+        except Exception as error:
+            st.session_state[BYOK_CONNECTION_STATE] = "failed"
+            st.error(user_facing_error_message(error))
+    if api_columns[1].button(
+        "API 삭제",
+        disabled=not bool(registered_key),
+        use_container_width=True,
+    ):
+        delete_api_key()
+        st.session_state[BYOK_NOTICE_STATE] = "deleted"
+        st.rerun()
+
     st.subheader("과목 관리")
     new_subject = st.text_input("과목 추가", key="management_new_subject")
     if st.button("과목 저장"):
@@ -2067,7 +2225,7 @@ def render_my_learning_world() -> None:
 def main() -> None:
     configure_logging()
     st.set_page_config(
-        page_title=f"{APP_TITLE} v1.03",
+        page_title=f"{APP_TITLE} v1.04",
         page_icon="📘",
         layout="wide",
         initial_sidebar_state="collapsed",

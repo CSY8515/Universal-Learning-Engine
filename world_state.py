@@ -1058,7 +1058,7 @@ def search_library(state: dict, query: str) -> list[dict]:
 def add_ai_history(
     state: dict, kind: str, prompt: str, response: str, topic: str = ""
 ) -> dict:
-    if kind not in ("질문", "추천", "요약"):
+    if kind not in ("질문", "해설", "추천", "요약"):
         raise ValueError("지원하지 않는 AI 기능입니다.")
     created_at = _now()
     cleaned_topic = _clean_text(topic, maximum=80)

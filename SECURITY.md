@@ -2,7 +2,7 @@
 
 ## Supported release line
 
-Security fixes are accepted for the current v1.0 Stable line. Historical v0.x
+Security fixes are accepted for the current v1.04 release line. Historical
 releases are maintained as compatibility records rather than active security
 release lines.
 
@@ -15,7 +15,13 @@ involved through the repository owner's private security-reporting channel.
 
 ## Application boundaries
 
-- Topics and generation prompts are sent to the configured OpenAI API.
+- Topics and generation prompts are sent to OpenAI only after the current user
+  registers a key and explicitly starts an AI action.
+- Each OpenAI API key is retained only in the current Streamlit session's server
+  memory. It must not enter World state, local backups, logs, repository files,
+  commits, or releases.
+- The deployed application must not provide or fall back to a developer-owned
+  shared OpenAI API key.
 - Learner records are retained only in the active Streamlit session.
 - `.env` and `.streamlit/secrets.toml` must remain untracked.
 - Model output is untrusted and must pass validation before normal rendering.

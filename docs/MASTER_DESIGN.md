@@ -316,3 +316,26 @@ removed. The existing theme and Streamlit control structure remain unchanged.
 v1.03 adds no UI redesign, World background, Hover, Animation, Glass,
 background scheduler, notification, autonomous learning, or concrete Living OS
 behavior.
+
+## v1.04 AI Integration & BYOK design
+
+v1.04 preserves the complete v1.03 nine-World structure and introduces no visual
+redesign. Each learner supplies their own OpenAI API key through Management.
+Registration, replacement, connection testing, and deletion are explicit
+learner actions. The key exists only in the current Streamlit session's server
+memory and never enters normalized World data, `.ule_data`, backup export, logs,
+tracked configuration, commits, or releases. The application does not use a
+developer-owned key as a fallback.
+
+Without a registered key, lesson generation and AI World execution are disabled
+while every non-AI World remains functional. Provider and configuration failures
+are sanitized and contained inside the affected AI action, with no raw JSON,
+debug information, stack trace, internal data, or secret rendered to the user.
+
+AI supports learner-triggered question, explanation, recommendation, and summary
+actions. Successful results are retained in AI history and Library. An explicit
+AI Recommendation continues into Planner; Planner schedules continue into
+Learning; the resulting evidence continues into My Learning and Report.
+
+v1.04 changes no layout, background, Hover, Animation, Glass, World ordering,
+learning algorithm, Expansion boundary, or Living OS behavior.
