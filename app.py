@@ -2017,6 +2017,10 @@ def render_analytics_world() -> None:
 def render_my_learning_world() -> None:
     st.header("My Learning")
     stats = world_state.learning_stats(st.session_state.world_data)
+    challenge_count = stats.get(
+        "challenge_count",
+        stats.get("world_records", {}).get("Challenge", 0),
+    )
     columns = st.columns(4)
     columns[0].metric("공부시간", f"{stats['study_seconds'] // 60}분")
     columns[1].metric("레벨", stats["level"])
@@ -2037,7 +2041,7 @@ def render_my_learning_world() -> None:
         f"학습 주제 {stats['topic_count']}개 · "
         f"분석 문항 {stats['question_count']}개 · "
         f"Recovery Session {stats['recovery_count']}회 · "
-        f"Challenge Session {stats['challenge_count']}회"
+        f"Challenge Session {challenge_count}회"
     )
     st.write(
         f"AI {stats['ai_count']}건 · "

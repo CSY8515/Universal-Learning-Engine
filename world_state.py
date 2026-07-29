@@ -1255,6 +1255,7 @@ def build_world_analytics(state: dict) -> dict:
 
 
 def learning_stats(state: dict) -> dict:
+    state = normalize_world_state(state)
     rounds = state["rounds"]
     total_questions = sum(max(0, int(item.get("question_count", 0))) for item in rounds)
     correct_count = sum(max(0, int(item.get("correct_count", 0))) for item in rounds)

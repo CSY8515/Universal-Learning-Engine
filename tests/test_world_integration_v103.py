@@ -216,6 +216,30 @@ class WorldIntegrationV103Tests(unittest.TestCase):
             "available",
         )
 
+    def test_legacy_state_stats_include_challenge_count(self):
+        legacy = {
+            "version": 1,
+            "rounds": [],
+            "recovery_sessions": [],
+            "planner": {"goals": [], "schedule": []},
+            "library": {"resources": [], "notes": []},
+            "management": {
+                "subjects": [],
+                "settings": {
+                    "default_question_count": 5,
+                    "default_difficulty": "Easy",
+                },
+            },
+            "ai_history": [],
+            "activity": [],
+        }
+
+        stats = world_state.learning_stats(legacy)
+
+        self.assertEqual(stats["challenge_count"], 0)
+        self.assertEqual(stats["world_records"]["Challenge"], 0)
+        self.assertNotIn("challenge", legacy)
+
 
 if __name__ == "__main__":
     unittest.main()
