@@ -1,3 +1,4 @@
+import importlib
 import json
 import logging
 import os
@@ -16,6 +17,15 @@ from ui import (
     apply_official_theme,
     render_navigation,
 )
+
+# Streamlit Cloud may hot-reload this entrypoint while retaining an older
+# project module in the long-running interpreter. Refresh only when the
+# presentation API required by this release is absent.
+if not all(
+    hasattr(world_state, attribute)
+    for attribute in ("world_label", "difficulty_label")
+):
+    world_state = importlib.reload(world_state)
 
 
 APP_TITLE = "통합 학습 엔진"
