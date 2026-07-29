@@ -2,6 +2,31 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.03 - Learning Flow Integration
+
+### Added
+
+- Recovery records, timing, history, and deterministic Challenge recommendations
+- Independent Challenge Sessions, Results, and mode history
+- Integrated cross-World Analytics supplied to AI
+- Explicit AI Recommendation conversion into Planner goals and schedules
+- Planner Learning-topic transfer
+- Multi-source Library records from Learning, Recovery, Challenge, AI, and Planner
+- Integrated My Learning statistics, achievements, and all-World Report
+- v1.02 state migration and isolated Streamlit persistence tests
+
+### Removed
+
+- Unused Dashboard, Review, and shared legacy presentation modules
+- Legacy explicit-navigation callback routing
+- Obsolete topic input placeholder
+
+### Preserved
+
+- Existing UI theme and layout
+- Validated lesson generation, CBT, adaptive, and analytics contracts
+- Expansion Platform and Living OS interface boundaries
+
 ## v1.0.0 - Stable
 
 ### Added

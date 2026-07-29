@@ -367,10 +367,13 @@ Files: `tests/test_v09_stability.py`, `.coveragerc`, `.github/workflows/tests.ym
 
 The focused tests cover cross-layer reentrancy, direct Loader bypass prevention, structured cleanup failure, session repair, atomic recording, and widget cleanup. CI compiles the complete runtime, measures branch coverage, and verifies the headless Streamlit health endpoint on Python 3.10 and 3.13.
 
-## v1.0 presentation modules
+## Historical v1.0 presentation modules
 
 Modules: `ui.theme`, `ui.navigation`, `ui.components`, `ui.dashboard`,
 `ui.results`
+
+`ui.components`, `ui.dashboard`, and `ui.results` were removed in v1.03 after
+the nine-World runtime superseded their Dashboard and Review paths.
 
 Responsibilities:
 
@@ -410,3 +413,58 @@ Responsibilities:
 `app.py` preserves the existing Streamlit primitives and static theme while
 exposing the nine functional Worlds. No CSS, World background, Hover, Animation,
 Glass, or visual redesign work is part of v1.02.
+
+## v1.03 World flow state module
+
+Module: `world_state.py`
+
+Responsibilities:
+
+- Upgrade v1.02 state into the normalized v1.03 schema without losing records.
+- Store Recovery records, history, duration, and Challenge recommendations.
+- Store independent Challenge Sessions and Results with source linkage.
+- Build integrated World Analytics for AI, My Learning, and Report.
+- Convert one AI Recommendation into one idempotent Planner goal and Learning
+  schedule after explicit learner action.
+- Store normalized Library resources with source World and source identity.
+- Transfer connected topics into Management subjects.
+- Derive all-World study time, points, level, achievements, and long-term
+  counts.
+- Generate the integrated Learning, Recovery, Challenge, Analytics, AI,
+  Planner, Library, Management, and My Learning report.
+
+## v1.03 application integration
+
+Module: `app.py`
+
+Responsibilities:
+
+- Apply queued Recovery Challenge context before Challenge widgets render.
+- Apply queued Planner topics before Learning widgets render.
+- Start Challenge Sessions only after lesson generation succeeds.
+- Render Recovery History, Recovery Recommendation, and Challenge History.
+- Connect explicit AI Recommendation actions to Planner.
+- Render generic multi-source Library records.
+- Render integrated Analytics, My Learning, and Report evidence.
+- Keep OpenAI calls learner triggered and preserve the existing error boundary.
+
+## v1.03 presentation modules
+
+Modules: `ui.theme`, `ui.navigation`
+
+Responsibilities:
+
+- Preserve the repository-owned static theme without modification.
+- Render the existing nine-World navigation control.
+- Add no Dashboard, Review, legacy callback routing, dynamic CSS, or new visual
+  system.
+
+## v1.03 verification modules
+
+Files: `tests/test_world_integration_v103.py`,
+`tests/test_streamlit_v103.py`, `tests/_streamlit_case.py`
+
+The tests cover Recovery-to-Challenge transfer, independent Challenge results,
+AI-to-Planner records, Planner-to-Learning topic transfer, multi-source Library
+storage, integrated Analytics/My Learning/Report evidence, v1.02 state
+normalization, and isolated Streamlit persistence.

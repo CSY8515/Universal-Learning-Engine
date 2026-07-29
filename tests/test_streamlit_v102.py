@@ -3,6 +3,7 @@ import unittest
 from streamlit.testing.v1 import AppTest
 
 import world_state
+from tests._streamlit_case import IsolatedWorldStateTestCase
 
 
 def make_lesson(answer_index=0):
@@ -25,8 +26,9 @@ def make_lesson(answer_index=0):
     }
 
 
-class StreamlitV102Tests(unittest.TestCase):
+class StreamlitV102Tests(IsolatedWorldStateTestCase):
     def setUp(self):
+        super().setUp()
         self.app = AppTest.from_file("app.py").run()
         self.assertFalse(self.app.exception)
 
@@ -73,6 +75,7 @@ class StreamlitV102Tests(unittest.TestCase):
     def test_direct_and_practice_inputs_save_to_library(self):
         self.app.session_state["lesson"] = make_lesson()
         self.app.session_state["lesson_origin"] = "Learning"
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
         direct = [
             item for item in self.app.text_area if item.label == "직접 작성해보세요."

@@ -14,7 +14,7 @@ NAVIGATION_OPTIONS = (
 )
 
 
-def render_navigation(st_module, *, on_change=None) -> str:
+def render_navigation(st_module) -> str:
     """Render a compact navigation control and return the selected view."""
 
     return st_module.radio(
@@ -23,5 +23,4 @@ def render_navigation(st_module, *, on_change=None) -> str:
         horizontal=True,
         key="active_view",
         label_visibility="collapsed",
-        on_change=on_change,
     )

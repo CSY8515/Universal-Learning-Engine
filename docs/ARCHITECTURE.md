@@ -2,7 +2,15 @@
 
 ## Current architecture
 
-Universal Learning Engine v1.0 preserves the single-process Streamlit learning application and independent in-process Expansion Platform. `app.py` remains the composition, configuration, OpenAI, validation, session, and compatibility boundary. `ui/` owns the official theme, navigation, Dashboard, Review, and reusable presentation components. `adaptive.py` contains pure deterministic adaptive rules. `analytics.py` contains pure deterministic Learning Analytics. The `expansion` package preserves the common interface, Registry, Loader, Manager, API, connection-only Living OS boundary, execution layer, and shared transition guard.
+Universal Learning Engine v1.03 preserves the single-process Streamlit learning
+application and independent in-process Expansion Platform. `app.py` remains the
+composition, configuration, OpenAI, validation, session, and World presentation
+boundary. `world_state.py` owns normalized persistent cross-World evidence and
+all deterministic World connections. `ui/` owns only the official theme and
+nine-World navigation. `adaptive.py` and `analytics.py` preserve their pure
+deterministic contracts. The `expansion` package preserves the common
+interface, Registry, Loader, Manager, API, connection-only Living OS boundary,
+execution layer, and shared transition guard.
 
 ```text
 User
@@ -23,7 +31,10 @@ Prompt builder ──► OpenAI API
              CBT, feedback, summary
 ```
 
-After a round completes, validated answer evidence flows through `adaptive.py` to produce Round Status, pattern signals, difficulty advice, and recovery advice. There is no database, background worker, external analytics system, account system, or durable learner profile.
+After a round completes, validated answer evidence flows through `adaptive.py`
+and into the normalized local World state. The application has durable local
+single-user World history but no database server, background worker, external
+analytics system, or account system.
 
 The retained completed summaries then flow read-only through `analytics.py`. It normalizes valid records independently and produces latest-round, current-topic, overall-session, topic, difficulty, confidence, pattern, and strength/weakness views. Analytics do not call OpenAI, modify adaptive records, select a learning action, or persist a second copy of state.
 
@@ -31,7 +42,9 @@ The retained completed summaries then flow read-only through `analytics.py`. It 
 
 ### Presentation boundary
 
-Streamlit renders topic and configuration inputs, generated lesson sections, CBT controls, feedback, progress, and the round summary. UI rendering reads and updates session state but does not persist it outside the active session.
+Streamlit renders topic and configuration inputs, generated lesson sections,
+CBT controls, feedback, progress, World records, and the integrated report.
+Explicit learner actions persist normalized state through `world_state.py`.
 
 ### Generation boundary
 
@@ -65,9 +78,12 @@ Streamlit session state contains:
 | `pending_recommended_difficulty` | Explicitly queued selector update |
 | `analytics_cache` | Revision-bound derived v0.5 analytics output |
 | `analytics_revision` | Invalidates derived analytics when source evidence changes |
-| `active_view` | Current Dashboard, Learning, or Review workspace |
+| `active_view` | Current one of nine World workspaces |
 | `pending_view` | Queued view change applied before navigation widget creation |
-| `navigation_explicit` | Distinguishes explicit Dashboard navigation from first lesson entry |
+| `pending_learning_topic` | Planner-selected topic waiting to enter Learning |
+| `pending_challenge` | Recovery recommendation waiting to enter Challenge |
+| `active_challenge_source_recommendation_id` | Recovery source linked to the next Challenge Session |
+| `world_data` | Active normalized v1.03 cross-World evidence |
 
 State normalization removes invalid answers, bounds the active index, repairs invalid flags, and clears malformed feedback.
 
@@ -89,7 +105,10 @@ State normalization removes invalid answers, bounds the active index, repairs in
 
 ## Security and privacy boundary
 
-API secrets are excluded from tracked source through `.gitignore`. The repository includes examples containing placeholders only. The current application does not intentionally persist learner content, but topics and generated requests are sent to the configured OpenAI API.
+API secrets are excluded from tracked source through `.gitignore`. Tracked
+configuration files contain example values only. World evidence is persisted
+locally in `.ule_data` after explicit actions; topics and generated requests are
+sent to the configured OpenAI API.
 
 ## v0.4 adaptive boundary
 
@@ -251,3 +270,34 @@ It writes a normalized local state file atomically after explicit learner
 actions. Streamlit session state holds the active copy; backup export and restore
 use the same validated schema. No World starts another action automatically.
 Planner navigation and recommended actions remain learner controlled.
+
+## v1.03 Learning flow integration boundary
+
+```text
+Learning
+  -> Recovery Record and Recommendation
+  -> Challenge Session and Result
+  -> integrated Analytics
+  -> AI Recommendation
+  -> Planner goal and Learning schedule
+  -> Learning topic transfer
+  -> multi-World Library
+  -> Management subjects
+  -> My Learning
+  -> integrated Report
+```
+
+Recovery completion owns the deterministic Challenge recommendation. Challenge
+owns independent session and result identity. Integrated Analytics is derived
+from the normalized World state and is the evidence supplied to AI. AI output is
+stored in Library; an explicit connection creates one idempotent Planner goal
+and Learning schedule. Opening that schedule transfers its retained topic into
+Learning before the widget is rendered.
+
+Library resources retain source World and source identity. Management subjects
+are updated from connected topic evidence. My Learning and Report derive from
+the same normalized World state and include all World record categories.
+
+The removed Dashboard, Review, shared presentation helpers, explicit-navigation
+metadata, and callback routing are not part of the v1.03 runtime. No background
+action, notification, UI redesign, or autonomous learning start is added.

@@ -14,10 +14,8 @@ from expansion import ExpansionAPI
 from ui import (
     NAVIGATION_OPTIONS,
     apply_official_theme,
-    render_dashboard,
     render_navigation,
 )
-from ui.results import render_review_intro
 
 
 APP_TITLE = "Universal Learning Engine"
@@ -203,7 +201,7 @@ v0.3.1 CBT 품질 규칙:
 규칙:
 - 주제별 하드코딩 없이 입력 주제에 맞게 일반적으로 설명한다.
 - 확장 기능을 만들지 않는다.
-- Recovery Engine, Analytics, Dashboard, Decision Engine, Expansion Pack 내용을 넣지 않는다.
+- 시스템 내부 기능이나 관리 구조를 학습 내용에 넣지 않는다.
 - CBT는 반드시 {question_count}문제만 만든다.
 - CBT 난이도는 반드시 {difficulty} 수준으로 맞춘다.
 - 위 난이도별 출제 기준을 CBT 문제, 선택지, 해설에 강하게 반영한다.
@@ -501,7 +499,6 @@ def reset_learning_state(clear_adaptation: bool = True) -> None:
     st.session_state.lesson = None
     reset_round_state()
     st.session_state.pending_view = "My Learning"
-    st.session_state.navigation_explicit = False
     if clear_adaptation:
         st.session_state.adaptation_records = {}
         st.session_state.latest_adaptive_summary = None
@@ -510,14 +507,26 @@ def reset_learning_state(clear_adaptation: bool = True) -> None:
         st.session_state.analytics_cache = None
         st.session_state.analytics_revision = 0
 
-
-def mark_navigation_explicit() -> None:
-    """Remember that Dashboard navigation was chosen by the learner."""
-    st.session_state.navigation_explicit = True
-
-
 def apply_pending_view() -> None:
     """Apply queued navigation before the keyed navigation widget is created."""
+    pending_topic = st.session_state.pending_learning_topic
+    if isinstance(pending_topic, str) and pending_topic.strip():
+        st.session_state.learning_topic_input = pending_topic.strip()
+    st.session_state.pending_learning_topic = None
+
+    pending_challenge = st.session_state.pending_challenge
+    if isinstance(pending_challenge, dict):
+        mode = pending_challenge.get("mode")
+        topic = pending_challenge.get("topic")
+        if mode in world_state.CHALLENGE_MODES:
+            st.session_state.challenge_mode_selector = mode
+        if isinstance(topic, str) and topic.strip():
+            st.session_state.challenge_topic_input = topic.strip()
+        st.session_state.active_challenge_source_recommendation_id = (
+            pending_challenge.get("recommendation_id", "")
+        )
+    st.session_state.pending_challenge = None
+
     pending = st.session_state.pending_view
     if pending in NAVIGATION_OPTIONS:
         st.session_state.active_view = pending
@@ -543,7 +552,9 @@ def init_state() -> None:
         "analytics_revision": 0,
         "active_view": "My Learning",
         "pending_view": None,
-        "navigation_explicit": False,
+        "pending_learning_topic": None,
+        "pending_challenge": None,
+        "active_challenge_source_recommendation_id": "",
         "world_data": None,
         "lesson_origin": "Learning",
         "learning_started_at": None,
@@ -597,8 +608,15 @@ def init_state() -> None:
         st.session_state.active_view = "My Learning"
     if st.session_state.pending_view not in (None, *NAVIGATION_OPTIONS):
         st.session_state.pending_view = None
-    if not isinstance(st.session_state.navigation_explicit, bool):
-        st.session_state.navigation_explicit = False
+    if not isinstance(st.session_state.pending_learning_topic, (str, type(None))):
+        st.session_state.pending_learning_topic = None
+    if not isinstance(st.session_state.pending_challenge, (dict, type(None))):
+        st.session_state.pending_challenge = None
+    if not isinstance(
+        st.session_state.active_challenge_source_recommendation_id,
+        str,
+    ):
+        st.session_state.active_challenge_source_recommendation_id = ""
     if not isinstance(st.session_state.world_data, dict):
         st.session_state.world_data = world_state.load_world_state()
     else:
@@ -613,6 +631,17 @@ def init_state() -> None:
         st.session_state.recovery_question_index = 0
     if not isinstance(st.session_state.recovery_feedback, (dict, type(None))):
         st.session_state.recovery_feedback = None
+    active_recovery_ids = [
+        item.get("id")
+        for item in st.session_state.world_data["recovery_sessions"]
+        if item.get("status") == "active"
+    ]
+    if st.session_state.active_recovery_session_id not in active_recovery_ids:
+        st.session_state.active_recovery_session_id = (
+            active_recovery_ids[-1]
+            if active_recovery_ids
+            else None
+        )
     if not isinstance(st.session_state.expansion_api, ExpansionAPI):
         st.session_state.expansion_api = ExpansionAPI()
 
@@ -1302,7 +1331,6 @@ def render_learning_setup(
     settings = st.session_state.world_data["management"]["settings"]
     topic = st.text_input(
         "학습할 주제를 입력하세요.",
-        placeholder="예: 제과제빵, Python, 영어, 투자, 역사",
         key=f"{origin.lower()}_topic_input",
     )
     setup_columns = st.columns(2)
@@ -1345,16 +1373,32 @@ def render_learning_setup(
         st.session_state.is_generating = True
         with st.spinner("학습 내용을 생성하는 중입니다."):
             try:
-                st.session_state.lesson = generate_lesson(
+                lesson = generate_lesson(
                     cleaned_topic, question_count, difficulty
                 )
-                st.session_state.lesson["challenge_mode"] = (
+                lesson["challenge_mode"] = (
                     challenge_mode if origin == "Challenge" else ""
                 )
+                if origin == "Challenge":
+                    source_id = (
+                        st.session_state.active_challenge_source_recommendation_id
+                    )
+                    challenge_session = world_state.start_challenge_session(
+                        st.session_state.world_data,
+                        challenge_mode,
+                        cleaned_topic,
+                        difficulty,
+                        question_count,
+                        source_recovery_recommendation_id=source_id,
+                    )
+                    lesson["challenge_session_id"] = challenge_session["id"]
+                    lesson["source_recovery_recommendation_id"] = source_id
+                    st.session_state.active_challenge_source_recommendation_id = ""
+                    save_world_data()
+                st.session_state.lesson = lesson
                 st.session_state.lesson_origin = origin
                 st.session_state.learning_started_at = time.time()
                 st.session_state.pending_view = origin
-                st.session_state.navigation_explicit = True
             except Exception as exc:
                 LOGGER.warning(
                     "lesson_generation_failed error_type=%s",
@@ -1365,40 +1409,6 @@ def render_learning_setup(
                 st.session_state.is_generating = False
         if st.session_state.lesson:
             st.rerun()
-
-
-def dashboard_analytics() -> dict | None:
-    """Return cached session analytics for Dashboard rendering when available."""
-    records = st.session_state.adaptation_records
-    if not isinstance(records, dict) or not records:
-        return None
-    lesson = st.session_state.lesson
-    if isinstance(lesson, dict):
-        topic_key = normalize_topic_key(lesson.get("topic", ""))
-    else:
-        topic_key = next(reversed(records), "")
-    if not topic_key:
-        return None
-    try:
-        return get_cached_learning_analytics(topic_key)
-    except Exception as exc:
-        LOGGER.warning("dashboard_analytics_failed error_type=%s", type(exc).__name__)
-        return None
-
-
-def render_review() -> None:
-    lesson = st.session_state.lesson
-    has_result = isinstance(lesson, dict) and st.session_state.round_finished
-    if not render_review_intro(st, has_result):
-        return
-    try:
-        st.session_state.latest_adaptive_summary = record_completed_round(lesson)
-        st.session_state.adaptation_error = None
-    except Exception as exc:
-        st.session_state.latest_adaptive_summary = None
-        st.session_state.adaptation_error = "adaptive_summary_failed"
-        LOGGER.warning("adaptive_summary_failed error_type=%s", type(exc).__name__)
-    render_round_summary(lesson)
 
 
 def render_recovery_world() -> None:
@@ -1505,26 +1515,55 @@ def render_recovery_world() -> None:
                         st.session_state.recovery_feedback = None
                         st.rerun()
 
-    completed_sessions = [
-        item
-        for item in st.session_state.world_data["recovery_sessions"]
-        if item.get("status") == "completed"
-    ]
+    completed_sessions = world_state.recovery_history(
+        st.session_state.world_data
+    )
     if completed_sessions:
-        st.subheader("Recovery 기록")
+        st.subheader("Recovery History")
         for item in reversed(completed_sessions[-10:]):
+            record = item.get("record", {})
             st.write(
                 f"- {', '.join(item.get('topics', [])) or '복습'} · "
-                f"{item.get('correct_count', 0)} / "
-                f"{item.get('question_count', 0)}"
+                f"{record.get('correct_count', item.get('correct_count', 0))} / "
+                f"{record.get('question_count', item.get('question_count', 0))} · "
+                f"{float(record.get('accuracy', 0)):.1f}% · "
+                f"{int(record.get('duration_seconds', 0))}초"
             )
+
+    recommendations = world_state.pending_recovery_recommendations(
+        st.session_state.world_data
+    )
+    if recommendations:
+        st.subheader("Recovery Recommendation")
+        for recommendation in reversed(recommendations[-10:]):
+            st.write(
+                f"{recommendation.get('topic') or '복습 주제'} · "
+                f"{recommendation['mode']}"
+            )
+            st.write(recommendation["reason"])
+            if st.button(
+                "Challenge로 연결",
+                key=f"open_recovery_recommendation_{recommendation['id']}",
+            ):
+                accepted = world_state.accept_recovery_recommendation(
+                    st.session_state.world_data,
+                    recommendation["id"],
+                )
+                st.session_state.pending_challenge = {
+                    "mode": accepted["mode"],
+                    "topic": accepted["topic"],
+                    "recommendation_id": accepted["id"],
+                }
+                st.session_state.pending_view = "Challenge"
+                save_world_data()
+                st.rerun()
 
 
 def render_challenge_world() -> None:
     st.header("Challenge")
     mode = st.radio(
         "Challenge 유형",
-        ("Exam", "Hard", "Nightmare", "모의고사"),
+        world_state.CHALLENGE_MODES,
         horizontal=True,
         key="challenge_mode_selector",
     )
@@ -1536,16 +1575,33 @@ def render_challenge_world() -> None:
         st.divider()
         render_lesson(st.session_state.lesson)
 
+    results = world_state.challenge_history(st.session_state.world_data)
+    if results:
+        st.subheader("Challenge History")
+        for result in reversed(results[-10:]):
+            st.write(
+                f"- {result.get('mode', '-')} · "
+                f"{result.get('topic', '-')} · "
+                f"{result.get('correct_count', 0)}/"
+                f"{result.get('question_count', 0)} · "
+                f"{float(result.get('accuracy', 0)):.1f}%"
+            )
+
 
 def _ai_context() -> str:
     stats = world_state.learning_stats(st.session_state.world_data)
-    pending = world_state.pending_recovery_items(st.session_state.world_data)
+    evidence = world_state.build_world_analytics(st.session_state.world_data)
     lesson = st.session_state.lesson if isinstance(st.session_state.lesson, dict) else {}
     return (
         f"현재 주제: {lesson.get('topic', '없음')}\n"
-        f"완료 라운드: {stats['round_count']}\n"
-        f"전체 정확도: {stats['accuracy']:.1f}%\n"
-        f"복습 대기 문제: {len(pending)}\n"
+        f"Learning 라운드: {evidence['learning_round_count']}\n"
+        f"Recovery Session: {evidence['recovery_session_count']}\n"
+        f"Challenge Session: {evidence['challenge_session_count']}\n"
+        f"전체 정확도: {evidence['accuracy']:.1f}%\n"
+        f"복습 대기 문제: {evidence['pending_recovery_count']}\n"
+        f"Planner 목표/일정: {evidence['planner_goal_count']}/"
+        f"{evidence['planner_schedule_count']}\n"
+        f"Library 기록: {evidence['library_resource_count'] + evidence['library_note_count']}\n"
         f"레벨: {stats['level']}"
     )
 
@@ -1631,6 +1687,21 @@ def render_ai_world() -> None:
         latest = history[-1]
         st.subheader(f"최근 AI {latest['kind']}")
         st.write(latest["response"])
+        link = latest.get("planner_link", {})
+        if latest.get("kind") == "추천" and link.get("status") == "available":
+            if st.button(
+                "Planner 목표·일정으로 연결",
+                key=f"connect_ai_planner_{latest['id']}",
+            ):
+                world_state.connect_ai_recommendation_to_planner(
+                    st.session_state.world_data,
+                    latest["id"],
+                )
+                st.session_state.pending_view = "Planner"
+                save_world_data()
+                st.rerun()
+        elif latest.get("kind") == "추천" and link.get("status") == "linked":
+            st.info("이 AI Recommendation은 Planner 목표와 일정에 연결되었습니다.")
 
 
 def render_planner_world() -> None:
@@ -1646,16 +1717,15 @@ def render_planner_world() -> None:
             + (f" · {item['topic']}" if item.get("topic") else "")
         )
         if columns[1].button("이동", key=f"open_schedule_{item['id']}"):
+            if item["world"] == "Learning" and item.get("topic"):
+                st.session_state.pending_learning_topic = item["topic"]
             st.session_state.pending_view = item["world"]
             st.rerun()
         if columns[2].button("완료", key=f"complete_schedule_{item['id']}"):
-            item["completed"] = True
-            world_state.add_activity(
+            world_state.set_schedule_completed(
                 st.session_state.world_data,
-                "Planner",
-                "학습 일정 완료",
-                topic=item.get("topic", ""),
-                reference_id=item["id"],
+                item["id"],
+                True,
             )
             save_world_data()
             st.rerun()
@@ -1733,8 +1803,15 @@ def render_library_world() -> None:
                 if item["kind"] == "노트":
                     st.write(item.get("content", ""))
                 else:
-                    st.write(item.get("tutorial", ""))
-                    st.write(item.get("example", ""))
+                    st.caption(
+                        f"{item.get('source_world', 'Learning')} · "
+                        f"{item.get('kind', '자료')}"
+                    )
+                    st.write(
+                        item.get("content")
+                        or item.get("tutorial", "")
+                        or item.get("example", "")
+                    )
 
     st.subheader("노트")
     note_title = st.text_input("노트 제목", key="library_note_title")
@@ -1762,13 +1839,29 @@ def render_library_world() -> None:
         st.info("완료한 학습의 자료가 여기에 자동으로 보관됩니다.")
     for resource in reversed(resources[-10:]):
         with st.expander(resource["title"]):
-            st.markdown("**개념 설명**")
-            st.write(resource["tutorial"])
-            st.markdown("**예제**")
-            st.write(resource["example"])
-            st.markdown("**직접 과제 / 실습**")
-            st.write(resource["direct_task"])
-            st.write(resource["practice"])
+            st.caption(
+                f"{resource.get('source_world', 'Learning')} · "
+                f"{resource.get('kind', '자료')}"
+            )
+            details = resource.get("details", {})
+            if isinstance(details, dict) and details.get("tutorial"):
+                st.markdown("**개념 설명**")
+                st.write(details["tutorial"])
+                st.markdown("**예제**")
+                st.write(details.get("example", ""))
+                st.markdown("**직접 과제 / 실습**")
+                st.write(details.get("direct_task", ""))
+                st.write(details.get("practice", ""))
+            elif resource.get("tutorial"):
+                st.markdown("**개념 설명**")
+                st.write(resource.get("tutorial", ""))
+                st.markdown("**예제**")
+                st.write(resource.get("example", ""))
+                st.markdown("**직접 과제 / 실습**")
+                st.write(resource.get("direct_task", ""))
+                st.write(resource.get("practice", ""))
+            else:
+                st.write(resource.get("content", ""))
 
 
 def render_management_world() -> None:
@@ -1875,17 +1968,40 @@ def render_management_world() -> None:
 
 def render_analytics_world() -> None:
     st.header("Analytics")
-    stats = world_state.learning_stats(st.session_state.world_data)
+    evidence = world_state.build_world_analytics(st.session_state.world_data)
     columns = st.columns(4)
-    columns[0].metric("완료 라운드", stats["round_count"])
-    columns[1].metric("분석 문항", stats["question_count"])
-    columns[2].metric("전체 정확도", f"{stats['accuracy']:.1f}%")
-    columns[3].metric("학습 주제", stats["topic_count"])
+    columns[0].metric(
+        "Learning",
+        evidence["learning_round_count"],
+    )
+    columns[1].metric(
+        "Recovery",
+        evidence["recovery_session_count"],
+    )
+    columns[2].metric(
+        "Challenge",
+        evidence["challenge_session_count"],
+    )
+    columns[3].metric("전체 정확도", f"{evidence['accuracy']:.1f}%")
     lesson = st.session_state.lesson
     if isinstance(lesson, dict) and st.session_state.round_finished:
         render_learning_analytics(lesson)
-    elif not stats["round_count"]:
+    elif not evidence["question_count"]:
         st.info("분석할 학습 기록이 없습니다.")
+    st.subheader("Challenge 분석")
+    for mode, item in evidence["challenge_modes"].items():
+        st.write(
+            f"- {mode}: {item['session_count']}회 · "
+            f"{item['question_count']}문항 · {item['accuracy']:.1f}%"
+        )
+    st.subheader("World 연결 통계")
+    st.write(
+        f"AI {evidence['ai_count']}건 · "
+        f"Planner 목표 {evidence['planner_goal_count']}개 · "
+        f"Planner 일정 {evidence['planner_schedule_count']}개 · "
+        f"Library 자료 {evidence['library_resource_count']}개 · "
+        f"노트 {evidence['library_note_count']}개"
+    )
     report = world_state.build_report(st.session_state.world_data)
     st.subheader("Report")
     st.download_button(
@@ -1920,8 +2036,19 @@ def render_my_learning_world() -> None:
     st.write(
         f"학습 주제 {stats['topic_count']}개 · "
         f"분석 문항 {stats['question_count']}개 · "
-        f"Recovery Session {stats['recovery_count']}회"
+        f"Recovery Session {stats['recovery_count']}회 · "
+        f"Challenge Session {stats['challenge_count']}회"
     )
+    st.write(
+        f"AI {stats['ai_count']}건 · "
+        f"Planner 목표/일정 {stats['planner_goal_count']}/"
+        f"{stats['planner_schedule_count']}개 · "
+        f"Library {stats['library_count']}개 · "
+        f"관리 과목 {stats['subject_count']}개"
+    )
+    st.subheader("World별 기록")
+    for world in world_state.WORLD_NAMES:
+        st.write(f"- {world}: {stats['world_records'].get(world, 0)}")
     st.subheader("최근 활동")
     activity = st.session_state.world_data["activity"]
     if not activity:
@@ -1936,7 +2063,7 @@ def render_my_learning_world() -> None:
 def main() -> None:
     configure_logging()
     st.set_page_config(
-        page_title=f"{APP_TITLE} v1.02",
+        page_title=f"{APP_TITLE} v1.03",
         page_icon="📘",
         layout="wide",
         initial_sidebar_state="collapsed",
@@ -1945,13 +2072,10 @@ def main() -> None:
     apply_pending_difficulty_recommendation()
     apply_pending_view()
 
-    if st.session_state.lesson and not st.session_state.navigation_explicit:
-        st.session_state.active_view = st.session_state.lesson_origin
-
     apply_official_theme(st)
     st.title(APP_TITLE)
     st.write(APP_DESCRIPTION)
-    selected_view = render_navigation(st, on_change=mark_navigation_explicit)
+    selected_view = render_navigation(st)
     st.divider()
 
     if selected_view == "Learning":

@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
+from tests._streamlit_case import IsolatedWorldStateTestCase
 
 
 def make_lesson():
@@ -24,8 +25,9 @@ def make_lesson():
     }
 
 
-class StreamlitV05Tests(unittest.TestCase):
+class StreamlitV05Tests(IsolatedWorldStateTestCase):
     def setUp(self):
+        super().setUp()
         self.app = AppTest.from_file("app.py").run()
         self.assertFalse(self.app.exception)
 
@@ -34,6 +36,7 @@ class StreamlitV05Tests(unittest.TestCase):
         self.app.session_state["answers"] = {0: 0}
         self.app.session_state["answer_confidence"] = {0: confidence}
         self.app.session_state["round_finished"] = True
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
 
     def test_completed_round_adds_analytics_after_v04_result(self):
@@ -92,6 +95,7 @@ class StreamlitV05Tests(unittest.TestCase):
         self.app.session_state["answers"] = {0: 0}
         self.app.session_state["answer_confidence"] = {0: "high"}
         self.app.session_state["round_finished"] = True
+        self.app.session_state["active_view"] = "Learning"
         with patch("analytics.build_learning_analytics", side_effect=RuntimeError("fail")):
             self.app.run()
         subheaders = [item.value for item in self.app.subheader]

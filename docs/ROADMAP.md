@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v1.0.0 Stable; publishing
+- The implemented working-tree version is v1.03; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -129,6 +129,30 @@ The approved contract is `ROADMAP_v1.0.md`. v1.0 preserves all v0.9 learning,
 session, adaptive, analytics, Expansion, Runtime, public API, and security
 behavior. It adds no persistence, new learning algorithm, autonomous action,
 external transport, remote Pack capability, or concrete Living OS behavior.
+
+### v1.02 — World Integration
+
+- Nine functional Worlds
+- Normalized local World state
+- Recovery Sessions, Challenge entry, AI actions, Planner, Library, Management,
+  My Learning, and Report
+
+The implemented contract is `ROADMAP_v1.02.md`.
+
+### v1.03 — Learning Flow Integration
+
+- Recovery records, history, duration, and Challenge recommendations
+- Independent Challenge Sessions and Results
+- Integrated Analytics supplied to AI
+- AI Recommendation to Planner goal and Learning schedule
+- Planner topic transfer into Learning
+- Multi-source Library, integrated My Learning, and all-World Report
+- Dashboard, Review, and legacy routing removal
+
+The implemented contract is `ROADMAP_v1.03.md`. v1.03 adds no UI redesign,
+background action, notification, autonomous learning, or concrete Living OS
+behavior.
+
 ## v0.4 preparation gates — complete
 
 Implementation may begin only after approval of:

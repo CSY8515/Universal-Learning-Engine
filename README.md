@@ -1,6 +1,6 @@
-# Universal Learning Engine v1.02 World Integration
+# Universal Learning Engine v1.03 Learning Flow Integration
 
-![Version](https://img.shields.io/badge/version-v1.02-35C8DD)
+![Version](https://img.shields.io/badge/version-v1.03-35C8DD)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,7 +9,9 @@ Universal Learning Engine is a production-ready Streamlit learning application t
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository contains the **v1.02 World Integration** implementation on the preserved v1.0 learning and Expansion runtime. Publication operations remain separately controlled.
+The repository contains the **v1.03 Learning Flow Integration** implementation
+on the preserved learning and Expansion runtime. Publication operations remain
+separately controlled.
 
 ## Current features
 
@@ -17,15 +19,20 @@ The repository contains the **v1.02 World Integration** implementation on the pr
 - Nine-World functional navigation with My Learning as the session home
 - Independent Learning, Recovery, Challenge, Analytics, AI, Planner, Library,
   Management, and My Learning functional Worlds
-- Completed-round flow into recovery queues, learning resources, subjects,
-  study time, achievements, long-term statistics, and reports
-- Executable Recovery Sessions with answer feedback and recovery history
-- Independent Exam, Hard, Nightmare, and mock-exam Challenge entry
+- Completed Learning flow into Recovery recommendations and linked Challenge
+  sessions
+- Executable Recovery Sessions with retained records, history, timing, and
+  Challenge recommendations
+- Independent Exam, Hard, Nightmare, and mock-exam Challenge sessions, history,
+  and results
 - AI question, recommendation, and summary actions using current learning context
+- Explicit AI Recommendation conversion into real Planner goals and schedules
+- Planner Learning schedules that transfer their selected topic into Learning
+- Automatic Library collection from Learning, Recovery, Challenge, AI, and
+  Planner
+- Integrated My Learning statistics and reports across all Worlds
 - Goals, dated schedules, Today Learning actions, notes, search, settings,
   subject management, backup, and restore
-- Session Dashboard for current topic, recommendation, accuracy, recovery,
-  recent results, weakness evidence, learning progress, and recent activity
 - Mobile-first responsive presentation, visible focus, and reduced-motion support
 - Topic input with empty-input and 80-character validation
 - CBT question counts of 5, 10, 15, or 20
@@ -80,7 +87,7 @@ Hard questions emphasize application, comparison, cases, and plausible distracto
 
 The repository is the single source of truth. Use these documents in this order:
 
-1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.02
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.03
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
@@ -91,11 +98,12 @@ The repository is the single source of truth. Use these documents in this order:
 9. [ROADMAP_v0.9.md](./docs/ROADMAP_v0.9.md) — approved v0.9 final-stabilization contract
 10. [ROADMAP_v1.0.md](./docs/ROADMAP_v1.0.md) — approved v1.0 Stable contract
 11. [ROADMAP_v1.02.md](./docs/ROADMAP_v1.02.md) — v1.02 World Integration contract
-12. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
-13. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
-14. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
-15. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-16. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
+12. [ROADMAP_v1.03.md](./docs/ROADMAP_v1.03.md) — v1.03 Learning Flow Integration contract
+13. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
+14. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
+15. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
+16. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+17. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 ## Installation
 
@@ -135,11 +143,15 @@ streamlit run app.py
 python -m unittest discover
 ```
 
-The 101-test suite preserves all 90 v0.9 tests and adds 11 v1.0 Dashboard, UI contract, navigation-state, and public API tests. GitHub Actions runs complete compilation, branch coverage with an 84% floor, regression checks, and a headless health check on Python 3.10 and 3.13.
+The 120-test suite covers the preserved learning and Expansion contracts,
+v1.02 World behavior, v1.03 cross-World data flow, isolated persistence,
+navigation context transfer, integrated reports, and headless Streamlit behavior.
+GitHub Actions runs complete compilation, branch coverage, regression checks,
+and a headless health check on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following remain outside v1.02:
+The following remain outside v1.03:
 
 - Learning Decision Engine or Weakness Score
 - Background scheduler or notifications
@@ -156,15 +168,19 @@ See [ROADMAP.md](./docs/ROADMAP.md) for approved placement. Roadmap entries are 
 ```text
 Universal-Learning-Engine/
 ├─ assets/                    # Official static ULE stylesheet
-├─ ui/                        # Dashboard, navigation, theme, and view components
+├─ ui/                        # Navigation and trusted static theme
 ├─ expansion/                 # Stable Expansion Platform and Pack Runtime
 ├─ tests/test_streamlit_v10.py
+├─ tests/test_streamlit_v103.py
+├─ tests/test_world_integration_v103.py
 ├─ tests/test_v10_ui_contract.py
 ├─ tests/test_v10_public_api.py
 ├─ tests/test_v09_stability.py
 ├─ tests/test_pack_runtime.py
 ├─ tests/test_expansion_platform.py
 ├─ docs/ROADMAP_v1.0.md
+├─ docs/ROADMAP_v1.02.md
+├─ docs/ROADMAP_v1.03.md
 ├─ docs/DEVELOPER_GUIDE.md
 ├─ docs/EXPANSION_API.md
 ├─ docs/RELEASE_REVIEW_v1.0.md
@@ -234,11 +250,12 @@ Universal-Learning-Engine/
 - Generated content quality depends on model behavior and prompt interpretation.
 - Live API behavior and generated difficulty quality require manual verification.
 - Streamlit Cloud requires an `OPENAI_API_KEY` Secret.
-- Adaptive state exists only in the current Streamlit session; Home clears it and there is no durable learner history.
+- Detailed adaptive evidence remains session-local, while normalized World
+  history is stored locally.
 - Confidence is self-reported and recommendations are deterministic guidance, not a diagnosis.
 - Five-question rounds can produce volatile percentage changes.
-- Overall analytics cover only records still retained in the active Streamlit session.
-- Dashboard evidence is session-only; Dashboard navigation preserves it while Home reset clears it.
+- Detailed confidence and pattern analytics cover session-retained adaptive
+  records; integrated World totals use durable World history.
 - Strength and weakness summaries are limited to topic/difficulty evidence because v0.4 records contain no concept tags or timestamps.
 - Expansion Pack state is process-local, version selection is exact, and no concrete Living OS adapter is included.
 - Direct Registry mutation is a low-level operation; coordinated lifecycle and Runtime changes must use Pack Manager or Expansion API.

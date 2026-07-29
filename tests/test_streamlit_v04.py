@@ -1,6 +1,7 @@
 import unittest
 
 from streamlit.testing.v1 import AppTest
+from tests._streamlit_case import IsolatedWorldStateTestCase
 
 
 def make_lesson():
@@ -23,8 +24,9 @@ def make_lesson():
     }
 
 
-class StreamlitV04Tests(unittest.TestCase):
+class StreamlitV04Tests(IsolatedWorldStateTestCase):
     def setUp(self):
+        super().setUp()
         self.app = AppTest.from_file("app.py").run()
         self.assertFalse(self.app.exception)
 
@@ -42,6 +44,7 @@ class StreamlitV04Tests(unittest.TestCase):
 
     def test_confidence_control_is_optional_in_active_round(self):
         self.app.session_state["lesson"] = make_lesson()
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
         confidence = [
             item for item in self.app.selectbox if item.label == "답변 확신도 (선택)"
@@ -51,6 +54,7 @@ class StreamlitV04Tests(unittest.TestCase):
 
     def test_submitted_answer_and_confidence_are_locked_during_feedback(self):
         self.app.session_state["lesson"] = make_lesson()
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
 
         answer = [item for item in self.app.radio if item.label == "답을 선택하세요."][0]
@@ -85,6 +89,7 @@ class StreamlitV04Tests(unittest.TestCase):
         self.app.session_state["answers"] = {0: 0}
         self.app.session_state["answer_confidence"] = {0: "high"}
         self.app.session_state["round_finished"] = True
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
 
         headers = [item.value for item in self.app.header]
@@ -100,6 +105,7 @@ class StreamlitV04Tests(unittest.TestCase):
         self.app.session_state["answers"] = {0: 0}
         self.app.session_state["answer_confidence"] = {0: "high"}
         self.app.session_state["round_finished"] = True
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
 
         difficulty_selector = [
@@ -121,6 +127,7 @@ class StreamlitV04Tests(unittest.TestCase):
         self.app.session_state["lesson"] = make_lesson()
         self.app.session_state["answers"] = {0: 0}
         self.app.session_state["round_finished"] = True
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
         self.assertTrue(self.app.session_state["adaptation_records"])
         home = [item for item in self.app.button if item.label == "처음으로"]

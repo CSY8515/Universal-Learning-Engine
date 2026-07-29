@@ -23,7 +23,8 @@ WORLD_NAMES = (
     "Management",
     "My Learning",
 )
-STATE_VERSION = 1
+CHALLENGE_MODES = ("Exam", "Hard", "Nightmare", "모의고사")
+STATE_VERSION = 2
 _DEFAULT_DATA_PATH = Path(".ule_data") / "world_state.json"
 _STATE_LOCK = threading.RLock()
 
@@ -49,6 +50,8 @@ def default_world_state() -> dict:
         "version": STATE_VERSION,
         "rounds": [],
         "recovery_sessions": [],
+        "recovery_recommendations": [],
+        "challenge": {"sessions": [], "results": []},
         "planner": {"goals": [], "schedule": []},
         "library": {"resources": [], "notes": []},
         "management": {
@@ -69,14 +72,23 @@ def normalize_world_state(value: object) -> dict:
     if state.get("version") != STATE_VERSION:
         state["version"] = STATE_VERSION
 
-    for key in ("rounds", "recovery_sessions", "ai_history", "activity"):
+    for key in (
+        "rounds",
+        "recovery_sessions",
+        "recovery_recommendations",
+        "ai_history",
+        "activity",
+    ):
         if not isinstance(state.get(key), list):
             state[key] = []
 
-    for section in ("planner", "library", "management"):
+    for section in ("challenge", "planner", "library", "management"):
         if not isinstance(state.get(section), dict):
             state[section] = copy.deepcopy(baseline[section])
 
+    for key in ("sessions", "results"):
+        if not isinstance(state["challenge"].get(key), list):
+            state["challenge"][key] = []
     for key in ("goals", "schedule"):
         if not isinstance(state["planner"].get(key), list):
             state["planner"][key] = []
@@ -109,13 +121,138 @@ def normalize_world_state(value: object) -> dict:
         for item in state["recovery_sessions"]
         if isinstance(item, dict) and item.get("id")
     ][-500:]
+    state["recovery_recommendations"] = [
+        item
+        for item in state["recovery_recommendations"]
+        if isinstance(item, dict) and item.get("id")
+    ][-500:]
+    state["challenge"]["sessions"] = [
+        item
+        for item in state["challenge"]["sessions"]
+        if isinstance(item, dict) and item.get("id")
+    ][-500:]
+    state["challenge"]["results"] = [
+        item
+        for item in state["challenge"]["results"]
+        if isinstance(item, dict) and item.get("id")
+    ][-500:]
     state["ai_history"] = [
         item for item in state["ai_history"] if isinstance(item, dict)
     ][-100:]
+    for index, item in enumerate(state["ai_history"]):
+        item.setdefault(
+            "id",
+            _identifier(
+                "ai",
+                item.get("kind"),
+                item.get("prompt"),
+                item.get("response"),
+                item.get("created_at"),
+                index,
+            ),
+        )
+        item.setdefault(
+            "planner_link",
+            {
+                "status": (
+                    "available"
+                    if item.get("kind") == "추천"
+                    else "not_applicable"
+                ),
+                "goal_id": "",
+                "schedule_id": "",
+                "linked_at": None,
+            },
+        )
+    for item in state["planner"]["goals"]:
+        if isinstance(item, dict):
+            item.setdefault("topic", "")
+            item.setdefault("source_ai_id", "")
+    for item in state["planner"]["schedule"]:
+        if isinstance(item, dict):
+            item.setdefault("source_ai_id", "")
+    for item in state["library"]["resources"]:
+        if not isinstance(item, dict):
+            continue
+        item.setdefault("source_world", "Learning")
+        item.setdefault(
+            "source_id",
+            item.get("source_round_id") or item.get("id", ""),
+        )
+        item.setdefault("kind", "Learning Resource")
+        item.setdefault(
+            "content",
+            "\n\n".join(
+                str(item.get(key, "")).strip()
+                for key in ("tutorial", "example", "direct_task", "practice")
+                if str(item.get(key, "")).strip()
+            ),
+        )
+        item.setdefault("details", {})
     state["activity"] = [
         item for item in state["activity"] if isinstance(item, dict)
     ][-500:]
     return state
+
+
+def _ensure_subject(state: dict, topic: str) -> None:
+    cleaned = _clean_text(topic, maximum=80)
+    if not cleaned:
+        return
+    subjects = state["management"]["subjects"]
+    if cleaned not in subjects:
+        subjects.append(cleaned)
+        subjects.sort(key=str.casefold)
+
+
+def _store_library_resource(
+    state: dict,
+    *,
+    source_world: str,
+    source_id: str,
+    kind: str,
+    title: str,
+    content: str,
+    topic: str = "",
+    details: dict | None = None,
+) -> dict:
+    resource_id = _identifier("resource", source_world, source_id, kind)
+    existing = next(
+        (
+            item
+            for item in state["library"]["resources"]
+            if item.get("id") == resource_id
+        ),
+        None,
+    )
+    if existing:
+        return existing
+    resource = {
+        "id": resource_id,
+        "source_world": source_world,
+        "source_id": _clean_text(source_id, maximum=80),
+        "kind": _clean_text(kind, maximum=80),
+        "title": _clean_text(title, maximum=200),
+        "content": _clean_text(content, maximum=12000),
+        "topic": _clean_text(topic, maximum=80),
+        "details": copy.deepcopy(details) if isinstance(details, dict) else {},
+        "created_at": _now(),
+    }
+    state["library"]["resources"].append(resource)
+    state["library"]["resources"] = state["library"]["resources"][-1000:]
+    _ensure_subject(state, resource["topic"])
+    return resource
+
+
+def _seconds_between(started_at: object, completed_at: object) -> int:
+    if not isinstance(started_at, str) or not isinstance(completed_at, str):
+        return 0
+    try:
+        start = datetime.fromisoformat(started_at)
+        end = datetime.fromisoformat(completed_at)
+    except ValueError:
+        return 0
+    return max(0, round((end - start).total_seconds()))
 
 
 def data_path() -> Path:
@@ -213,6 +350,173 @@ def _wrong_items(lesson: dict, answers: dict) -> list[dict]:
     return items
 
 
+def start_challenge_session(
+    state: dict,
+    mode: str,
+    topic: str,
+    difficulty: str,
+    question_count: int,
+    *,
+    source_recovery_recommendation_id: str = "",
+) -> dict:
+    if mode not in CHALLENGE_MODES:
+        raise ValueError("지원하지 않는 Challenge 유형입니다.")
+    cleaned_topic = _clean_text(topic, maximum=80)
+    if not cleaned_topic:
+        raise ValueError("Challenge 주제가 필요합니다.")
+    if difficulty not in ("Easy", "Normal", "Hard", "Nightmare"):
+        raise ValueError("지원하지 않는 Challenge 난이도입니다.")
+    if question_count not in (5, 10, 15, 20):
+        raise ValueError("지원하지 않는 Challenge 문제 수입니다.")
+    session_id = _identifier(
+        "challenge",
+        mode,
+        cleaned_topic,
+        difficulty,
+        question_count,
+        _now(),
+        len(state["challenge"]["sessions"]),
+    )
+    session = {
+        "id": session_id,
+        "mode": mode,
+        "topic": cleaned_topic,
+        "difficulty": difficulty,
+        "question_count": question_count,
+        "status": "active",
+        "source_recovery_recommendation_id": _clean_text(
+            source_recovery_recommendation_id,
+            maximum=80,
+        ),
+        "round_id": "",
+        "result_id": "",
+        "started_at": _now(),
+        "completed_at": None,
+    }
+    state["challenge"]["sessions"].append(session)
+    if session["source_recovery_recommendation_id"]:
+        recommendation = next(
+            (
+                item
+                for item in state["recovery_recommendations"]
+                if item.get("id")
+                == session["source_recovery_recommendation_id"]
+            ),
+            None,
+        )
+        if recommendation:
+            recommendation["status"] = "started"
+            recommendation["challenge_session_id"] = session_id
+    _ensure_subject(state, cleaned_topic)
+    add_activity(
+        state,
+        "Challenge",
+        f"{mode} Session 시작",
+        topic=cleaned_topic,
+        reference_id=session_id,
+    )
+    return session
+
+
+def complete_challenge_session(
+    state: dict,
+    session_id: str,
+    round_record: dict,
+) -> dict:
+    session = next(
+        (
+            item
+            for item in state["challenge"]["sessions"]
+            if item.get("id") == session_id
+        ),
+        None,
+    )
+    if not session:
+        raise ValueError("Challenge Session을 찾을 수 없습니다.")
+    if session.get("status") == "completed":
+        existing_id = session.get("result_id")
+        return next(
+            (
+                item
+                for item in state["challenge"]["results"]
+                if item.get("id") == existing_id
+            ),
+            {},
+        )
+    if session.get("status") != "active":
+        raise ValueError("활성 Challenge Session이 아닙니다.")
+
+    completed_at = _now()
+    result_id = _identifier("challenge_result", session_id, round_record.get("id"))
+    result = {
+        "id": result_id,
+        "session_id": session_id,
+        "round_id": round_record.get("id", ""),
+        "mode": session["mode"],
+        "topic": session["topic"],
+        "difficulty": session["difficulty"],
+        "question_count": round_record.get("question_count", 0),
+        "correct_count": round_record.get("correct_count", 0),
+        "wrong_count": round_record.get("wrong_count", 0),
+        "accuracy": float(round_record.get("accuracy", 0)),
+        "duration_seconds": max(0, int(round_record.get("duration_seconds", 0))),
+        "completed_at": completed_at,
+        "source_recovery_recommendation_id": session.get(
+            "source_recovery_recommendation_id",
+            "",
+        ),
+    }
+    state["challenge"]["results"].append(result)
+    session["status"] = "completed"
+    session["round_id"] = result["round_id"]
+    session["result_id"] = result_id
+    session["completed_at"] = completed_at
+
+    source_id = session.get("source_recovery_recommendation_id")
+    if source_id:
+        recommendation = next(
+            (
+                item
+                for item in state["recovery_recommendations"]
+                if item.get("id") == source_id
+            ),
+            None,
+        )
+        if recommendation:
+            recommendation["challenge_session_id"] = session_id
+            recommendation["status"] = "completed"
+
+    _store_library_resource(
+        state,
+        source_world="Challenge",
+        source_id=result_id,
+        kind="Challenge Result",
+        title=f"{session['topic']} {session['mode']} 결과",
+        topic=session["topic"],
+        content=(
+            f"{session['mode']} · {result['difficulty']} · "
+            f"{result['correct_count']}/{result['question_count']} · "
+            f"{result['accuracy']:.1f}%"
+        ),
+        details=result,
+    )
+    add_activity(
+        state,
+        "Challenge",
+        f"{session['mode']} Session 완료",
+        topic=session["topic"],
+        reference_id=result_id,
+    )
+    return result
+
+
+def challenge_history(state: dict, mode: str | None = None) -> list[dict]:
+    results = state["challenge"]["results"]
+    if mode is None:
+        return list(results)
+    return [item for item in results if item.get("mode") == mode]
+
+
 def record_completed_round(
     state: dict,
     lesson: dict,
@@ -223,10 +527,30 @@ def record_completed_round(
 ) -> dict:
     topic = _clean_text(lesson.get("topic"), maximum=80)
     questions = lesson.get("cbt", [])
+    safe_origin = origin if origin in ("Learning", "Challenge") else "Learning"
+    challenge_session_id = _clean_text(
+        lesson.get("challenge_session_id"),
+        maximum=80,
+    )
+    if safe_origin == "Challenge" and not challenge_session_id:
+        session = start_challenge_session(
+            state,
+            lesson.get("challenge_mode") or "Exam",
+            topic,
+            lesson.get("difficulty") or "Normal",
+            lesson.get("requested_question_count") or len(questions),
+            source_recovery_recommendation_id=lesson.get(
+                "source_recovery_recommendation_id",
+                "",
+            ),
+        )
+        challenge_session_id = session["id"]
+        lesson["challenge_session_id"] = challenge_session_id
     fingerprint_parts = [
         topic,
         lesson.get("difficulty"),
-        origin,
+        safe_origin,
+        challenge_session_id,
         *[question.get("question") for question in questions if isinstance(question, dict)],
         *[answers.get(index) for index in range(len(questions))],
     ]
@@ -246,8 +570,9 @@ def record_completed_round(
     wrong_items = _wrong_items(lesson, answers)
     record = {
         "id": round_id,
-        "origin": origin if origin in ("Learning", "Challenge") else "Learning",
+        "origin": safe_origin,
         "challenge_mode": _clean_text(lesson.get("challenge_mode"), maximum=40),
+        "challenge_session_id": challenge_session_id,
         "topic": topic,
         "difficulty": _clean_text(lesson.get("difficulty"), maximum=40),
         "question_count": question_count,
@@ -259,27 +584,34 @@ def record_completed_round(
         "created_at": _now(),
     }
     state["rounds"].append(record)
-
-    subjects = state["management"]["subjects"]
-    if topic and topic not in subjects:
-        subjects.append(topic)
-        subjects.sort(key=str.casefold)
-
-    resource = {
-        "id": _identifier("resource", round_id),
-        "topic": topic,
-        "title": f"{topic} 학습자료",
+    _ensure_subject(state, topic)
+    lesson_details = {
         "tutorial": _clean_text(lesson.get("tutorial")),
         "example": _clean_text(lesson.get("example")),
         "direct_task": _clean_text(lesson.get("direct_task")),
         "practice": _clean_text(lesson.get("practice")),
-        "created_at": record["created_at"],
-        "source_round_id": round_id,
+        "difficulty": record["difficulty"],
+        "round_id": round_id,
     }
-    if not any(
-        item.get("id") == resource["id"] for item in state["library"]["resources"]
-    ):
-        state["library"]["resources"].append(resource)
+    _store_library_resource(
+        state,
+        source_world=safe_origin,
+        source_id=round_id,
+        kind="Learning Resource",
+        title=f"{topic} 학습자료",
+        topic=topic,
+        content="\n\n".join(
+            value
+            for value in (
+                lesson_details["tutorial"],
+                lesson_details["example"],
+                lesson_details["direct_task"],
+                lesson_details["practice"],
+            )
+            if value
+        ),
+        details=lesson_details,
+    )
 
     add_activity(
         state,
@@ -296,6 +628,8 @@ def record_completed_round(
             topic=topic,
             reference_id=round_id,
         )
+    if safe_origin == "Challenge" and challenge_session_id:
+        complete_challenge_session(state, challenge_session_id, record)
     return record
 
 
@@ -406,9 +740,68 @@ def complete_recovery_session(state: dict, session_id: str) -> dict:
                 item["recovered"] = True
                 item["recovered_at"] = _now()
 
+    completed_at = _now()
     session["status"] = "completed"
     session["correct_count"] = len(correct_ids)
-    session["completed_at"] = _now()
+    session["completed_at"] = completed_at
+    session["duration_seconds"] = _seconds_between(
+        session.get("created_at"),
+        completed_at,
+    )
+    question_count = max(0, int(session.get("question_count", 0)))
+    accuracy = (
+        session["correct_count"] / question_count * 100
+        if question_count
+        else 0.0
+    )
+    topic = ", ".join(session.get("topics", []))
+    if accuracy >= 90:
+        recommended_mode = "Nightmare"
+        reason = "Recovery 정확도가 90% 이상이므로 최고 난도 적용 학습을 권장합니다."
+    elif accuracy >= 70:
+        recommended_mode = "Hard"
+        reason = "Recovery 정확도가 70% 이상이므로 고난도 적용 학습을 권장합니다."
+    else:
+        recommended_mode = "Exam"
+        reason = "Recovery 결과를 점검할 수 있도록 표준 시험 학습을 권장합니다."
+    recommendation_id = _identifier(
+        "recovery_recommendation",
+        session_id,
+        recommended_mode,
+    )
+    recommendation = {
+        "id": recommendation_id,
+        "recovery_session_id": session_id,
+        "target_world": "Challenge",
+        "mode": recommended_mode,
+        "topic": topic,
+        "reason": reason,
+        "status": "pending",
+        "challenge_session_id": "",
+        "created_at": completed_at,
+        "accepted_at": None,
+    }
+    state["recovery_recommendations"].append(recommendation)
+    session["record"] = {
+        "correct_count": session["correct_count"],
+        "question_count": question_count,
+        "accuracy": accuracy,
+        "duration_seconds": session["duration_seconds"],
+        "recommendation_id": recommendation_id,
+    }
+    _store_library_resource(
+        state,
+        source_world="Recovery",
+        source_id=session_id,
+        kind="Recovery Record",
+        title=f"{topic or '복습'} Recovery 기록",
+        topic=topic,
+        content=(
+            f"{session['correct_count']}/{question_count} · {accuracy:.1f}% · "
+            f"추천 Challenge: {recommended_mode}\n{reason}"
+        ),
+        details=session["record"],
+    )
     add_activity(
         state,
         "Recovery",
@@ -421,7 +814,54 @@ def complete_recovery_session(state: dict, session_id: str) -> dict:
     return session
 
 
-def add_goal(state: dict, title: str, target_date: str = "") -> dict:
+def recovery_history(state: dict) -> list[dict]:
+    return [
+        item
+        for item in state["recovery_sessions"]
+        if item.get("status") == "completed"
+    ]
+
+
+def pending_recovery_recommendations(state: dict) -> list[dict]:
+    return [
+        item
+        for item in state["recovery_recommendations"]
+        if item.get("status") == "pending"
+    ]
+
+
+def accept_recovery_recommendation(state: dict, recommendation_id: str) -> dict:
+    recommendation = next(
+        (
+            item
+            for item in state["recovery_recommendations"]
+            if item.get("id") == recommendation_id
+        ),
+        None,
+    )
+    if not recommendation:
+        raise ValueError("Recovery Recommendation을 찾을 수 없습니다.")
+    if recommendation.get("status") == "pending":
+        recommendation["status"] = "accepted"
+        recommendation["accepted_at"] = _now()
+        add_activity(
+            state,
+            "Recovery",
+            "Recovery Recommendation 수락",
+            topic=recommendation.get("topic", ""),
+            reference_id=recommendation_id,
+        )
+    return recommendation
+
+
+def add_goal(
+    state: dict,
+    title: str,
+    target_date: str = "",
+    *,
+    topic: str = "",
+    source_ai_id: str = "",
+) -> dict:
     cleaned = _clean_text(title, maximum=200)
     if not cleaned:
         raise ValueError("목표를 입력해주세요.")
@@ -429,11 +869,36 @@ def add_goal(state: dict, title: str, target_date: str = "") -> dict:
         "id": _identifier("goal", cleaned, target_date, _now()),
         "title": cleaned,
         "target_date": _clean_text(target_date, maximum=10),
+        "topic": _clean_text(topic, maximum=80),
+        "source_ai_id": _clean_text(source_ai_id, maximum=80),
         "completed": False,
         "created_at": _now(),
     }
     state["planner"]["goals"].append(goal)
-    add_activity(state, "Planner", "학습 목표 등록", reference_id=goal["id"])
+    _store_library_resource(
+        state,
+        source_world="Planner",
+        source_id=goal["id"],
+        kind="Planner Goal",
+        title=goal["title"],
+        topic=goal["topic"],
+        content=(
+            f"목표일: {goal['target_date'] or '기한 없음'}"
+            + (
+                f"\nAI Recommendation: {goal['source_ai_id']}"
+                if goal["source_ai_id"]
+                else ""
+            )
+        ),
+        details=goal,
+    )
+    add_activity(
+        state,
+        "Planner",
+        "학습 목표 등록",
+        topic=goal["topic"],
+        reference_id=goal["id"],
+    )
     return goal
 
 
@@ -455,7 +920,13 @@ def set_goal_completed(state: dict, goal_id: str, completed: bool) -> dict:
 
 
 def add_schedule(
-    state: dict, title: str, scheduled_date: str, world: str, topic: str = ""
+    state: dict,
+    title: str,
+    scheduled_date: str,
+    world: str,
+    topic: str = "",
+    *,
+    source_ai_id: str = "",
 ) -> dict:
     cleaned = _clean_text(title, maximum=200)
     if not cleaned:
@@ -472,16 +943,50 @@ def add_schedule(
         "scheduled_date": scheduled_date,
         "world": world,
         "topic": _clean_text(topic, maximum=80),
+        "source_ai_id": _clean_text(source_ai_id, maximum=80),
         "completed": False,
         "created_at": _now(),
     }
     state["planner"]["schedule"].append(item)
+    _store_library_resource(
+        state,
+        source_world="Planner",
+        source_id=item["id"],
+        kind="Planner Schedule",
+        title=item["title"],
+        topic=item["topic"],
+        content=f"{item['scheduled_date']} · {item['world']}",
+        details=item,
+    )
     add_activity(
         state,
         "Planner",
         f"{world} 일정 등록",
         topic=item["topic"],
         reference_id=item["id"],
+    )
+    return item
+
+
+def set_schedule_completed(state: dict, schedule_id: str, completed: bool) -> dict:
+    item = next(
+        (
+            candidate
+            for candidate in state["planner"]["schedule"]
+            if candidate.get("id") == schedule_id
+        ),
+        None,
+    )
+    if not item:
+        raise ValueError("일정을 찾을 수 없습니다.")
+    item["completed"] = bool(completed)
+    item["completed_at"] = _now() if completed else None
+    add_activity(
+        state,
+        "Planner",
+        "학습 일정 완료" if completed else "학습 일정 다시 열기",
+        topic=item.get("topic", ""),
+        reference_id=schedule_id,
     )
     return item
 
@@ -508,6 +1013,7 @@ def add_note(state: dict, title: str, content: str, topic: str = "") -> dict:
         "created_at": _now(),
     }
     state["library"]["notes"].append(note)
+    _ensure_subject(state, note["topic"])
     add_activity(
         state,
         "Library",
@@ -529,6 +1035,9 @@ def search_library(state: dict, query: str) -> list[dict]:
             for key in (
                 "title",
                 "topic",
+                "content",
+                "kind",
+                "source_world",
                 "tutorial",
                 "example",
                 "direct_task",
@@ -551,30 +1060,232 @@ def add_ai_history(
 ) -> dict:
     if kind not in ("질문", "추천", "요약"):
         raise ValueError("지원하지 않는 AI 기능입니다.")
+    created_at = _now()
+    cleaned_topic = _clean_text(topic, maximum=80)
+    if not cleaned_topic and state["rounds"]:
+        cleaned_topic = _clean_text(state["rounds"][-1].get("topic"), maximum=80)
     item = {
+        "id": _identifier(
+            "ai",
+            kind,
+            prompt,
+            response,
+            created_at,
+            len(state["ai_history"]),
+        ),
         "kind": kind,
         "prompt": _clean_text(prompt),
         "response": _clean_text(response, maximum=12000),
-        "topic": _clean_text(topic, maximum=80),
-        "created_at": _now(),
+        "topic": cleaned_topic,
+        "planner_link": {
+            "status": "available" if kind == "추천" else "not_applicable",
+            "goal_id": "",
+            "schedule_id": "",
+            "linked_at": None,
+        },
+        "created_at": created_at,
     }
     state["ai_history"].append(item)
     state["ai_history"] = state["ai_history"][-100:]
-    add_activity(state, "AI", f"AI {kind} 완료", topic=item["topic"])
+    _store_library_resource(
+        state,
+        source_world="AI",
+        source_id=item["id"],
+        kind=f"AI {kind}",
+        title=f"{item['topic'] or '학습'} AI {kind}",
+        topic=item["topic"],
+        content=item["response"],
+        details={"prompt": item["prompt"], "kind": kind},
+    )
+    add_activity(
+        state,
+        "AI",
+        f"AI {kind} 완료",
+        topic=item["topic"],
+        reference_id=item["id"],
+    )
     return item
+
+
+def connect_ai_recommendation_to_planner(
+    state: dict,
+    ai_id: str,
+    scheduled_date: str | None = None,
+) -> dict:
+    item = next(
+        (
+            candidate
+            for candidate in state["ai_history"]
+            if candidate.get("id") == ai_id
+        ),
+        None,
+    )
+    if not item or item.get("kind") != "추천":
+        raise ValueError("Planner에 연결할 AI Recommendation을 찾을 수 없습니다.")
+    link = item.setdefault(
+        "planner_link",
+        {
+            "status": "available",
+            "goal_id": "",
+            "schedule_id": "",
+            "linked_at": None,
+        },
+    )
+    if link.get("status") == "linked":
+        return link
+
+    target_date = scheduled_date or date.today().isoformat()
+    try:
+        date.fromisoformat(target_date)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("올바른 Planner 연결 날짜가 필요합니다.") from exc
+    topic = _clean_text(item.get("topic"), maximum=80) or "다음 학습"
+    goal = add_goal(
+        state,
+        f"{topic} 학습 목표",
+        target_date,
+        topic=topic,
+        source_ai_id=ai_id,
+    )
+    schedule = add_schedule(
+        state,
+        f"{topic} AI 추천 학습",
+        target_date,
+        "Learning",
+        topic,
+        source_ai_id=ai_id,
+    )
+    link.update(
+        {
+            "status": "linked",
+            "goal_id": goal["id"],
+            "schedule_id": schedule["id"],
+            "linked_at": _now(),
+        }
+    )
+    add_activity(
+        state,
+        "AI",
+        "AI Recommendation Planner 연결",
+        topic=topic,
+        reference_id=ai_id,
+    )
+    return link
+
+
+def _challenge_evidence(state: dict) -> list[dict]:
+    results = list(state["challenge"]["results"])
+    result_round_ids = {item.get("round_id") for item in results}
+    for record in state["rounds"]:
+        if (
+            record.get("origin") == "Challenge"
+            and record.get("id") not in result_round_ids
+        ):
+            results.append(
+                {
+                    "id": f"legacy_{record.get('id', '')}",
+                    "session_id": record.get("challenge_session_id", ""),
+                    "round_id": record.get("id", ""),
+                    "mode": record.get("challenge_mode") or "Exam",
+                    "topic": record.get("topic", ""),
+                    "difficulty": record.get("difficulty", ""),
+                    "question_count": record.get("question_count", 0),
+                    "correct_count": record.get("correct_count", 0),
+                    "wrong_count": record.get("wrong_count", 0),
+                    "accuracy": float(record.get("accuracy", 0)),
+                    "duration_seconds": record.get("duration_seconds", 0),
+                    "completed_at": record.get("created_at"),
+                }
+            )
+    return results
+
+
+def build_world_analytics(state: dict) -> dict:
+    rounds = state["rounds"]
+    learning_rounds = [item for item in rounds if item.get("origin") == "Learning"]
+    challenge_results = _challenge_evidence(state)
+    recovery_records = recovery_history(state)
+    total_questions = sum(
+        max(0, int(item.get("question_count", 0)))
+        for item in rounds
+    )
+    correct_count = sum(
+        max(0, int(item.get("correct_count", 0)))
+        for item in rounds
+    )
+    challenge_modes = {}
+    for mode in CHALLENGE_MODES:
+        evidence = [item for item in challenge_results if item.get("mode") == mode]
+        questions = sum(max(0, int(item.get("question_count", 0))) for item in evidence)
+        correct = sum(max(0, int(item.get("correct_count", 0))) for item in evidence)
+        challenge_modes[mode] = {
+            "session_count": len(evidence),
+            "question_count": questions,
+            "accuracy": (correct / questions * 100) if questions else 0.0,
+        }
+    completed_goals = sum(
+        bool(item.get("completed"))
+        for item in state["planner"]["goals"]
+    )
+    completed_schedule = sum(
+        bool(item.get("completed"))
+        for item in state["planner"]["schedule"]
+    )
+    return {
+        "learning_round_count": len(learning_rounds),
+        "challenge_session_count": len(challenge_results),
+        "recovery_session_count": len(recovery_records),
+        "question_count": total_questions,
+        "correct_count": correct_count,
+        "accuracy": (correct_count / total_questions * 100) if total_questions else 0.0,
+        "topic_count": len(
+            {item.get("topic") for item in rounds if item.get("topic")}
+        ),
+        "pending_recovery_count": len(pending_recovery_items(state)),
+        "challenge_modes": challenge_modes,
+        "ai_count": len(state["ai_history"]),
+        "planner_goal_count": len(state["planner"]["goals"]),
+        "planner_completed_goal_count": completed_goals,
+        "planner_schedule_count": len(state["planner"]["schedule"]),
+        "planner_completed_schedule_count": completed_schedule,
+        "library_resource_count": len(state["library"]["resources"]),
+        "library_note_count": len(state["library"]["notes"]),
+        "subject_count": len(state["management"]["subjects"]),
+    }
 
 
 def learning_stats(state: dict) -> dict:
     rounds = state["rounds"]
     total_questions = sum(max(0, int(item.get("question_count", 0))) for item in rounds)
     correct_count = sum(max(0, int(item.get("correct_count", 0))) for item in rounds)
-    study_seconds = sum(max(0, int(item.get("duration_seconds", 0))) for item in rounds)
-    completed_recovery = [
-        item
-        for item in state["recovery_sessions"]
-        if item.get("status") == "completed"
-    ]
-    points = correct_count * 10 + len(rounds) * 20 + len(completed_recovery) * 15
+    completed_recovery = recovery_history(state)
+    challenge_results = _challenge_evidence(state)
+    study_seconds = sum(
+        max(0, int(item.get("duration_seconds", 0)))
+        for item in rounds
+    ) + sum(
+        max(0, int(item.get("duration_seconds", 0)))
+        for item in completed_recovery
+    )
+    completed_goals = sum(
+        bool(item.get("completed"))
+        for item in state["planner"]["goals"]
+    )
+    completed_schedule = sum(
+        bool(item.get("completed"))
+        for item in state["planner"]["schedule"]
+    )
+    points = (
+        correct_count * 10
+        + len(rounds) * 20
+        + len(completed_recovery) * 15
+        + len(challenge_results) * 10
+        + len(state["ai_history"]) * 5
+        + completed_goals * 10
+        + completed_schedule * 10
+        + len(state["library"]["notes"]) * 5
+        + len(state["management"]["subjects"]) * 3
+    )
     level = points // 100 + 1
     achievements = []
     if rounds:
@@ -587,8 +1298,33 @@ def learning_stats(state: dict) -> dict:
         achievements.append("회복 학습 시작")
     if sum(item.get("correct_count", 0) for item in completed_recovery) >= 10:
         achievements.append("오답 정복자")
+    if challenge_results:
+        achievements.append("Challenge 도전자")
+    if any(float(item.get("accuracy", 0)) >= 90 for item in challenge_results):
+        achievements.append("Challenge 마스터")
+    if state["ai_history"]:
+        achievements.append("AI 학습 연결")
+    if state["planner"]["goals"] or state["planner"]["schedule"]:
+        achievements.append("학습 계획 수립")
+    if state["library"]["notes"]:
+        achievements.append("지식 기록자")
+    world_records = {
+        "Learning": sum(item.get("origin") == "Learning" for item in rounds),
+        "Recovery": len(completed_recovery),
+        "Challenge": len(challenge_results),
+        "Analytics": int(bool(rounds or completed_recovery)),
+        "AI": len(state["ai_history"]),
+        "Planner": len(state["planner"]["goals"])
+        + len(state["planner"]["schedule"]),
+        "Library": len(state["library"]["resources"])
+        + len(state["library"]["notes"]),
+        "Management": len(state["management"]["subjects"]),
+        "My Learning": len(state["activity"]),
+    }
     return {
         "round_count": len(rounds),
+        "learning_round_count": world_records["Learning"],
+        "challenge_count": len(challenge_results),
         "question_count": total_questions,
         "correct_count": correct_count,
         "accuracy": (correct_count / total_questions * 100) if total_questions else 0.0,
@@ -598,29 +1334,134 @@ def learning_stats(state: dict) -> dict:
         "achievements": achievements,
         "topic_count": len({item.get("topic") for item in rounds if item.get("topic")}),
         "recovery_count": len(completed_recovery),
+        "ai_count": len(state["ai_history"]),
+        "planner_goal_count": len(state["planner"]["goals"]),
+        "planner_schedule_count": len(state["planner"]["schedule"]),
+        "library_count": world_records["Library"],
+        "subject_count": len(state["management"]["subjects"]),
+        "world_records": world_records,
     }
 
 
 def build_report(state: dict) -> str:
     stats = learning_stats(state)
+    world_analytics = build_world_analytics(state)
+    learning_rounds = [
+        item for item in state["rounds"] if item.get("origin") == "Learning"
+    ]
+    recovery_records = recovery_history(state)
+    challenge_results = _challenge_evidence(state)
     lines = [
         "# Universal Learning Engine 학습 리포트",
         "",
+        "## My Learning",
         f"- 완료 라운드: {stats['round_count']}",
         f"- 학습 주제: {stats['topic_count']}",
         f"- 분석 문항: {stats['question_count']}",
         f"- 전체 정확도: {stats['accuracy']:.1f}%",
         f"- Recovery Session: {stats['recovery_count']}",
+        f"- Challenge Session: {stats['challenge_count']}",
+        f"- AI 기록: {stats['ai_count']}",
+        f"- Planner 목표/일정: {stats['planner_goal_count']}/{stats['planner_schedule_count']}",
+        f"- Library 기록: {stats['library_count']}",
         f"- 공부시간: {stats['study_seconds'] // 60}분",
         f"- 레벨: {stats['level']}",
         "",
-        "## 최근 학습",
+        "## Learning",
     ]
-    for item in reversed(state["rounds"][-10:]):
+    for item in reversed(learning_rounds[-10:]):
         lines.append(
             f"- {item.get('topic', '-')} / {item.get('difficulty', '-')} / "
             f"{float(item.get('accuracy', 0)):.1f}%"
         )
-    if not state["rounds"]:
+    if not learning_rounds:
+        lines.append("- 기록 없음")
+
+    lines.extend(["", "## Recovery"])
+    for item in reversed(recovery_records[-10:]):
+        record = item.get("record", {})
+        lines.append(
+            f"- {', '.join(item.get('topics', [])) or '복습'} / "
+            f"{record.get('correct_count', item.get('correct_count', 0))}/"
+            f"{record.get('question_count', item.get('question_count', 0))} / "
+            f"{float(record.get('accuracy', 0)):.1f}%"
+        )
+    if not recovery_records:
+        lines.append("- 기록 없음")
+
+    lines.extend(["", "## Challenge"])
+    for item in reversed(challenge_results[-10:]):
+        lines.append(
+            f"- {item.get('mode', '-')} / {item.get('topic', '-')} / "
+            f"{float(item.get('accuracy', 0)):.1f}%"
+        )
+    if not challenge_results:
+        lines.append("- 기록 없음")
+
+    lines.extend(
+        [
+            "",
+            "## Analytics",
+            f"- 전체 정확도: {world_analytics['accuracy']:.1f}%",
+            f"- 분석 문항: {world_analytics['question_count']}",
+            f"- 복습 대기: {world_analytics['pending_recovery_count']}",
+        ]
+    )
+    for mode, evidence in world_analytics["challenge_modes"].items():
+        lines.append(
+            f"- {mode}: {evidence['session_count']}회 / "
+            f"{evidence['accuracy']:.1f}%"
+        )
+
+    lines.extend(["", "## AI"])
+    for item in reversed(state["ai_history"][-10:]):
+        lines.append(
+            f"- {item.get('kind', '-')} / {item.get('topic') or '주제 없음'} / "
+            f"{_clean_text(item.get('response'), maximum=240)}"
+        )
+    if not state["ai_history"]:
+        lines.append("- 기록 없음")
+
+    lines.extend(["", "## Planner", "### 목표"])
+    for item in reversed(state["planner"]["goals"][-10:]):
+        lines.append(
+            f"- {'완료' if item.get('completed') else '진행 중'} / "
+            f"{item.get('title', '-')}"
+        )
+    if not state["planner"]["goals"]:
+        lines.append("- 기록 없음")
+    lines.append("### 일정")
+    for item in reversed(state["planner"]["schedule"][-10:]):
+        lines.append(
+            f"- {'완료' if item.get('completed') else '예정'} / "
+            f"{item.get('scheduled_date', '-')} / {item.get('world', '-')} / "
+            f"{item.get('topic') or '주제 없음'}"
+        )
+    if not state["planner"]["schedule"]:
+        lines.append("- 기록 없음")
+
+    lines.extend(["", "## Library"])
+    source_counts = {}
+    for item in state["library"]["resources"]:
+        source = item.get("source_world") or "Learning"
+        source_counts[source] = source_counts.get(source, 0) + 1
+    for source, count in sorted(source_counts.items()):
+        lines.append(f"- {source}: {count}개")
+    lines.append(f"- 노트: {len(state['library']['notes'])}개")
+
+    settings = state["management"]["settings"]
+    lines.extend(
+        [
+            "",
+            "## Management",
+            f"- 과목: {', '.join(state['management']['subjects']) or '없음'}",
+            f"- 기본 문제 수: {settings.get('default_question_count', 5)}",
+            f"- 기본 난이도: {settings.get('default_difficulty', 'Easy')}",
+            "",
+            "## 업적",
+        ]
+    )
+    lines.extend(f"- {item}" for item in stats["achievements"])
+    if not stats["achievements"]:
         lines.append("- 기록 없음")
     return "\n".join(lines)

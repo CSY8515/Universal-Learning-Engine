@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
+from tests._streamlit_case import IsolatedWorldStateTestCase
 
 from expansion import (
     ExecutableExpansionPack,
@@ -160,8 +161,9 @@ class RuntimeStabilityTests(unittest.TestCase):
         self.assertIsInstance(raised.exception.__cause__, PackStateError)
         self.assertTrue(runtime.get(status.session_id).running)
 
-class SessionStabilityTests(unittest.TestCase):
+class SessionStabilityTests(IsolatedWorldStateTestCase):
     def setUp(self):
+        super().setUp()
         self.app = AppTest.from_file("app.py").run()
         self.assertFalse(self.app.exception)
 
@@ -183,6 +185,7 @@ class SessionStabilityTests(unittest.TestCase):
         self.app.session_state["answers"] = {0: 0}
         self.app.session_state["answer_confidence"] = {0: "high"}
         self.app.session_state["round_finished"] = True
+        self.app.session_state["active_view"] = "Learning"
         with patch(
             "adaptive.build_adaptive_summary", side_effect=RuntimeError("private payload")
         ):
@@ -205,6 +208,7 @@ class SessionStabilityTests(unittest.TestCase):
         self.app.session_state["answer_confidence"] = {0: "high"}
         self.app.session_state["round_finished"] = True
         self.app.session_state["analytics_revision"] = "bad"
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
 
         self.assertEqual(self.app.session_state["analytics_revision"], 1)
@@ -217,6 +221,7 @@ class SessionStabilityTests(unittest.TestCase):
         self.app.session_state["round_finished"] = True
         self.app.session_state["cbt_stale"] = 0
         self.app.session_state["confidence_stale"] = "high"
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
         retry = [item for item in self.app.button if item.label == "다시 학습"][0]
         retry.click().run()

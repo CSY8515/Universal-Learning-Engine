@@ -285,3 +285,34 @@ learner. Internal identifiers and raw storage remain outside the learner-facing
 interface. No background action, notification, remote Pack acquisition, login,
 UI redesign, World background change, Hover, Animation, or Glass change is
 introduced.
+
+## v1.03 Learning Flow Integration design
+
+v1.03 preserves the v1.02 nine-World structure and completes the learner-
+controlled data path between Worlds.
+
+A completed Recovery Session owns a retained record, history entry, duration,
+and deterministic Challenge recommendation. Accepting that recommendation
+transfers mode and topic into an independently identified Challenge Session.
+Each completed Challenge Session owns a separate result linked to its round and
+optional source Recovery recommendation.
+
+Integrated Analytics derives Learning, Recovery, Challenge, AI, Planner,
+Library, Management, and My Learning evidence from the normalized World state.
+AI question, recommendation, and summary prompts consume that evidence. AI
+output is retained in Library. An explicit AI Recommendation connection creates
+one idempotent Planner goal and one Learning schedule. Opening a Learning
+schedule transfers its topic into the Learning input before rendering.
+
+Library resources retain their source World and source identity. Learning,
+Recovery, Challenge, AI, and Planner generated data are stored automatically.
+Management receives connected topics. My Learning combines study time, level,
+points, achievements, long-term statistics, and World record counts. Report
+contains dedicated sections for the complete integrated evidence set.
+
+The unused Dashboard, Review, shared Dashboard/Review components, explicit-
+navigation metadata, callback routing, and obsolete input placeholder are
+removed. The existing theme and Streamlit control structure remain unchanged.
+v1.03 adds no UI redesign, World background, Hover, Animation, Glass,
+background scheduler, notification, autonomous learning, or concrete Living OS
+behavior.

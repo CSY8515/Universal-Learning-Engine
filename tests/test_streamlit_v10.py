@@ -1,6 +1,7 @@
 import unittest
 
 from streamlit.testing.v1 import AppTest
+from tests._streamlit_case import IsolatedWorldStateTestCase
 
 
 def make_lesson():
@@ -23,8 +24,9 @@ def make_lesson():
     }
 
 
-class StreamlitV10Tests(unittest.TestCase):
+class StreamlitV10Tests(IsolatedWorldStateTestCase):
     def setUp(self):
+        super().setUp()
         self.app = AppTest.from_file("app.py").run()
         self.assertFalse(self.app.exception)
 
@@ -50,8 +52,9 @@ class StreamlitV10Tests(unittest.TestCase):
             ],
         )
 
-    def test_injected_active_lesson_preserves_v09_learning_flow(self):
+    def test_active_learning_view_preserves_v09_learning_flow(self):
         self.app.session_state["lesson"] = make_lesson()
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
         self.assertEqual(self.app.session_state["active_view"], "Learning")
         answer_controls = [item for item in self.app.radio if item.label == "답을 선택하세요."]
@@ -71,6 +74,7 @@ class StreamlitV10Tests(unittest.TestCase):
         self.app.session_state["answers"] = {0: 0}
         self.app.session_state["answer_confidence"] = {0: "high"}
         self.app.session_state["round_finished"] = True
+        self.app.session_state["active_view"] = "Learning"
         self.app.run()
         self.navigation().set_value("My Learning").run()
 
@@ -90,13 +94,15 @@ class StreamlitV10Tests(unittest.TestCase):
         self.assertTrue(any("복습할 오답이 없습니다" in item for item in info))
         self.assertFalse(self.app.exception)
 
-    def test_invalid_pending_navigation_metadata_is_repaired(self):
+    def test_invalid_pending_world_context_is_repaired(self):
         self.app.session_state["pending_view"] = "bad"
-        self.app.session_state["navigation_explicit"] = "bad"
+        self.app.session_state["pending_learning_topic"] = 123
+        self.app.session_state["pending_challenge"] = "bad"
         self.app.run()
         self.assertEqual(self.app.session_state["active_view"], "My Learning")
         self.assertIsNone(self.app.session_state["pending_view"])
-        self.assertFalse(self.app.session_state["navigation_explicit"])
+        self.assertIsNone(self.app.session_state["pending_learning_topic"])
+        self.assertIsNone(self.app.session_state["pending_challenge"])
 
 
 if __name__ == "__main__":
