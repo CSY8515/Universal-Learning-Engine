@@ -31,24 +31,24 @@ class StreamlitV10Tests(IsolatedWorldStateTestCase):
         self.assertFalse(self.app.exception)
 
     def navigation(self):
-        return [item for item in self.app.radio if item.label == "Primary navigation"][0]
+        return [item for item in self.app.radio if item.label == "주요 메뉴"][0]
 
     def test_my_learning_is_the_home_screen(self):
         headers = [item.value for item in self.app.header]
-        self.assertIn("My Learning", headers)
+        self.assertIn("나의 학습", headers)
         self.assertEqual(self.app.session_state["active_view"], "My Learning")
         self.assertEqual(
             self.navigation().options,
             [
-                "Learning",
-                "Recovery",
-                "Challenge",
-                "Analytics",
-                "AI",
-                "Planner",
-                "Library",
-                "Management",
-                "My Learning",
+                "학습",
+                "회복 학습",
+                "도전 학습",
+                "학습 분석",
+                "인공지능",
+                "학습 계획",
+                "학습 자료실",
+                "관리",
+                "나의 학습",
             ],
         )
 
@@ -67,7 +67,7 @@ class StreamlitV10Tests(IsolatedWorldStateTestCase):
         self.assertEqual(self.app.session_state["active_view"], "My Learning")
         self.assertEqual(self.app.session_state["lesson"]["topic"], "Python")
         headers = [item.value for item in self.app.header]
-        self.assertIn("My Learning", headers)
+        self.assertIn("나의 학습", headers)
 
     def test_my_learning_uses_completed_world_evidence(self):
         self.app.session_state["lesson"] = make_lesson()
@@ -89,7 +89,7 @@ class StreamlitV10Tests(IsolatedWorldStateTestCase):
     def test_recovery_has_a_controlled_empty_state(self):
         self.navigation().set_value("Recovery").run()
         headers = [item.value for item in self.app.header]
-        self.assertIn("Recovery", headers)
+        self.assertIn("회복 학습", headers)
         info = [item.value for item in self.app.info]
         self.assertTrue(any("복습할 오답이 없습니다" in item for item in info))
         self.assertFalse(self.app.exception)

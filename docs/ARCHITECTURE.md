@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v1.05 preserves the single-process Streamlit learning
+Universal Learning Engine v1.06 preserves the single-process Streamlit learning
 application and independent in-process Expansion Platform. `app.py` remains the
 composition, configuration, OpenAI, validation, session, and World presentation
 boundary. `world_state.py` owns normalized persistent cross-World evidence and
@@ -91,6 +91,11 @@ Streamlit session state contains:
 | `openai_connection_status` | Missing, registered, connected, or failed BYOK state |
 | `openai_api_notice` | One-time sanitized BYOK lifecycle notice |
 
+The internal World identifiers and state schema remain stable for compatibility.
+The navigation formatter and presentation helpers translate those identifiers
+into Korean at the learner boundary. Existing system-generated record labels
+are localized during rendering rather than rewriting learner data.
+
 State normalization removes invalid answers, bounds the active index, repairs invalid flags, and clears malformed feedback.
 
 ## Configuration architecture
@@ -120,6 +125,18 @@ Streamlit session server memory. They are excluded from World evidence,
 The deployed app does not use a shared developer key. World evidence is
 persisted locally in `.ule_data` after explicit actions; topics and generated
 requests are sent to OpenAI only through the explicitly registered user key.
+
+## v1.06 data-management boundary
+
+- Selective deletion accepts only tokens produced by the current normalized
+  deletion catalog.
+- Deleting a record also removes generated resources, activities, and explicit
+  links whose sole source is that record.
+- Category deletion uses the same validated selective-deletion path.
+- All-record deletion preserves Management subjects and default settings.
+- Full reset restores the durable World state to defaults and removes the
+  session-only BYOK value.
+- Every destructive UI action is disabled until its confirmation gate is met.
 
 ## v0.4 adaptive boundary
 
@@ -347,3 +364,16 @@ OpenAI-compatible test client, verify the no-key and provider-failure paths,
 and inspect every World for prohibited internal output. Actual API-key
 acceptance remains an explicit user action through Management and is never
 automated from repository configuration.
+
+## v1.06 localization and deletion boundary
+
+The learner-facing layer maps compatible internal identifiers to Korean without
+rewriting stored records. Generated system titles from earlier releases are
+localized when displayed. Learner-authored content remains unchanged.
+
+`deletion_catalog` exposes opaque UI tokens only to Streamlit controls and maps
+them to current normalized records. `delete_selected_records` validates those
+tokens against the live catalog before deleting selected records and dependent
+generated evidence. Category deletion delegates to the same path. All-record
+deletion preserves Management configuration; full reset restores defaults.
+Every destructive control is gated in the presentation layer.

@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v1.05; publishing
+- The implemented working-tree version is v1.06; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -178,7 +178,21 @@ behavior.
 
 The implemented contract is `ROADMAP_v1.05.md`. v1.05 adds verification evidence
 only and preserves the complete v1.04 runtime, UI, data schema, Expansion
-boundary, and Living OS boundary.
+Platform, and Living OS boundary.
+
+### v1.06 — Localization & User Experience
+
+- Korean learner-facing navigation, controls, guidance, reports, and errors
+- Learner-oriented BYOK registration, replacement, confirmed deletion, and
+  connection testing
+- Selective, category, all-record, and full-reset data management
+- Confirmation gates for every destructive data action
+- Developer-output and unfinished-label non-exposure verification
+- Existing-record compatibility without schema replacement
+
+The implemented contract is `ROADMAP_v1.06.md`. v1.06 preserves the v1.05
+learning behavior, World data flow, UI structure, visuals, state schema,
+Expansion Platform, and Living OS boundary.
 
 ## v0.4 preparation gates — complete
 

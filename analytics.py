@@ -1,4 +1,4 @@
-"""Pure, session-only Learning Analytics for Universal Learning Engine v0.5.
+"""Pure, session-only learning analytics for the integrated learning engine.
 
 This module consumes completed v0.4 adaptive summaries. It never changes the
 source records, calls OpenAI, persists data, or selects a learning action.
@@ -13,6 +13,12 @@ from typing import Iterable
 
 SCHEMA_VERSION = "0.5"
 DIFFICULTY_ORDER = ["Easy", "Normal", "Hard", "Nightmare"]
+DIFFICULTY_LABELS = {
+    "Easy": "기초",
+    "Normal": "보통",
+    "Hard": "심화",
+    "Nightmare": "최고 난도",
+}
 CONFIDENCE_KEYS = ["low", "medium", "high", "unset"]
 ANSWER_PATTERN_KEYS = [
     "secure_success",
@@ -414,9 +420,10 @@ def _evidence_summary(rounds: list[dict]) -> dict:
     topic_key = rounds[0]["topic_key"]
     difficulty = rounds[0]["difficulty"]
     evidence_text = (
-        f"{topic_key} / {difficulty}: {aggregate['round_count']} rounds, "
-        f"{aggregate['question_count']} answers, {accuracy:.1f}% weighted accuracy, "
-        f"{supported:.1f}% supported success, {confident_error:.1f}% confident errors."
+        f"{topic_key} / {DIFFICULTY_LABELS.get(difficulty, difficulty)}: "
+        f"{aggregate['round_count']}개 라운드, "
+        f"{aggregate['question_count']}개 답변, 가중 정확도 {accuracy:.1f}%, "
+        f"근거 있는 성공 {supported:.1f}%, 확신한 오답 {confident_error:.1f}%."
     )
     return {
         "classification": classification,
@@ -517,23 +524,23 @@ def _learning_summary(aggregate: dict) -> dict:
     if not aggregate["round_count"]:
         return {
             "status": "empty",
-            "headline": "No completed learning results are available in this scope.",
+            "headline": "이 범위에는 완료된 학습 결과가 없습니다.",
             "facts": [],
         }
     facts = [
-        f"{aggregate['round_count']} rounds and {aggregate['question_count']} answers",
-        f"{aggregate['weighted_accuracy']:.1f}% weighted accuracy",
-        f"{aggregate['confidence']['reporting_rate']:.1f}% reported-confidence coverage",
+        f"라운드 {aggregate['round_count']}개, 답변 {aggregate['question_count']}개",
+        f"가중 정확도 {aggregate['weighted_accuracy']:.1f}%",
+        f"확신도 보고율 {aggregate['confidence']['reporting_rate']:.1f}%",
     ]
     if aggregate["accuracy_direction"] != "not_available":
         facts.append(
-            f"Latest comparable accuracy direction: {aggregate['accuracy_direction']}"
+            f"최근 비교 가능한 정확도 방향: {aggregate['accuracy_direction']}"
         )
     return {
         "status": "available",
         "headline": (
-            f"{aggregate['correct_count']} of {aggregate['question_count']} answers "
-            "were correct in this scope."
+            f"이 범위에서 {aggregate['question_count']}개 답변 중 "
+            f"{aggregate['correct_count']}개가 정답입니다."
         ),
         "facts": facts,
     }

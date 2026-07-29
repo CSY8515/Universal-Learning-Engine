@@ -286,8 +286,8 @@ class LearningAnalyticsTests(unittest.TestCase):
             {"python": [make_summary()]}, "python"
         )["current_topic"]["learning_summary"]
         self.assertEqual(result["status"], "available")
-        self.assertIn("4 of 5", result["headline"])
-        self.assertTrue(any("weighted accuracy" in fact for fact in result["facts"]))
+        self.assertIn("5개 답변 중 4개", result["headline"])
+        self.assertTrue(any("가중 정확도" in fact for fact in result["facts"]))
 
 
 if __name__ == "__main__":

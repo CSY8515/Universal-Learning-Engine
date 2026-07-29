@@ -2,7 +2,7 @@
 
 ## Supported release line
 
-Security fixes are accepted for the current v1.05 release line. Historical
+Security fixes are accepted for the current v1.06 release line. Historical
 releases are maintained as compatibility records rather than active security
 release lines.
 
@@ -27,6 +27,10 @@ involved through the repository owner's private security-reporting channel.
 - Model output is untrusted and must pass validation before normal rendering.
 - Operational logs must not include prompts, generated lessons, answers, secrets,
   session state, or raw provider/callback exceptions.
+- Learner-facing errors must not expose parser details, storage identifiers,
+  provider payloads, stack traces, or raw backup data.
+- Destructive record, reset, and BYOK deletion actions require explicit
+  confirmation and preserve unrelated data according to their documented scope.
 - Official CSS is static repository content. Dynamic learner content must use
   normal Streamlit rendering rather than unsafe HTML.
 

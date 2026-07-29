@@ -31,14 +31,14 @@ class StreamlitV04Tests(IsolatedWorldStateTestCase):
         self.assertFalse(self.app.exception)
 
     def test_v03_landing_controls_remain_available(self):
-        self.assertEqual(self.app.title[0].value, "Universal Learning Engine")
+        self.assertEqual(self.app.title[0].value, "통합 학습 엔진")
         navigation = [
-            item for item in self.app.radio if item.label == "Primary navigation"
+            item for item in self.app.radio if item.label == "주요 메뉴"
         ][0]
         navigation.set_value("Learning").run()
         self.assertEqual(self.app.selectbox[0].options, ["5", "10", "15", "20"])
         self.assertEqual(
-            self.app.selectbox[1].options, ["Easy", "Normal", "Hard", "Nightmare"]
+            self.app.selectbox[1].options, ["기초", "보통", "심화", "최고 난도"]
         )
         self.assertEqual(self.app.button[0].label, "학습 시작")
 
@@ -94,7 +94,7 @@ class StreamlitV04Tests(IsolatedWorldStateTestCase):
 
         headers = [item.value for item in self.app.header]
         subheaders = [item.value for item in self.app.subheader]
-        self.assertIn("v0.4 적응형 학습 안내", headers)
+        self.assertIn("적응형 학습 안내", headers)
         self.assertIn("라운드 결과 요약", subheaders)
         self.assertIn("다음 난이도 추천", subheaders)
         self.assertIn("회복 학습 추천", subheaders)

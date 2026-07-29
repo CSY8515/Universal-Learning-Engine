@@ -92,7 +92,10 @@ class AdaptiveRuleTests(unittest.TestCase):
         high_status = self.status(4, confidence="high")
         high = adaptive.build_adaptive_summary(high_status)
         self.assertEqual(high["recovery_recommendation"]["priority"], "high")
-        self.assertIn("No reminder", high["recovery_recommendation"]["advisory"])
+        self.assertIn(
+            "알림이나 자동 일정은 생성되지 않았습니다.",
+            high["recovery_recommendation"]["advisory"],
+        )
 
     def test_summary_contains_explanations(self):
         summary = adaptive.build_adaptive_summary(self.status(5))

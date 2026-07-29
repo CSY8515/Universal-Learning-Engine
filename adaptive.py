@@ -44,9 +44,9 @@ def build_round_status(
     """Build immutable-by-convention metrics from completed answer evidence."""
     answer_list = [dict(answer) for answer in answers]
     if not answer_list:
-        raise ValueError("A completed round requires at least one answer.")
+        raise ValueError("완료한 라운드에는 답변이 하나 이상 필요합니다.")
     if difficulty not in DIFFICULTY_ORDER:
-        raise ValueError("Unsupported difficulty.")
+        raise ValueError("지원하지 않는 난이도입니다.")
 
     category_counts = Counter()
     confidence_counts = Counter({"low": 0, "medium": 0, "high": 0, "unset": 0})
@@ -92,28 +92,28 @@ def analyze_learning_patterns(status: dict) -> list[dict]:
             signals.append(
                 {
                     "name": "strong_mastery_signal",
-                    "reason": "At least 85% correct with at least 60% secure or developing success.",
+                    "reason": "정확도가 85% 이상이고, 안정적이거나 발전 중인 정답이 60% 이상입니다.",
                 }
             )
         elif _percentage(uncertain_unknown, total) > 40:
             signals.append(
                 {
                     "name": "fragile_success_signal",
-                    "reason": "At least 85% correct, but confidence evidence is limited for more than 40% of answers.",
+                    "reason": "정확도는 85% 이상이지만, 답변의 40%를 넘는 항목에서 확신도 근거가 부족합니다.",
                 }
             )
     elif accuracy >= 60:
         signals.append(
             {
                 "name": "developing_understanding",
-                "reason": "Accuracy is between 60% and 84%.",
+                "reason": "정확도가 60% 이상 85% 미만입니다.",
             }
         )
     else:
         signals.append(
             {
                 "name": "foundational_gap_signal",
-                "reason": "Accuracy is below 60% at the current difficulty.",
+                "reason": "현재 난이도에서 정확도가 60% 미만입니다.",
             }
         )
 
@@ -121,7 +121,7 @@ def analyze_learning_patterns(status: dict) -> list[dict]:
         signals.append(
             {
                 "name": "overconfidence_risk",
-                "reason": "At least 20% of answers were incorrect with high reported confidence.",
+                "reason": "높은 확신도로 답했지만 틀린 문항이 전체의 20% 이상입니다.",
             }
         )
     return signals
@@ -131,7 +131,7 @@ def recommend_difficulty(status: dict) -> dict:
     """Recommend a bounded next difficulty; never apply it automatically."""
     current = status["difficulty"]
     if current not in DIFFICULTY_ORDER:
-        raise ValueError("Unsupported difficulty.")
+        raise ValueError("지원하지 않는 난이도입니다.")
     total = status["question_count"]
     accuracy = status["accuracy"]
     confidence = status.get("confidence_counts", {})
@@ -142,30 +142,30 @@ def recommend_difficulty(status: dict) -> dict:
     if accuracy >= 85 and _percentage(medium_high, total) >= 60:
         recommended_index = min(current_index + 1, len(DIFFICULTY_ORDER) - 1)
         rule = "high_accuracy_supported_confidence"
-        reason = "Accuracy is at least 85% and at least 60% of answers report medium or high confidence."
+        reason = "정확도가 85% 이상이고 답변의 60% 이상에서 보통 이상의 확신도를 선택했습니다."
     elif accuracy >= 85 and _percentage(low_unset, total) > 40:
         recommended_index = current_index
         rule = "high_accuracy_limited_confidence"
-        reason = "Accuracy is at least 85%, but confidence is low or unset for more than 40% of answers."
+        reason = "정확도는 85% 이상이지만 답변의 40%를 넘는 항목에서 확신도가 낮거나 선택되지 않았습니다."
     elif accuracy >= 60:
         recommended_index = current_index
         rule = "developing_accuracy"
-        reason = "Accuracy is between 60% and 84%, so the current difficulty is maintained."
+        reason = "정확도가 60% 이상 85% 미만이므로 현재 난이도를 유지합니다."
     else:
         recommended_index = max(current_index - 1, 0)
         rule = "low_accuracy"
-        reason = "Accuracy is below 60%, so one lower difficulty is recommended."
+        reason = "정확도가 60% 미만이므로 한 단계 낮은 난이도를 추천합니다."
 
     recommended = DIFFICULTY_ORDER[recommended_index]
     if recommended == current and current_index in (0, len(DIFFICULTY_ORDER) - 1):
-        reason += " The recommendation remains within the supported difficulty range."
+        reason += " 지원하는 난이도 범위 안에서 현재 단계를 유지합니다."
     return {
         "current_difficulty": current,
         "recommended_difficulty": recommended,
         "rule": rule,
         "reason": reason,
         "accuracy": accuracy,
-        "advisory": "You remain in control; this recommendation is not applied automatically.",
+        "advisory": "추천은 자동 적용되지 않으며 사용자가 직접 선택할 수 있습니다.",
     }
 
 
@@ -174,21 +174,21 @@ def recommend_recovery(status: dict, signals: list[dict]) -> dict:
     names = {signal["name"] for signal in signals}
     if status["accuracy"] < 60 or "overconfidence_risk" in names:
         priority = "high"
-        interval = "Review before the next round."
-        reason = "Low accuracy or confident-error evidence indicates immediate recovery value."
+        interval = "다음 라운드 전에 복습하세요."
+        reason = "낮은 정확도 또는 확신한 오답 근거가 있어 바로 복습하는 것이 좋습니다."
     elif status["accuracy"] < 85 or "fragile_success_signal" in names:
         priority = "medium"
-        interval = "Review later in the current session."
-        reason = "Mixed performance or limited confidence evidence suggests consolidation."
+        interval = "현재 학습 중에 다시 복습하세요."
+        reason = "성과가 고르지 않거나 확신도 근거가 부족해 학습 내용을 다질 필요가 있습니다."
     else:
         priority = "low"
-        interval = "No immediate recovery needed."
-        reason = "Current-round results show a strong mastery signal without overconfidence risk."
+        interval = "바로 복습할 필요는 없습니다."
+        reason = "현재 라운드에서 과신 위험 없이 충분한 숙달 신호가 확인됐습니다."
     return {
         "priority": priority,
         "interval": interval,
         "reason": reason,
-        "advisory": "No reminder or background schedule has been created.",
+        "advisory": "알림이나 자동 일정은 생성되지 않았습니다.",
     }
 
 

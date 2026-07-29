@@ -24,9 +24,86 @@ WORLD_NAMES = (
     "My Learning",
 )
 CHALLENGE_MODES = ("Exam", "Hard", "Nightmare", "모의고사")
+WORLD_LABELS = {
+    "Learning": "학습",
+    "Recovery": "회복 학습",
+    "Challenge": "도전 학습",
+    "Analytics": "학습 분석",
+    "AI": "인공지능",
+    "Planner": "학습 계획",
+    "Library": "학습 자료실",
+    "Management": "관리",
+    "My Learning": "나의 학습",
+}
+DIFFICULTY_LABELS = {
+    "Easy": "기초",
+    "Normal": "보통",
+    "Hard": "심화",
+    "Nightmare": "최고 난도",
+}
+CHALLENGE_MODE_LABELS = {
+    "Exam": "시험",
+    "Hard": "심화",
+    "Nightmare": "최고 난도",
+    "모의고사": "모의고사",
+}
+RESOURCE_KIND_LABELS = {
+    "Learning Resource": "학습 자료",
+    "Recovery Record": "회복 학습 기록",
+    "Challenge Result": "도전 학습 결과",
+    "Planner Goal": "학습 목표",
+    "Planner Schedule": "학습 일정",
+    "학습자료": "학습 자료",
+}
+RECORD_CATEGORY_LABELS = {
+    "learning": "학습 기록",
+    "recovery": "회복 학습 기록",
+    "challenge": "도전 학습 기록",
+    "ai": "인공지능 기록",
+    "planner": "학습 계획 기록",
+    "library": "학습 자료실 기록",
+}
 STATE_VERSION = 2
 _DEFAULT_DATA_PATH = Path(".ule_data") / "world_state.json"
 _STATE_LOCK = threading.RLock()
+
+
+def world_label(value: object) -> str:
+    return WORLD_LABELS.get(str(value), str(value))
+
+
+def difficulty_label(value: object) -> str:
+    return DIFFICULTY_LABELS.get(str(value), str(value))
+
+
+def challenge_mode_label(value: object) -> str:
+    return CHALLENGE_MODE_LABELS.get(str(value), str(value))
+
+
+def resource_kind_label(value: object) -> str:
+    text = str(value)
+    if text.startswith("AI "):
+        return "인공지능 " + text.removeprefix("AI ")
+    return RESOURCE_KIND_LABELS.get(text, text)
+
+
+def localized_record_text(value: object) -> str:
+    """Localize system-generated labels while preserving user-authored text."""
+    text = str(value)
+    replacements = (
+        ("Recovery Recommendation", "회복 학습 추천"),
+        ("Recovery Session", "회복 학습"),
+        ("Challenge Session", "도전 학습"),
+        ("Challenge Result", "도전 학습 결과"),
+        ("Learning Resource", "학습 자료"),
+        ("Planner Schedule", "학습 일정"),
+        ("Planner Goal", "학습 목표"),
+        ("AI 추천 학습", "인공지능 추천 학습"),
+        ("AI 추천", "인공지능 추천"),
+    )
+    for source, target in replacements:
+        text = text.replace(source, target)
+    return text
 
 
 def _now() -> str:
@@ -294,6 +371,323 @@ def import_world_state(text: str) -> dict:
     return normalize_world_state(payload)
 
 
+def _record_date(item: dict) -> str:
+    value = item.get("completed_at") or item.get("created_at") or ""
+    return str(value)[:10] if value else "날짜 없음"
+
+
+def deletion_catalog(state: dict) -> list[dict]:
+    """Return user-selectable records without exposing storage identifiers."""
+    normalized = normalize_world_state(state)
+    entries: list[dict] = []
+
+    for item in normalized["rounds"]:
+        if item.get("origin") != "Learning":
+            continue
+        entries.append(
+            {
+                "token": f"round:{item['id']}",
+                "category": "learning",
+                "label": (
+                    f"학습 · {item.get('topic') or '주제 없음'} · "
+                    f"{difficulty_label(item.get('difficulty'))} · "
+                    f"{float(item.get('accuracy', 0)):.1f}% · {_record_date(item)}"
+                ),
+            }
+        )
+
+    for item in normalized["recovery_sessions"]:
+        status = "완료" if item.get("status") == "completed" else "진행 중"
+        entries.append(
+            {
+                "token": f"recovery:{item['id']}",
+                "category": "recovery",
+                "label": (
+                    f"회복 학습 · {', '.join(item.get('topics', [])) or '복습'} · "
+                    f"{status} · {_record_date(item)}"
+                ),
+            }
+        )
+
+    result_by_session = {
+        item.get("session_id"): item
+        for item in normalized["challenge"]["results"]
+        if item.get("session_id")
+    }
+    cataloged_results: set[str] = set()
+    for session in normalized["challenge"]["sessions"]:
+        result = result_by_session.get(session.get("id"), {})
+        if result.get("id"):
+            cataloged_results.add(result["id"])
+        entries.append(
+            {
+                "token": f"challenge:{session['id']}",
+                "category": "challenge",
+                "label": (
+                    f"도전 학습 · {challenge_mode_label(session.get('mode'))} · "
+                    f"{session.get('topic') or '주제 없음'} · "
+                    f"{float(result.get('accuracy', 0)):.1f}% · "
+                    f"{_record_date(result or session)}"
+                ),
+            }
+        )
+    for result in normalized["challenge"]["results"]:
+        if result.get("id") in cataloged_results:
+            continue
+        entries.append(
+            {
+                "token": f"challenge_result:{result['id']}",
+                "category": "challenge",
+                "label": (
+                    f"도전 학습 결과 · {challenge_mode_label(result.get('mode'))} · "
+                    f"{result.get('topic') or '주제 없음'} · "
+                    f"{float(result.get('accuracy', 0)):.1f}% · "
+                    f"{_record_date(result)}"
+                ),
+            }
+        )
+
+    for item in normalized["ai_history"]:
+        entries.append(
+            {
+                "token": f"ai:{item['id']}",
+                "category": "ai",
+                "label": (
+                    f"인공지능 {item.get('kind') or '기록'} · "
+                    f"{item.get('topic') or '주제 없음'} · {_record_date(item)}"
+                ),
+            }
+        )
+
+    for item in normalized["planner"]["goals"]:
+        entries.append(
+            {
+                "token": f"goal:{item['id']}",
+                "category": "planner",
+                "label": (
+                    f"학습 목표 · "
+                    f"{localized_record_text(item.get('title') or '제목 없음')}"
+                ),
+            }
+        )
+    for item in normalized["planner"]["schedule"]:
+        entries.append(
+            {
+                "token": f"schedule:{item['id']}",
+                "category": "planner",
+                "label": (
+                    f"학습 일정 · "
+                    f"{localized_record_text(item.get('title') or '제목 없음')} · "
+                    f"{item.get('scheduled_date') or '날짜 없음'}"
+                ),
+            }
+        )
+
+    for item in normalized["library"]["resources"]:
+        entries.append(
+            {
+                "token": f"resource:{item['id']}",
+                "category": "library",
+                "label": (
+                    f"{resource_kind_label(item.get('kind'))} · "
+                    f"{localized_record_text(item.get('title') or '제목 없음')}"
+                ),
+            }
+        )
+    for item in normalized["library"]["notes"]:
+        entries.append(
+            {
+                "token": f"note:{item['id']}",
+                "category": "library",
+                "label": f"노트 · {item.get('title') or '제목 없음'}",
+            }
+        )
+    return entries
+
+
+def delete_selected_records(state: dict, tokens: Iterable[str]) -> int:
+    """Delete selected user records and their dependent generated evidence."""
+    valid_catalog = {item["token"] for item in deletion_catalog(state)}
+    selected = {
+        token for token in tokens if isinstance(token, str) and token in valid_catalog
+    }
+    if not selected:
+        return 0
+
+    selected_by_kind: dict[str, set[str]] = {}
+    for token in selected:
+        kind, identifier = token.split(":", 1)
+        selected_by_kind.setdefault(kind, set()).add(identifier)
+
+    round_ids = set(selected_by_kind.get("round", set()))
+    recovery_ids = set(selected_by_kind.get("recovery", set()))
+    challenge_session_ids = set(selected_by_kind.get("challenge", set()))
+    challenge_result_ids = set(selected_by_kind.get("challenge_result", set()))
+    ai_ids = set(selected_by_kind.get("ai", set()))
+    goal_ids = set(selected_by_kind.get("goal", set()))
+    schedule_ids = set(selected_by_kind.get("schedule", set()))
+    resource_ids = set(selected_by_kind.get("resource", set()))
+    note_ids = set(selected_by_kind.get("note", set()))
+
+    for result in state["challenge"]["results"]:
+        if (
+            result.get("id") in challenge_result_ids
+            or result.get("session_id") in challenge_session_ids
+        ):
+            challenge_result_ids.add(result.get("id", ""))
+            round_ids.add(result.get("round_id", ""))
+            challenge_session_ids.add(result.get("session_id", ""))
+    for session in state["challenge"]["sessions"]:
+        if (
+            session.get("id") in challenge_session_ids
+            or session.get("round_id") in round_ids
+        ):
+            challenge_session_ids.add(session.get("id", ""))
+            round_ids.add(session.get("round_id", ""))
+            challenge_result_ids.add(session.get("result_id", ""))
+
+    round_ids.discard("")
+    challenge_session_ids.discard("")
+    challenge_result_ids.discard("")
+    wrong_item_ids = {
+        wrong.get("id")
+        for record in state["rounds"]
+        if record.get("id") in round_ids
+        for wrong in record.get("wrong_items", [])
+        if isinstance(wrong, dict) and wrong.get("id")
+    }
+    for session in state["recovery_sessions"]:
+        if wrong_item_ids.intersection(session.get("item_ids", [])):
+            recovery_ids.add(session.get("id", ""))
+    recovery_ids.discard("")
+
+    recommendation_ids = {
+        item.get("id")
+        for item in state["recovery_recommendations"]
+        if item.get("recovery_session_id") in recovery_ids
+    }
+    recommendation_ids.discard(None)
+    for item in state["planner"]["goals"]:
+        if item.get("source_ai_id") in ai_ids:
+            goal_ids.add(item.get("id", ""))
+    for item in state["planner"]["schedule"]:
+        if item.get("source_ai_id") in ai_ids:
+            schedule_ids.add(item.get("id", ""))
+    goal_ids.discard("")
+    schedule_ids.discard("")
+
+    removed_reference_ids = (
+        round_ids
+        | recovery_ids
+        | recommendation_ids
+        | challenge_session_ids
+        | challenge_result_ids
+        | ai_ids
+        | goal_ids
+        | schedule_ids
+        | resource_ids
+        | note_ids
+    )
+
+    state["rounds"] = [
+        item for item in state["rounds"] if item.get("id") not in round_ids
+    ]
+    state["recovery_sessions"] = [
+        item
+        for item in state["recovery_sessions"]
+        if item.get("id") not in recovery_ids
+    ]
+    state["recovery_recommendations"] = [
+        item
+        for item in state["recovery_recommendations"]
+        if item.get("id") not in recommendation_ids
+    ]
+    state["challenge"]["sessions"] = [
+        item
+        for item in state["challenge"]["sessions"]
+        if item.get("id") not in challenge_session_ids
+    ]
+    state["challenge"]["results"] = [
+        item
+        for item in state["challenge"]["results"]
+        if item.get("id") not in challenge_result_ids
+    ]
+    state["ai_history"] = [
+        item for item in state["ai_history"] if item.get("id") not in ai_ids
+    ]
+    state["planner"]["goals"] = [
+        item for item in state["planner"]["goals"] if item.get("id") not in goal_ids
+    ]
+    state["planner"]["schedule"] = [
+        item
+        for item in state["planner"]["schedule"]
+        if item.get("id") not in schedule_ids
+    ]
+    state["library"]["resources"] = [
+        item
+        for item in state["library"]["resources"]
+        if item.get("id") not in resource_ids
+        and item.get("source_id") not in removed_reference_ids
+    ]
+    state["library"]["notes"] = [
+        item for item in state["library"]["notes"] if item.get("id") not in note_ids
+    ]
+    state["activity"] = [
+        item
+        for item in state["activity"]
+        if item.get("reference_id") not in removed_reference_ids
+    ]
+
+    for recommendation in state["recovery_recommendations"]:
+        if recommendation.get("challenge_session_id") in challenge_session_ids:
+            recommendation["challenge_session_id"] = ""
+            recommendation["status"] = "pending"
+            recommendation["accepted_at"] = None
+    for item in state["ai_history"]:
+        link = item.get("planner_link")
+        if not isinstance(link, dict):
+            continue
+        if link.get("goal_id") in goal_ids or link.get("schedule_id") in schedule_ids:
+            link.update(
+                {
+                    "status": "available" if item.get("kind") == "추천" else "not_applicable",
+                    "goal_id": "",
+                    "schedule_id": "",
+                    "linked_at": None,
+                }
+            )
+    return len(selected)
+
+
+def clear_record_category(state: dict, category: str) -> int:
+    if category not in RECORD_CATEGORY_LABELS:
+        raise ValueError("지원하지 않는 기록 종류입니다.")
+    tokens = [
+        item["token"]
+        for item in deletion_catalog(state)
+        if item["category"] == category
+    ]
+    return delete_selected_records(state, tokens)
+
+
+def clear_all_records(state: dict) -> int:
+    """Clear learning records while preserving subjects and user defaults."""
+    count = len(deletion_catalog(state))
+    management = copy.deepcopy(normalize_world_state(state)["management"])
+    state.clear()
+    state.update(default_world_state())
+    state["management"] = management
+    return count
+
+
+def reset_user_data(state: dict) -> int:
+    """Restore all durable user data and settings to application defaults."""
+    count = len(deletion_catalog(state))
+    state.clear()
+    state.update(default_world_state())
+    return count
+
+
 def add_activity(
     state: dict,
     world: str,
@@ -303,7 +697,7 @@ def add_activity(
     reference_id: str = "",
 ) -> None:
     if world not in WORLD_NAMES:
-        raise ValueError("지원하지 않는 World입니다.")
+        raise ValueError("지원하지 않는 학습 영역입니다.")
     state["activity"].append(
         {
             "world": world,
@@ -360,14 +754,14 @@ def start_challenge_session(
     source_recovery_recommendation_id: str = "",
 ) -> dict:
     if mode not in CHALLENGE_MODES:
-        raise ValueError("지원하지 않는 Challenge 유형입니다.")
+        raise ValueError("지원하지 않는 도전 유형입니다.")
     cleaned_topic = _clean_text(topic, maximum=80)
     if not cleaned_topic:
-        raise ValueError("Challenge 주제가 필요합니다.")
+        raise ValueError("도전 학습 주제가 필요합니다.")
     if difficulty not in ("Easy", "Normal", "Hard", "Nightmare"):
-        raise ValueError("지원하지 않는 Challenge 난이도입니다.")
+        raise ValueError("지원하지 않는 도전 난이도입니다.")
     if question_count not in (5, 10, 15, 20):
-        raise ValueError("지원하지 않는 Challenge 문제 수입니다.")
+        raise ValueError("지원하지 않는 도전 문제 수입니다.")
     session_id = _identifier(
         "challenge",
         mode,
@@ -411,7 +805,7 @@ def start_challenge_session(
     add_activity(
         state,
         "Challenge",
-        f"{mode} Session 시작",
+        f"{challenge_mode_label(mode)} 도전 시작",
         topic=cleaned_topic,
         reference_id=session_id,
     )
@@ -432,7 +826,7 @@ def complete_challenge_session(
         None,
     )
     if not session:
-        raise ValueError("Challenge Session을 찾을 수 없습니다.")
+        raise ValueError("도전 학습 기록을 찾을 수 없습니다.")
     if session.get("status") == "completed":
         existing_id = session.get("result_id")
         return next(
@@ -444,7 +838,7 @@ def complete_challenge_session(
             {},
         )
     if session.get("status") != "active":
-        raise ValueError("활성 Challenge Session이 아닙니다.")
+        raise ValueError("진행 중인 도전 학습이 아닙니다.")
 
     completed_at = _now()
     result_id = _identifier("challenge_result", session_id, round_record.get("id"))
@@ -491,10 +885,11 @@ def complete_challenge_session(
         source_world="Challenge",
         source_id=result_id,
         kind="Challenge Result",
-        title=f"{session['topic']} {session['mode']} 결과",
+        title=f"{session['topic']} {challenge_mode_label(session['mode'])} 결과",
         topic=session["topic"],
         content=(
-            f"{session['mode']} · {result['difficulty']} · "
+            f"{challenge_mode_label(session['mode'])} · "
+            f"{difficulty_label(result['difficulty'])} · "
             f"{result['correct_count']}/{result['question_count']} · "
             f"{result['accuracy']:.1f}%"
         ),
@@ -503,7 +898,7 @@ def complete_challenge_session(
     add_activity(
         state,
         "Challenge",
-        f"{session['mode']} Session 완료",
+        f"{challenge_mode_label(session['mode'])} 도전 완료",
         topic=session["topic"],
         reference_id=result_id,
     )
@@ -680,7 +1075,7 @@ def start_recovery_session(
     add_activity(
         state,
         "Recovery",
-        f"Recovery Session 시작 ({len(selected)}문제)",
+        f"회복 학습 시작 ({len(selected)}문제)",
         reference_id=session_id,
     )
     return session
@@ -699,9 +1094,9 @@ def submit_recovery_answer(
         None,
     )
     if not session or session.get("status") != "active":
-        raise ValueError("활성 Recovery Session을 찾을 수 없습니다.")
+        raise ValueError("진행 중인 회복 학습을 찾을 수 없습니다.")
     if item_id not in session.get("item_ids", []):
-        raise ValueError("Recovery Session에 포함되지 않은 문제입니다.")
+        raise ValueError("현재 회복 학습에 포함되지 않은 문제입니다.")
     item = next(
         (candidate for candidate in pending_recovery_items(state) if candidate["id"] == item_id),
         None,
@@ -725,7 +1120,7 @@ def complete_recovery_session(state: dict, session_id: str) -> dict:
         None,
     )
     if not session or session.get("status") != "active":
-        raise ValueError("활성 Recovery Session을 찾을 수 없습니다.")
+        raise ValueError("진행 중인 회복 학습을 찾을 수 없습니다.")
     if len(session.get("answers", {})) != session.get("question_count"):
         raise ValueError("모든 복습 문제에 답해주세요.")
 
@@ -757,13 +1152,13 @@ def complete_recovery_session(state: dict, session_id: str) -> dict:
     topic = ", ".join(session.get("topics", []))
     if accuracy >= 90:
         recommended_mode = "Nightmare"
-        reason = "Recovery 정확도가 90% 이상이므로 최고 난도 적용 학습을 권장합니다."
+        reason = "회복 학습 정확도가 90% 이상이므로 최고 난도 적용 학습을 권장합니다."
     elif accuracy >= 70:
         recommended_mode = "Hard"
-        reason = "Recovery 정확도가 70% 이상이므로 고난도 적용 학습을 권장합니다."
+        reason = "회복 학습 정확도가 70% 이상이므로 심화 적용 학습을 권장합니다."
     else:
         recommended_mode = "Exam"
-        reason = "Recovery 결과를 점검할 수 있도록 표준 시험 학습을 권장합니다."
+        reason = "회복 학습 결과를 점검할 수 있도록 시험 학습을 권장합니다."
     recommendation_id = _identifier(
         "recovery_recommendation",
         session_id,
@@ -794,11 +1189,11 @@ def complete_recovery_session(state: dict, session_id: str) -> dict:
         source_world="Recovery",
         source_id=session_id,
         kind="Recovery Record",
-        title=f"{topic or '복습'} Recovery 기록",
+        title=f"{topic or '복습'} 회복 학습 기록",
         topic=topic,
         content=(
             f"{session['correct_count']}/{question_count} · {accuracy:.1f}% · "
-            f"추천 Challenge: {recommended_mode}\n{reason}"
+            f"추천 도전 유형: {challenge_mode_label(recommended_mode)}\n{reason}"
         ),
         details=session["record"],
     )
@@ -806,7 +1201,7 @@ def complete_recovery_session(state: dict, session_id: str) -> dict:
         state,
         "Recovery",
         (
-            f"Recovery Session 완료 "
+            f"회복 학습 완료 "
             f"({session['correct_count']}/{session['question_count']})"
         ),
         reference_id=session_id,
@@ -840,14 +1235,14 @@ def accept_recovery_recommendation(state: dict, recommendation_id: str) -> dict:
         None,
     )
     if not recommendation:
-        raise ValueError("Recovery Recommendation을 찾을 수 없습니다.")
+        raise ValueError("회복 학습 추천을 찾을 수 없습니다.")
     if recommendation.get("status") == "pending":
         recommendation["status"] = "accepted"
         recommendation["accepted_at"] = _now()
         add_activity(
             state,
             "Recovery",
-            "Recovery Recommendation 수락",
+            "회복 학습 추천 수락",
             topic=recommendation.get("topic", ""),
             reference_id=recommendation_id,
         )
@@ -885,7 +1280,7 @@ def add_goal(
         content=(
             f"목표일: {goal['target_date'] or '기한 없음'}"
             + (
-                f"\nAI Recommendation: {goal['source_ai_id']}"
+                f"\n인공지능 추천 연결: {goal['source_ai_id']}"
                 if goal["source_ai_id"]
                 else ""
             )
@@ -936,7 +1331,7 @@ def add_schedule(
     except (TypeError, ValueError) as exc:
         raise ValueError("올바른 일정 날짜를 선택해주세요.") from exc
     if world not in WORLD_NAMES:
-        raise ValueError("올바른 World를 선택해주세요.")
+        raise ValueError("올바른 학습 영역을 선택해주세요.")
     item = {
         "id": _identifier("schedule", cleaned, scheduled_date, world, _now()),
         "title": cleaned,
@@ -955,13 +1350,13 @@ def add_schedule(
         kind="Planner Schedule",
         title=item["title"],
         topic=item["topic"],
-        content=f"{item['scheduled_date']} · {item['world']}",
+        content=f"{item['scheduled_date']} · {world_label(item['world'])}",
         details=item,
     )
     add_activity(
         state,
         "Planner",
-        f"{world} 일정 등록",
+        f"{world_label(world)} 일정 등록",
         topic=item["topic"],
         reference_id=item["id"],
     )
@@ -1059,7 +1454,7 @@ def add_ai_history(
     state: dict, kind: str, prompt: str, response: str, topic: str = ""
 ) -> dict:
     if kind not in ("질문", "해설", "추천", "요약"):
-        raise ValueError("지원하지 않는 AI 기능입니다.")
+        raise ValueError("지원하지 않는 인공지능 기능입니다.")
     created_at = _now()
     cleaned_topic = _clean_text(topic, maximum=80)
     if not cleaned_topic and state["rounds"]:
@@ -1091,8 +1486,8 @@ def add_ai_history(
         state,
         source_world="AI",
         source_id=item["id"],
-        kind=f"AI {kind}",
-        title=f"{item['topic'] or '학습'} AI {kind}",
+        kind=f"인공지능 {kind}",
+        title=f"{item['topic'] or '학습'} 인공지능 {kind}",
         topic=item["topic"],
         content=item["response"],
         details={"prompt": item["prompt"], "kind": kind},
@@ -1100,7 +1495,7 @@ def add_ai_history(
     add_activity(
         state,
         "AI",
-        f"AI {kind} 완료",
+        f"인공지능 {kind} 완료",
         topic=item["topic"],
         reference_id=item["id"],
     )
@@ -1121,7 +1516,7 @@ def connect_ai_recommendation_to_planner(
         None,
     )
     if not item or item.get("kind") != "추천":
-        raise ValueError("Planner에 연결할 AI Recommendation을 찾을 수 없습니다.")
+        raise ValueError("학습 계획에 연결할 인공지능 추천을 찾을 수 없습니다.")
     link = item.setdefault(
         "planner_link",
         {
@@ -1138,7 +1533,7 @@ def connect_ai_recommendation_to_planner(
     try:
         date.fromisoformat(target_date)
     except (TypeError, ValueError) as exc:
-        raise ValueError("올바른 Planner 연결 날짜가 필요합니다.") from exc
+        raise ValueError("올바른 학습 계획 날짜가 필요합니다.") from exc
     topic = _clean_text(item.get("topic"), maximum=80) or "다음 학습"
     goal = add_goal(
         state,
@@ -1149,7 +1544,7 @@ def connect_ai_recommendation_to_planner(
     )
     schedule = add_schedule(
         state,
-        f"{topic} AI 추천 학습",
+        f"{topic} 인공지능 추천 학습",
         target_date,
         "Learning",
         topic,
@@ -1166,7 +1561,7 @@ def connect_ai_recommendation_to_planner(
     add_activity(
         state,
         "AI",
-        "AI Recommendation Planner 연결",
+        "인공지능 추천을 학습 계획에 연결",
         topic=topic,
         reference_id=ai_id,
     )
@@ -1183,7 +1578,7 @@ def _challenge_evidence(state: dict) -> list[dict]:
         ):
             results.append(
                 {
-                    "id": f"legacy_{record.get('id', '')}",
+                    "id": f"compatible_{record.get('id', '')}",
                     "session_id": record.get("challenge_session_id", ""),
                     "round_id": record.get("id", ""),
                     "mode": record.get("challenge_mode") or "Exam",
@@ -1300,11 +1695,11 @@ def learning_stats(state: dict) -> dict:
     if sum(item.get("correct_count", 0) for item in completed_recovery) >= 10:
         achievements.append("오답 정복자")
     if challenge_results:
-        achievements.append("Challenge 도전자")
+        achievements.append("도전 학습 입문")
     if any(float(item.get("accuracy", 0)) >= 90 for item in challenge_results):
-        achievements.append("Challenge 마스터")
+        achievements.append("도전 학습 달인")
     if state["ai_history"]:
-        achievements.append("AI 학습 연결")
+        achievements.append("인공지능 학습 연결")
     if state["planner"]["goals"] or state["planner"]["schedule"]:
         achievements.append("학습 계획 수립")
     if state["library"]["notes"]:
@@ -1353,32 +1748,33 @@ def build_report(state: dict) -> str:
     recovery_records = recovery_history(state)
     challenge_results = _challenge_evidence(state)
     lines = [
-        "# Universal Learning Engine 학습 리포트",
+        "# 통합 학습 엔진 학습 보고서",
         "",
-        "## My Learning",
+        "## 나의 학습",
         f"- 완료 라운드: {stats['round_count']}",
         f"- 학습 주제: {stats['topic_count']}",
         f"- 분석 문항: {stats['question_count']}",
         f"- 전체 정확도: {stats['accuracy']:.1f}%",
-        f"- Recovery Session: {stats['recovery_count']}",
-        f"- Challenge Session: {stats['challenge_count']}",
-        f"- AI 기록: {stats['ai_count']}",
-        f"- Planner 목표/일정: {stats['planner_goal_count']}/{stats['planner_schedule_count']}",
-        f"- Library 기록: {stats['library_count']}",
+        f"- 회복 학습: {stats['recovery_count']}",
+        f"- 도전 학습: {stats['challenge_count']}",
+        f"- 인공지능 기록: {stats['ai_count']}",
+        f"- 학습 계획 목표/일정: {stats['planner_goal_count']}/{stats['planner_schedule_count']}",
+        f"- 학습 자료실 기록: {stats['library_count']}",
         f"- 공부시간: {stats['study_seconds'] // 60}분",
         f"- 레벨: {stats['level']}",
         "",
-        "## Learning",
+        "## 학습",
     ]
     for item in reversed(learning_rounds[-10:]):
         lines.append(
-            f"- {item.get('topic', '-')} / {item.get('difficulty', '-')} / "
+            f"- {item.get('topic', '-')} / "
+            f"{difficulty_label(item.get('difficulty', '-'))} / "
             f"{float(item.get('accuracy', 0)):.1f}%"
         )
     if not learning_rounds:
         lines.append("- 기록 없음")
 
-    lines.extend(["", "## Recovery"])
+    lines.extend(["", "## 회복 학습"])
     for item in reversed(recovery_records[-10:]):
         record = item.get("record", {})
         lines.append(
@@ -1390,10 +1786,11 @@ def build_report(state: dict) -> str:
     if not recovery_records:
         lines.append("- 기록 없음")
 
-    lines.extend(["", "## Challenge"])
+    lines.extend(["", "## 도전 학습"])
     for item in reversed(challenge_results[-10:]):
         lines.append(
-            f"- {item.get('mode', '-')} / {item.get('topic', '-')} / "
+            f"- {challenge_mode_label(item.get('mode', '-'))} / "
+            f"{item.get('topic', '-')} / "
             f"{float(item.get('accuracy', 0)):.1f}%"
         )
     if not challenge_results:
@@ -1402,7 +1799,7 @@ def build_report(state: dict) -> str:
     lines.extend(
         [
             "",
-            "## Analytics",
+            "## 학습 분석",
             f"- 전체 정확도: {world_analytics['accuracy']:.1f}%",
             f"- 분석 문항: {world_analytics['question_count']}",
             f"- 복습 대기: {world_analytics['pending_recovery_count']}",
@@ -1410,11 +1807,11 @@ def build_report(state: dict) -> str:
     )
     for mode, evidence in world_analytics["challenge_modes"].items():
         lines.append(
-            f"- {mode}: {evidence['session_count']}회 / "
+            f"- {challenge_mode_label(mode)}: {evidence['session_count']}회 / "
             f"{evidence['accuracy']:.1f}%"
         )
 
-    lines.extend(["", "## AI"])
+    lines.extend(["", "## 인공지능"])
     for item in reversed(state["ai_history"][-10:]):
         lines.append(
             f"- {item.get('kind', '-')} / {item.get('topic') or '주제 없음'} / "
@@ -1423,11 +1820,11 @@ def build_report(state: dict) -> str:
     if not state["ai_history"]:
         lines.append("- 기록 없음")
 
-    lines.extend(["", "## Planner", "### 목표"])
+    lines.extend(["", "## 학습 계획", "### 목표"])
     for item in reversed(state["planner"]["goals"][-10:]):
         lines.append(
             f"- {'완료' if item.get('completed') else '진행 중'} / "
-            f"{item.get('title', '-')}"
+            f"{localized_record_text(item.get('title', '-'))}"
         )
     if not state["planner"]["goals"]:
         lines.append("- 기록 없음")
@@ -1435,29 +1832,31 @@ def build_report(state: dict) -> str:
     for item in reversed(state["planner"]["schedule"][-10:]):
         lines.append(
             f"- {'완료' if item.get('completed') else '예정'} / "
-            f"{item.get('scheduled_date', '-')} / {item.get('world', '-')} / "
+            f"{item.get('scheduled_date', '-')} / "
+            f"{world_label(item.get('world', '-'))} / "
             f"{item.get('topic') or '주제 없음'}"
         )
     if not state["planner"]["schedule"]:
         lines.append("- 기록 없음")
 
-    lines.extend(["", "## Library"])
+    lines.extend(["", "## 학습 자료실"])
     source_counts = {}
     for item in state["library"]["resources"]:
         source = item.get("source_world") or "Learning"
         source_counts[source] = source_counts.get(source, 0) + 1
     for source, count in sorted(source_counts.items()):
-        lines.append(f"- {source}: {count}개")
+        lines.append(f"- {world_label(source)}: {count}개")
     lines.append(f"- 노트: {len(state['library']['notes'])}개")
 
     settings = state["management"]["settings"]
     lines.extend(
         [
             "",
-            "## Management",
+            "## 관리",
             f"- 과목: {', '.join(state['management']['subjects']) or '없음'}",
             f"- 기본 문제 수: {settings.get('default_question_count', 5)}",
-            f"- 기본 난이도: {settings.get('default_difficulty', 'Easy')}",
+            f"- 기본 난이도: "
+            f"{difficulty_label(settings.get('default_difficulty', 'Easy'))}",
             "",
             "## 업적",
         ]

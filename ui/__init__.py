@@ -1,4 +1,4 @@
-"""Presentation helpers for the Universal Learning Engine interface."""
+"""Presentation helpers for the integrated learning engine interface."""
 
 from .navigation import NAVIGATION_OPTIONS, render_navigation
 from .theme import apply_official_theme

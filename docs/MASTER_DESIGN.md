@@ -2,10 +2,10 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.0 behavior. It does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.06 behavior. It does not authorize future functionality.
 
-- Implemented working-tree design: **v1.0 Stable**
-- Release version file: **v1.0.0**
+- Implemented working-tree design: **v1.06 Localization & User Experience**
+- Release version file: **v1.06**
 
 Runtime entry point: `app.py`  
 Interface: Streamlit  
@@ -21,6 +21,12 @@ Persistence: Streamlit session state only
 6. **Protect API cost and failure clarity.** A second API call is attempted only for failures classified as retryable.
 7. **Keep secrets outside source.** Credentials come from local environment configuration or Streamlit Secrets.
 8. **Separate records from plans.** Release notes and changelog describe history; roadmap documents describe approved future direction.
+9. **Use one learner language.** Internal identifiers remain stable, while all
+   learner-facing navigation, controls, guidance, reports, and errors are
+   presented in Korean.
+10. **Confirm destructive actions.** Selective deletion, category deletion,
+    all-record deletion, full reset, and BYOK deletion require an explicit
+    learner confirmation appropriate to their scope.
 
 ## v0.2 feature freeze
 
@@ -361,3 +367,23 @@ injected by the project.
 
 v1.05 changes no learning algorithm, data schema, visual layout, World
 background, Hover, Animation, Glass, Expansion boundary, or Living OS behavior.
+
+## v1.06 Localization & User Experience design
+
+v1.06 preserves v1.05 learning behavior and translates the complete
+learner-facing boundary into Korean. Stable internal World, difficulty, mode,
+and storage identifiers remain unchanged so existing user data continues to
+normalize without destructive migration. Existing system-generated English
+labels are translated when rendered; learner-authored content is preserved.
+
+Management provides selective record deletion, category deletion, all-record
+deletion, and full reset. Each action has an explicit confirmation gate.
+Selective and category deletion remove directly dependent generated resources,
+activities, and explicit links. All-record deletion preserves subjects and
+default settings. Full reset restores durable defaults and removes the
+session-only BYOK value.
+
+Learner errors do not reveal raw backup data, parser details, provider payloads,
+storage identifiers, stack traces, or internal state. v1.06 changes no learning
+algorithm, visual layout, World background, Hover, Animation, Glass, state
+schema, Expansion boundary, or Living OS behavior.

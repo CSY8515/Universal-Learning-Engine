@@ -2,7 +2,7 @@
 
 ## Scope
 
-This specification describes the implemented v1.05 application on the preserved
+This specification describes the implemented v1.06 application on the preserved
 v1.03 learning-flow and v0.9 Expansion runtime baselines. Learning-runtime and
 BYOK coordination remain in `app.py`; presentation responsibilities are
 separated into `ui/`; deterministic adaptive rules remain in `adaptive.py`,
@@ -25,6 +25,35 @@ Responsibilities:
 - Resolve the model from environment, Streamlit Secrets, then the default.
 
 The module must not hardcode credentials or expose them in rendered output.
+
+## Localization and user-data management module
+
+Functions in `world_state.py`: `world_label`, `difficulty_label`,
+`challenge_mode_label`, `resource_kind_label`, `localized_record_text`,
+`deletion_catalog`, `delete_selected_records`, `clear_record_category`,
+`clear_all_records`, `reset_user_data`
+
+Responsibilities:
+
+- Keep persisted World, difficulty, and challenge identifiers compatible while
+  presenting Korean learner terminology.
+- Build deletion choices without displaying storage identifiers.
+- Remove selected records and directly dependent generated evidence.
+- Preserve Management subjects and settings for all-record deletion.
+- Restore complete durable defaults for full reset.
+- Never delete or initialize existing records during normal state
+  normalization or localization.
+
+Functions in `app.py`: `localize_system_text`,
+`render_user_data_management`, `reset_transient_learning_state`
+
+Responsibilities:
+
+- Localize existing system-generated labels at render time.
+- Keep destructive controls disabled until explicit confirmation.
+- Clear obsolete session-only view state after durable records are removed.
+- Present sanitized Korean errors without raw parser, provider, or storage
+  details.
 
 ## Difficulty and prompt module
 
@@ -526,3 +555,19 @@ Responsibilities:
 
 These modules add no production API, storage field, UI control, or runtime
 dependency.
+
+## v1.06 localization and user-data verification modules
+
+File: `tests/test_localization_v106.py`
+
+Responsibilities:
+
+- Verify Korean display across all nine World entries.
+- Reject learner-visible developer markers and unfinished labels.
+- Verify existing system-title localization without rewriting user-authored
+  content.
+- Verify selective deletion cascades only to dependent generated evidence.
+- Verify all-record deletion preserves subjects and settings.
+- Verify full reset restores defaults.
+- Verify BYOK and record deletion controls remain disabled before explicit
+  confirmation.

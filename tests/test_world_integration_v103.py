@@ -168,15 +168,15 @@ class WorldIntegrationV103Tests(unittest.TestCase):
         self.assertGreater(stats["study_seconds"], 0)
         self.assertEqual(stats["world_records"]["AI"], 1)
         for section in (
-            "## Learning",
-            "## Recovery",
-            "## Challenge",
-            "## Analytics",
-            "## AI",
-            "## Planner",
-            "## Library",
-            "## Management",
-            "## My Learning",
+            "## 학습",
+            "## 회복 학습",
+            "## 도전 학습",
+            "## 학습 분석",
+            "## 인공지능",
+            "## 학습 계획",
+            "## 학습 자료실",
+            "## 관리",
+            "## 나의 학습",
         ):
             self.assertIn(section, report)
 

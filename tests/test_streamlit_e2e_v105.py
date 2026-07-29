@@ -73,7 +73,7 @@ class StreamlitEndToEndV105Tests(IsolatedWorldStateTestCase):
         return [
             item
             for item in self.app.radio
-            if item.label == "Primary navigation"
+            if item.label == "주요 메뉴"
         ][0]
 
     def button(self, label, *, key=None):
@@ -113,7 +113,7 @@ class StreamlitEndToEndV105Tests(IsolatedWorldStateTestCase):
 
         self.navigation().set_value("Challenge").run()
         mode = [
-            item for item in self.app.radio if item.label == "Challenge 유형"
+            item for item in self.app.radio if item.label == "도전 유형"
         ][0]
         mode.set_value("Hard").run()
         challenge_topic = [
@@ -147,7 +147,7 @@ class StreamlitEndToEndV105Tests(IsolatedWorldStateTestCase):
             sys.modules,
             {"openai": types.SimpleNamespace(OpenAI=SuccessfulOpenAI)},
         ):
-            self.button("연결 테스트").click().run()
+            self.button("연결 확인").click().run()
         self.assertEqual(
             self.app.session_state[app.BYOK_CONNECTION_STATE],
             "connected",
@@ -156,20 +156,20 @@ class StreamlitEndToEndV105Tests(IsolatedWorldStateTestCase):
         self.navigation().set_value("AI").run()
         for kind in ("질문", "해설", "요약", "추천"):
             selector = [
-                item for item in self.app.radio if item.label == "AI 기능"
+                item for item in self.app.radio if item.label == "인공지능 기능"
             ][0]
             selector.set_value(kind).run()
             request = [
                 item
                 for item in self.app.text_area
-                if item.label == f"AI {kind}"
+                if item.label == f"인공지능 {kind}"
             ][0]
             request.set_value(f"{kind}을 검증해주세요.").run()
             with patch.dict(
                 sys.modules,
                 {"openai": types.SimpleNamespace(OpenAI=SuccessfulOpenAI)},
             ):
-                self.button(f"AI {kind} 실행").click().run()
+                self.button(f"인공지능 {kind} 실행").click().run()
 
         state = self.app.session_state["world_data"]
         self.assertEqual(
@@ -189,7 +189,7 @@ class StreamlitEndToEndV105Tests(IsolatedWorldStateTestCase):
 
         latest_id = state["ai_history"][-1]["id"]
         self.button(
-            "Planner 목표·일정으로 연결",
+            "학습 계획 목표·일정으로 연결",
             key=f"connect_ai_planner_{latest_id}",
         ).click().run()
         planner = self.app.session_state["world_data"]["planner"]
@@ -342,20 +342,20 @@ class StreamlitEndToEndV105Tests(IsolatedWorldStateTestCase):
 
     def test_no_key_navigation_and_provider_failure_are_isolated(self):
         self.navigation().set_value("AI").run()
-        self.button("API 설정으로 이동").click().run()
+        self.button("연결 설정으로 이동").click().run()
         self.assertEqual(self.app.session_state["active_view"], "Management")
 
         self.enable_byok()
         self.navigation().set_value("AI").run()
         request = [
-            item for item in self.app.text_area if item.label == "AI 질문"
+            item for item in self.app.text_area if item.label == "인공지능 질문"
         ][0]
         request.set_value("오류 격리 검증").run()
         with patch.dict(
             sys.modules,
             {"openai": types.SimpleNamespace(OpenAI=FailingOpenAI)},
         ):
-            self.button("AI 질문 실행").click().run()
+            self.button("인공지능 질문 실행").click().run()
 
         rendered_errors = "\n".join(item.value for item in self.app.error)
         self.assertNotIn("private-provider-payload", rendered_errors)

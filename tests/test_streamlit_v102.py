@@ -33,13 +33,13 @@ class StreamlitV102Tests(IsolatedWorldStateTestCase):
         self.assertFalse(self.app.exception)
 
     def navigation(self):
-        return [item for item in self.app.radio if item.label == "Primary navigation"][0]
+        return [item for item in self.app.radio if item.label == "주요 메뉴"][0]
 
     def test_every_world_has_a_real_entry(self):
         for world in world_state.WORLD_NAMES:
             self.navigation().set_value(world).run()
             headers = [item.value for item in self.app.header]
-            self.assertIn(world, headers)
+            self.assertIn(world_state.world_label(world), headers)
             self.assertFalse(self.app.exception)
 
     def test_completed_round_flows_into_recovery_and_can_be_recovered(self):
@@ -49,7 +49,7 @@ class StreamlitV102Tests(IsolatedWorldStateTestCase):
         self.navigation().set_value("Recovery").run()
 
         start = [
-            item for item in self.app.button if item.label == "Recovery Session 시작"
+            item for item in self.app.button if item.label == "회복 학습 시작"
         ][0]
         start.click().run()
         answer = [
@@ -61,7 +61,7 @@ class StreamlitV102Tests(IsolatedWorldStateTestCase):
         ][0]
         confirm.click().run()
         complete = [
-            item for item in self.app.button if item.label == "Recovery Session 완료"
+            item for item in self.app.button if item.label == "회복 학습 완료"
         ][0]
         complete.click().run()
 

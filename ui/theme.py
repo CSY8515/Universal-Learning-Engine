@@ -24,11 +24,11 @@ def apply_official_theme(st_module) -> None:
     st_module.markdown(f"<style>{_official_styles()}</style>", unsafe_allow_html=True)
     st_module.markdown(
         """
-        <div class="ule-brand" aria-label="Universal Learning Engine">
-          <div class="ule-brand__mark">ULE</div>
+        <div class="ule-brand" aria-label="통합 학습 엔진">
+          <div class="ule-brand__mark">학습</div>
           <div>
-            <div class="ule-brand__name">Universal Learning Engine</div>
-            <div class="ule-brand__meta">STABLE LEARNING SYSTEM · v1.0</div>
+            <div class="ule-brand__name">통합 학습 엔진</div>
+            <div class="ule-brand__meta">안정적인 학습 시스템 · v1.06</div>
           </div>
         </div>
         """,

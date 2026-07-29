@@ -43,8 +43,8 @@ class StreamlitV05Tests(IsolatedWorldStateTestCase):
         self.complete_round()
         headers = [item.value for item in self.app.header]
         subheaders = [item.value for item in self.app.subheader]
-        self.assertIn("v0.4 적응형 학습 안내", headers)
-        self.assertIn("v0.5 학습 분석", headers)
+        self.assertIn("적응형 학습 안내", headers)
+        self.assertIn("학습 분석", headers)
         self.assertIn("라운드 결과 요약", subheaders)
         self.assertIn("최신 라운드 분석", subheaders)
         self.assertIn("세션 분석 — 현재 주제", subheaders)
@@ -102,7 +102,7 @@ class StreamlitV05Tests(IsolatedWorldStateTestCase):
         self.assertIn("라운드 결과 요약", subheaders)
         self.assertIn("다음 난이도 추천", subheaders)
         warnings = [item.value for item in self.app.warning]
-        self.assertTrue(any("v0.5 학습 분석" in item for item in warnings))
+        self.assertTrue(any("학습 분석을 표시할 수 없습니다." in item for item in warnings))
         self.assertFalse(self.app.exception)
 
     def test_analytics_result_is_reused_until_evidence_changes(self):
@@ -115,7 +115,7 @@ class StreamlitV05Tests(IsolatedWorldStateTestCase):
             self.app.run()
 
         headers = [item.value for item in self.app.header]
-        self.assertIn("v0.5 학습 분석", headers)
+        self.assertIn("학습 분석", headers)
         self.assertEqual(
             self.app.session_state["analytics_revision"],
             cached_revision,

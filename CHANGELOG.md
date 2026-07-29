@@ -2,6 +2,40 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.06 - Localization & User Experience
+
+### Added
+
+- Korean learner-facing terminology across all nine Worlds, navigation,
+  reports, controls, guidance, validation, and error states
+- Selective record deletion with dependent generated-data cleanup
+- Category-level record deletion, all-record deletion, and full user-data reset
+- Explicit confirmation gates for destructive data and BYOK key deletion
+- v1.06 localization, developer-marker, compatibility, and data-management tests
+
+### Changed
+
+- BYOK registration, replacement, deletion, and connection-test guidance now
+  uses one learner-oriented Korean flow
+- Backup files use the application-specific `.ule` extension while retaining
+  backward-compatible restore parsing
+- Existing English system-generated record labels are localized when rendered
+- Invalid backup and generated-data details are kept behind sanitized Korean
+  user messages
+
+### Verified
+
+- 145 automated compile, unit, integration, Streamlit, and regression tests
+- Nine-World Korean display and developer-output non-exposure
+- Existing user records normalize without deletion or reset
+- Data cleanup preserves unrelated records and the documented settings boundary
+
+### Preserved
+
+- v1.05 end-to-end data flow and v1.04 BYOK security boundary
+- Existing UI layout, backgrounds, Hover, Animation, and Glass behavior
+- World-state schema version and backward-compatible normalization
+
 ## v1.05 - End-to-End Validation
 
 ### Added

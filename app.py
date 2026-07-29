@@ -18,7 +18,7 @@ from ui import (
 )
 
 
-APP_TITLE = "Universal Learning Engine"
+APP_TITLE = "통합 학습 엔진"
 APP_DESCRIPTION = "학습할 주제를 입력하면 동일한 학습 엔진이 해당 주제에 맞게 동작합니다."
 DEFAULT_MODEL = "gpt-4.1-mini"
 API_TIMEOUT_SECONDS = 60.0
@@ -52,9 +52,61 @@ NON_RETRYABLE_API_ERROR_KEYWORDS = [
 ]
 NON_RETRYABLE_STATUS_CODES = {400, 401, 403, 404, 429}
 RETRYABLE_STATUS_CODES = {500, 502, 503, 504}
-AI_RESPONSE_FORMAT_ERROR = "AI 응답 형식 오류입니다. 다시 시도해주세요."
-AI_RESPONSE_DATA_ERROR = "AI 응답 데이터가 예상과 다릅니다. 다시 시도해주세요."
+AI_RESPONSE_FORMAT_ERROR = "인공지능 응답 형식을 확인할 수 없습니다. 다시 시도해주세요."
+AI_RESPONSE_DATA_ERROR = "인공지능 응답 내용이 예상과 다릅니다. 다시 시도해주세요."
 LOGGER = logging.getLogger("universal_learning_engine")
+
+PRIORITY_LABELS = {"high": "높음", "medium": "보통", "low": "낮음"}
+TREND_LABELS = {
+    "improving": "향상",
+    "declining": "하락",
+    "stable": "유지",
+    "not_available": "비교 자료 없음",
+}
+ANALYTICS_RULE_LABELS = {
+    "minimum_evidence_not_met": "최소 분석 근거 부족",
+    "strength_thresholds_met": "강점 기준 충족",
+    "low_weighted_accuracy": "낮은 가중 정확도",
+    "confident_error_evidence": "확신한 오답 근거",
+    "no_clear_strength_or_weakness": "뚜렷한 강점·약점 없음",
+}
+PATTERN_LABELS = {
+    "strong_mastery_signal": "강한 숙달 신호",
+    "fragile_success_signal": "불안정한 성공 신호",
+    "overconfidence_risk": "과신 위험 신호",
+    "developing_understanding": "발전 중인 이해",
+    "foundational_gap_signal": "기초 보완 신호",
+}
+
+
+def localize_system_text(value: object) -> str:
+    text = str(value)
+    replacements = (
+        ("Universal Learning Engine", "통합 학습 엔진"),
+        ("Recovery Recommendation", "회복 학습 추천"),
+        ("Recovery Session", "회복 학습"),
+        ("Challenge Session", "도전 학습"),
+        ("Challenge Result", "도전 학습 결과"),
+        ("Learning Resource", "학습 자료"),
+        ("Planner Schedule", "학습 일정"),
+        ("Planner Goal", "학습 목표"),
+        ("My Learning", "나의 학습"),
+        ("Management", "관리"),
+        ("Analytics", "학습 분석"),
+        ("Challenge", "도전 학습"),
+        ("Recovery", "회복 학습"),
+        ("Planner", "학습 계획"),
+        ("Library", "학습 자료실"),
+        ("Learning", "학습"),
+        ("AI", "인공지능"),
+        ("Nightmare", "최고 난도"),
+        ("Normal", "보통"),
+        ("Hard", "심화"),
+        ("Easy", "기초"),
+    )
+    for source, target in replacements:
+        text = text.replace(source, target)
+    return text
 
 
 class ResponseFormatError(ValueError):
@@ -143,7 +195,7 @@ def normalize_api_key_input(value: object) -> str:
 def register_api_key(value: object) -> None:
     cleaned = normalize_api_key_input(value)
     if not cleaned:
-        raise ConfigurationError("OpenAI API Key를 확인해주세요.")
+        raise ConfigurationError("인공지능 연결 키를 확인해주세요.")
     st.session_state[BYOK_API_KEY_STATE] = cleaned
     st.session_state[BYOK_CONNECTION_STATE] = "registered"
 
@@ -162,7 +214,7 @@ def create_openai_client(api_key: str):
         from openai import OpenAI
     except ImportError as exc:
         raise ConfigurationError(
-            "OpenAI 기능을 사용할 수 없습니다. 관리자에게 문의해주세요."
+            "인공지능 기능을 사용할 수 없습니다. 관리자에게 문의해주세요."
         ) from exc
     return OpenAI(
         api_key=api_key,
@@ -174,7 +226,7 @@ def create_openai_client(api_key: str):
 def test_openai_connection(api_key: str) -> bool:
     cleaned = normalize_api_key_input(api_key)
     if not cleaned:
-        raise ConfigurationError("먼저 본인의 OpenAI API Key를 등록해주세요.")
+        raise ConfigurationError("먼저 본인의 인공지능 연결 키를 등록해주세요.")
     client = create_openai_client(cleaned)
     try:
         response = client.responses.create(
@@ -353,8 +405,8 @@ def parse_json_response(text: str) -> dict:
 def build_api_error_message() -> str:
     """Return a stable user message without exposing provider exception text."""
     return (
-        "OpenAI API 호출에 실패했습니다. "
-        "API 키, 결제 상태, 모델 이름, 네트워크 연결을 확인해주세요."
+        "인공지능 서비스 연결에 실패했습니다. "
+        "연결 키, 이용 가능 상태, 네트워크 연결을 확인해주세요."
     )
 
 
@@ -407,12 +459,12 @@ def generate_lesson(topic: str, question_count: int, difficulty: str) -> dict:
     api_key = get_api_key()
     if not api_key:
         raise ConfigurationError(
-            "본인의 OpenAI API Key를 Management에서 먼저 등록해주세요."
+            "본인의 인공지능 연결 키를 관리 화면에서 먼저 등록해주세요."
         )
     if difficulty not in DIFFICULTY_OPTIONS:
         raise ResponseValidationError(build_response_data_error("지원하지 않는 난이도입니다."))
     if type(question_count) is not int or question_count not in QUESTION_COUNT_OPTIONS:
-        raise ResponseValidationError(build_response_data_error("지원하지 않는 CBT 문제 수입니다."))
+        raise ResponseValidationError(build_response_data_error("지원하지 않는 문제 수입니다."))
 
     client = create_openai_client(api_key)
     model = get_model()
@@ -476,59 +528,65 @@ def generate_lesson(topic: str, question_count: int, difficulty: str) -> dict:
 def validate_lesson(data: dict, question_count: int) -> None:
     """Validate and normalize the lesson JSON returned by the AI model."""
     if type(question_count) is not int or question_count not in QUESTION_COUNT_OPTIONS:
-        raise ResponseValidationError(build_response_data_error("지원하지 않는 CBT 문제 수입니다."))
+        raise ResponseValidationError(build_response_data_error("지원하지 않는 문제 수입니다."))
     if not isinstance(data, dict):
         raise ResponseValidationError(build_response_data_error("응답이 객체 형식이 아닙니다."))
 
     required_keys = ["topic", "tutorial", "example", "direct_task", "practice", "cbt"]
     for key in required_keys:
         if key not in data:
-            raise ResponseValidationError(build_response_data_error(f"필요한 값이 없습니다({key})."))
+            raise ResponseValidationError(
+                build_response_data_error("학습 내용에 필요한 항목이 없습니다.")
+            )
 
     text_keys = ["topic", "tutorial", "example", "direct_task", "practice"]
     for key in text_keys:
         if not isinstance(data[key], str) or not data[key].strip():
-            raise ResponseValidationError(build_response_data_error(f"{key} 값이 비어 있거나 문자 형식이 아닙니다."))
+            raise ResponseValidationError(
+                build_response_data_error(
+                    "학습 내용의 문자 항목이 비어 있거나 올바르지 않습니다."
+                )
+            )
 
     if not isinstance(data["cbt"], list):
-        raise ResponseValidationError(build_response_data_error("CBT 문제가 배열 형식이 아닙니다."))
+        raise ResponseValidationError(build_response_data_error("문제 목록 형식이 올바르지 않습니다."))
 
     actual_question_count = len(data["cbt"])
     if actual_question_count == 0:
-        raise ResponseValidationError(build_response_data_error("생성된 CBT 문제가 없습니다. 다시 시도해주세요."))
+        raise ResponseValidationError(build_response_data_error("생성된 문제가 없습니다. 다시 시도해주세요."))
     if actual_question_count < question_count:
         data["cbt_count_notice"] = (
             f"요청한 문제 수는 {question_count}문제였지만 "
-            f"AI가 {actual_question_count}문제만 생성했습니다. "
+            f"인공지능이 {actual_question_count}문제만 생성했습니다. "
             "생성된 문제로 학습을 진행합니다."
         )
     elif actual_question_count > question_count:
         data["cbt"] = data["cbt"][:question_count]
         data["cbt_count_notice"] = (
-            f"AI가 {actual_question_count}문제를 생성했습니다. "
+            f"인공지능이 {actual_question_count}문제를 생성했습니다. "
             f"요청한 {question_count}문제만 사용합니다."
         )
 
     for index, question in enumerate(data["cbt"], start=1):
         if not isinstance(question, dict):
-            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제가 객체 형식이 아닙니다."))
+            raise ResponseValidationError(build_response_data_error(f"{index}번 문제 형식이 올바르지 않습니다."))
         for key in ["question", "choices", "answer_index", "explanation"]:
             if key not in question:
-                raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제에 {key} 값이 없습니다."))
+                raise ResponseValidationError(build_response_data_error(f"{index}번 문제에 필요한 값이 없습니다."))
         if not isinstance(question["question"], str) or not question["question"].strip():
-            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제 내용이 비어 있습니다."))
+            raise ResponseValidationError(build_response_data_error(f"{index}번 문제 내용이 비어 있습니다."))
         if not isinstance(question["choices"], list) or len(question["choices"]) != 4:
-            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제는 선택지 4개가 필요합니다."))
+            raise ResponseValidationError(build_response_data_error(f"{index}번 문제는 선택지 4개가 필요합니다."))
         if not all(isinstance(choice, str) and choice.strip() for choice in question["choices"]):
-            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 선택지가 비어 있거나 문자 형식이 아닙니다."))
+            raise ResponseValidationError(build_response_data_error(f"{index}번 선택지가 비어 있거나 문자 형식이 아닙니다."))
         normalized_choices = [normalize_choice_text(choice) for choice in question["choices"]]
         if len(set(normalized_choices)) != len(normalized_choices):
-            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제에 중복 선택지가 있습니다."))
+            raise ResponseValidationError(build_response_data_error(f"{index}번 문제에 중복 선택지가 있습니다."))
         answer_index = question.get("answer_index")
         if type(answer_index) is not int or answer_index not in [0, 1, 2, 3]:
-            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 문제의 정답 번호가 올바르지 않습니다."))
+            raise ResponseValidationError(build_response_data_error(f"{index}번 문제의 정답 번호가 올바르지 않습니다."))
         if not isinstance(question["explanation"], str) or not question["explanation"].strip():
-            raise ResponseValidationError(build_response_data_error(f"CBT {index}번 해설이 비어 있습니다."))
+            raise ResponseValidationError(build_response_data_error(f"{index}번 해설이 비어 있습니다."))
 
 
 def validate_topic_input(topic: str) -> tuple[bool, str, str]:
@@ -930,7 +988,7 @@ def render_learning_status(lesson: dict) -> None:
 
     st.info(
         f"학습 주제: {topic} | "
-        f"난이도: {difficulty} | "
+        f"난이도: {world_state.difficulty_label(difficulty)} | "
         f"문제 수: {requested_count}"
     )
 
@@ -974,7 +1032,7 @@ def render_lesson(lesson: dict) -> None:
                 lesson["topic"],
             )
             save_world_data()
-            st.success("작성 내용을 Library 노트에 저장했습니다.")
+            st.success("작성 내용을 학습 자료실 노트에 저장했습니다.")
 
     render_cbt(lesson)
 
@@ -984,14 +1042,17 @@ def render_cbt(lesson: dict) -> None:
     questions = lesson["cbt"]
     total_questions = len(questions)
     if total_questions == 0:
-        st.error("CBT 문제가 없습니다. 학습을 다시 시작해주세요.")
+        st.error("문제가 없습니다. 학습을 다시 시작해주세요.")
         return
 
     current_index = min(st.session_state.current_question_index, total_questions - 1)
     question = questions[current_index]
 
-    st.subheader("CBT")
-    st.write(f"난이도: {lesson.get('difficulty', 'Easy')}")
+    st.subheader("문제 풀이")
+    st.write(
+        f"난이도: "
+        f"{world_state.difficulty_label(lesson.get('difficulty', 'Easy'))}"
+    )
     progress_current = total_questions if st.session_state.round_finished else current_index + 1
     st.write(f"진행률: {progress_current} / {total_questions}")
     st.progress(progress_current / total_questions)
@@ -1104,7 +1165,10 @@ def render_round_summary(lesson: dict) -> None:
     result_columns[0].metric("정답률", f"{accuracy}%")
     result_columns[1].metric("정답", correct_count)
     result_columns[2].metric("오답", wrong_count)
-    result_columns[3].metric("난이도", lesson.get("difficulty", "Easy"))
+    result_columns[3].metric(
+        "난이도",
+        world_state.difficulty_label(lesson.get("difficulty", "Easy")),
+    )
 
     st.subheader("오답노트")
     if not wrong_answers:
@@ -1151,12 +1215,13 @@ def render_adaptive_summary() -> None:
     recovery = summary["recovery_recommendation"]
 
     st.divider()
-    st.header("v0.4 적응형 학습 안내")
+    st.header("적응형 학습 안내")
     st.caption("현재 세션과 현재 주제의 결과만 사용한 참고용 추천입니다.")
 
     st.subheader("라운드 상태")
     st.write(
-        f"난이도 {status['difficulty']} | 정답 {status['correct_count']} / "
+        f"난이도 {world_state.difficulty_label(status['difficulty'])} | "
+        f"정답 {status['correct_count']} / "
         f"{status['question_count']} | 정확도 {status['accuracy']:.0f}%"
     )
     st.write(
@@ -1166,15 +1231,11 @@ def render_adaptive_summary() -> None:
     )
 
     st.subheader("학습 패턴")
-    pattern_labels = {
-        "strong_mastery_signal": "강한 숙달 신호",
-        "fragile_success_signal": "불안정한 성공 신호",
-        "overconfidence_risk": "과신 위험 신호",
-        "developing_understanding": "발전 중인 이해",
-        "foundational_gap_signal": "기초 보완 신호",
-    }
     for signal in summary["learning_patterns"]:
-        st.write(f"- {pattern_labels.get(signal['name'], signal['name'])}: {signal['reason']}")
+        st.write(
+            f"- {PATTERN_LABELS.get(signal['name'], '학습 신호')}: "
+            f"{signal['reason']}"
+        )
 
     st.subheader("학습 진행")
     st.write(f"이 세션에서 같은 주제로 완료한 라운드: {progress['completed_rounds']}")
@@ -1183,13 +1244,14 @@ def render_adaptive_summary() -> None:
     else:
         st.write(
             f"이전 라운드 대비 정확도 변화: {progress['accuracy_change']:+.0f}%p "
-            f"({progress['trend']})"
+            f"({TREND_LABELS.get(progress['trend'], progress['trend'])})"
         )
 
     st.subheader("다음 난이도 추천")
     st.write(
-        f"현재 {difficulty['current_difficulty']} → 추천 "
-        f"{difficulty['recommended_difficulty']}"
+        f"현재 {world_state.difficulty_label(difficulty['current_difficulty'])} "
+        f"→ 추천 "
+        f"{world_state.difficulty_label(difficulty['recommended_difficulty'])}"
     )
     st.write(difficulty["reason"])
     st.caption(difficulty["advisory"])
@@ -1203,7 +1265,10 @@ def render_adaptive_summary() -> None:
         st.info("현재 난이도를 유지하는 것을 추천합니다.")
 
     st.subheader("회복 학습 추천")
-    st.write(f"우선순위: {recovery['priority']} | {recovery['interval']}")
+    st.write(
+        f"우선순위: {PRIORITY_LABELS.get(recovery['priority'], recovery['priority'])} "
+        f"| {recovery['interval']}"
+    )
     st.write(recovery["reason"])
     st.caption(recovery["advisory"])
 
@@ -1217,7 +1282,7 @@ def _analytics_round_rows(rounds: list[dict]) -> list[dict]:
         {
             "주제": item["topic_key"],
             "라운드": item["round_id"],
-            "난이도": item["difficulty"],
+            "난이도": world_state.difficulty_label(item["difficulty"]),
             "문항": item["question_count"],
             "정답": item["correct_count"],
             "정확도": _format_analytics_percentage(item["accuracy"]),
@@ -1232,7 +1297,11 @@ def _analytics_round_rows(rounds: list[dict]) -> list[dict]:
 def _analytics_aggregate_rows(items: list[dict], key_label: str) -> list[dict]:
     return [
         {
-            key_label: item["scope_key"],
+            key_label: (
+                world_state.difficulty_label(item["scope_key"])
+                if key_label == "난이도"
+                else item["scope_key"]
+            ),
             "라운드": item["round_count"],
             "문항": item["question_count"],
             "가중 정확도": _format_analytics_percentage(item["weighted_accuracy"]),
@@ -1272,8 +1341,8 @@ def render_learning_analytics(lesson: dict) -> None:
             type(exc).__name__,
         )
         st.warning(
-            "기존 v0.4 학습 결과는 정상적으로 완료되었지만 "
-            "v0.5 학습 분석을 표시할 수 없습니다."
+            "기존 학습 결과는 정상적으로 완료되었지만 "
+            "학습 분석을 표시할 수 없습니다."
         )
         return
 
@@ -1282,9 +1351,9 @@ def render_learning_analytics(lesson: dict) -> None:
     overall = result["overall"]
 
     st.divider()
-    st.header("v0.5 학습 분석")
+    st.header("학습 분석")
     st.caption(
-        "현재 Streamlit 세션에 남아 있는 완료 라운드만 사용한 설명형 분석입니다. "
+        "현재 사용 중인 화면에 남아 있는 완료 라운드만 사용한 설명형 분석입니다. "
         "결정, 자동 실행, 저장 또는 일정 생성을 수행하지 않습니다."
     )
 
@@ -1358,7 +1427,10 @@ def render_learning_analytics(lesson: dict) -> None:
     if weaknesses:
         st.markdown("**현재 증거에서 확인된 약점**")
         for item in weaknesses:
-            reasons = ", ".join(item["matched_rules"])
+            reasons = ", ".join(
+                ANALYTICS_RULE_LABELS.get(rule, "분석 기준")
+                for rule in item["matched_rules"]
+            )
             st.write(f"- {item['evidence_text']} 근거 규칙: {reasons}")
     else:
         st.info("현재 보존된 증거만으로 명확한 약점이 확립되지 않았습니다.")
@@ -1388,7 +1460,10 @@ def render_learning_analytics(lesson: dict) -> None:
         )
         if overall["learning_pattern_frequencies"]:
             for name, count in overall["learning_pattern_frequencies"].items():
-                st.write(f"- {name}: {count}개 라운드")
+                st.write(
+                    f"- {PATTERN_LABELS.get(name, '학습 신호')}: "
+                    f"{count}개 라운드"
+                )
         else:
             st.write("표시할 학습 패턴 신호가 없습니다.")
         if overall["skipped_record_count"]:
@@ -1403,13 +1478,13 @@ def render_learning_setup(
     challenge_mode: str = "",
 ) -> None:
     """Render the preserved universal-topic lesson controls."""
-    st.caption("NEW LEARNING SESSION")
+    st.caption("새 학습 시작")
     st.subheader("학습 설정")
     ai_ready = bool(get_api_key())
     if not ai_ready:
         st.info(
-            "AI 학습 생성을 사용하려면 Management에서 본인의 OpenAI API Key를 "
-            "등록해주세요. 다른 World 기능은 계속 사용할 수 있습니다."
+            "인공지능 학습 생성을 사용하려면 관리 화면에서 본인의 연결 키를 "
+            "등록해주세요. 다른 학습 영역은 계속 사용할 수 있습니다."
         )
     settings = st.session_state.world_data["management"]["settings"]
     topic = st.text_input(
@@ -1424,7 +1499,7 @@ def render_learning_setup(
     elif challenge_mode in ("Exam", "모의고사"):
         default_difficulty = "Normal"
     question_count = setup_columns[0].selectbox(
-        "CBT 문제 수를 선택하세요.",
+        "문제 수를 선택하세요.",
         QUESTION_COUNT_OPTIONS,
         index=QUESTION_COUNT_OPTIONS.index(default_count),
         key=f"{origin.lower()}_question_count",
@@ -1432,6 +1507,7 @@ def render_learning_setup(
     difficulty = setup_columns[1].selectbox(
         "난이도를 선택하세요.",
         DIFFICULTY_OPTIONS,
+        format_func=world_state.difficulty_label,
         index=DIFFICULTY_OPTIONS.index(default_difficulty),
         key=(
             "difficulty_selector"
@@ -1495,7 +1571,7 @@ def render_learning_setup(
 
 
 def render_recovery_world() -> None:
-    st.header("Recovery")
+    st.header("회복 학습")
     pending = world_state.pending_recovery_items(st.session_state.world_data)
     st.metric("복습 대기", len(pending))
     session_id = st.session_state.active_recovery_session_id
@@ -1512,7 +1588,7 @@ def render_recovery_world() -> None:
         if pending:
             topics = sorted({item["topic"] for item in pending})
             st.write(f"대상 주제: {', '.join(topics)}")
-            if st.button("Recovery Session 시작", type="primary"):
+            if st.button("회복 학습 시작", type="primary"):
                 session = world_state.start_recovery_session(
                     st.session_state.world_data
                 )
@@ -1522,7 +1598,7 @@ def render_recovery_world() -> None:
                 save_world_data()
                 st.rerun()
         else:
-            st.info("복습할 오답이 없습니다. Learning 또는 Challenge를 완료해주세요.")
+            st.info("복습할 오답이 없습니다. 학습 또는 도전 학습을 완료해주세요.")
     else:
         items = world_state.recovery_session_items(
             st.session_state.world_data, session
@@ -1532,13 +1608,16 @@ def render_recovery_world() -> None:
             max(0, len(items) - 1),
         )
         if not items:
-            st.warning("Recovery Session 문제를 불러올 수 없습니다.")
+            st.warning("회복 학습 문제를 불러올 수 없습니다.")
         else:
             item = items[current_index]
             st.subheader(
                 f"오답 복습 {current_index + 1} / {session['question_count']}"
             )
-            st.write(f"{item['topic']} · {item['difficulty']}")
+            st.write(
+                f"{item['topic']} · "
+                f"{world_state.difficulty_label(item['difficulty'])}"
+            )
             st.markdown(f"**{item['question']}**")
             selected = st.radio(
                 "복습 답을 선택하세요.",
@@ -1577,7 +1656,7 @@ def render_recovery_world() -> None:
                 st.write(f"정답: {item['choices'][item['answer_index']]}")
                 st.write(f"해설: {item['explanation']}")
                 is_last = current_index >= len(items) - 1
-                if st.button("Recovery Session 완료" if is_last else "다음 복습"):
+                if st.button("회복 학습 완료" if is_last else "다음 복습"):
                     if is_last:
                         completed = world_state.complete_recovery_session(
                             st.session_state.world_data,
@@ -1588,7 +1667,7 @@ def render_recovery_world() -> None:
                         st.session_state.recovery_feedback = None
                         save_world_data()
                         st.success(
-                            f"Recovery Session 완료: "
+                            f"회복 학습 완료: "
                             f"{completed['correct_count']} / "
                             f"{completed['question_count']}"
                         )
@@ -1602,7 +1681,7 @@ def render_recovery_world() -> None:
         st.session_state.world_data
     )
     if completed_sessions:
-        st.subheader("Recovery History")
+        st.subheader("회복 학습 기록")
         for item in reversed(completed_sessions[-10:]):
             record = item.get("record", {})
             st.write(
@@ -1617,15 +1696,15 @@ def render_recovery_world() -> None:
         st.session_state.world_data
     )
     if recommendations:
-        st.subheader("Recovery Recommendation")
+        st.subheader("회복 학습 추천")
         for recommendation in reversed(recommendations[-10:]):
             st.write(
                 f"{recommendation.get('topic') or '복습 주제'} · "
-                f"{recommendation['mode']}"
+                f"{world_state.challenge_mode_label(recommendation['mode'])}"
             )
             st.write(recommendation["reason"])
             if st.button(
-                "Challenge로 연결",
+                "도전 학습으로 연결",
                 key=f"open_recovery_recommendation_{recommendation['id']}",
             ):
                 accepted = world_state.accept_recovery_recommendation(
@@ -1643,10 +1722,11 @@ def render_recovery_world() -> None:
 
 
 def render_challenge_world() -> None:
-    st.header("Challenge")
+    st.header("도전 학습")
     mode = st.radio(
-        "Challenge 유형",
+        "도전 유형",
         world_state.CHALLENGE_MODES,
+        format_func=world_state.challenge_mode_label,
         horizontal=True,
         key="challenge_mode_selector",
     )
@@ -1660,10 +1740,10 @@ def render_challenge_world() -> None:
 
     results = world_state.challenge_history(st.session_state.world_data)
     if results:
-        st.subheader("Challenge History")
+        st.subheader("도전 학습 기록")
         for result in reversed(results[-10:]):
             st.write(
-                f"- {result.get('mode', '-')} · "
+                f"- {world_state.challenge_mode_label(result.get('mode', '-'))} · "
                 f"{result.get('topic', '-')} · "
                 f"{result.get('correct_count', 0)}/"
                 f"{result.get('question_count', 0)} · "
@@ -1677,14 +1757,15 @@ def _ai_context() -> str:
     lesson = st.session_state.lesson if isinstance(st.session_state.lesson, dict) else {}
     return (
         f"현재 주제: {lesson.get('topic', '없음')}\n"
-        f"Learning 라운드: {evidence['learning_round_count']}\n"
-        f"Recovery Session: {evidence['recovery_session_count']}\n"
-        f"Challenge Session: {evidence['challenge_session_count']}\n"
+        f"학습 라운드: {evidence['learning_round_count']}\n"
+        f"회복 학습: {evidence['recovery_session_count']}\n"
+        f"도전 학습: {evidence['challenge_session_count']}\n"
         f"전체 정확도: {evidence['accuracy']:.1f}%\n"
         f"복습 대기 문제: {evidence['pending_recovery_count']}\n"
-        f"Planner 목표/일정: {evidence['planner_goal_count']}/"
+        f"학습 계획 목표/일정: {evidence['planner_goal_count']}/"
         f"{evidence['planner_schedule_count']}\n"
-        f"Library 기록: {evidence['library_resource_count'] + evidence['library_note_count']}\n"
+        f"학습 자료실 기록: "
+        f"{evidence['library_resource_count'] + evidence['library_note_count']}\n"
         f"레벨: {stats['level']}"
     )
 
@@ -1693,7 +1774,7 @@ def generate_ai_world_text(kind: str, request: str) -> str:
     api_key = get_api_key()
     if not api_key:
         raise ConfigurationError(
-            "본인의 OpenAI API Key를 Management에서 먼저 등록해주세요."
+            "본인의 인공지능 연결 키를 관리 화면에서 먼저 등록해주세요."
         )
 
     task_rules = {
@@ -1728,18 +1809,18 @@ def generate_ai_world_text(kind: str, request: str) -> str:
 
 
 def render_ai_world() -> None:
-    st.header("AI")
+    st.header("인공지능")
     ai_ready = bool(get_api_key())
     if not ai_ready:
         st.info(
-            "AI 기능을 사용하려면 Management에서 본인의 OpenAI API Key를 "
+            "인공지능 기능을 사용하려면 관리 화면에서 본인의 연결 키를 "
             "등록해주세요."
         )
-        if st.button("API 설정으로 이동"):
+        if st.button("연결 설정으로 이동"):
             st.session_state.pending_view = "Management"
             st.rerun()
     kind = st.radio(
-        "AI 기능",
+        "인공지능 기능",
         ("질문", "해설", "추천", "요약"),
         horizontal=True,
         disabled=not ai_ready,
@@ -1751,20 +1832,20 @@ def render_ai_world() -> None:
         "요약": "현재 학습 상태를 요약해주세요.",
     }[kind]
     request = st.text_area(
-        f"AI {kind}",
+        f"인공지능 {kind}",
         value=default_request,
         key=f"ai_request_{kind}",
         disabled=not ai_ready,
     )
     if st.button(
-        f"AI {kind} 실행",
+        f"인공지능 {kind} 실행",
         type="primary",
         disabled=not ai_ready,
     ):
         if kind == "질문" and not request.strip():
             st.warning("질문을 입력해주세요.")
         else:
-            with st.spinner(f"AI {kind}을 생성하는 중입니다."):
+            with st.spinner(f"인공지능 {kind}을 생성하는 중입니다."):
                 try:
                     response = generate_ai_world_text(kind, request)
                     topic = (
@@ -1785,12 +1866,12 @@ def render_ai_world() -> None:
     history = st.session_state.world_data["ai_history"]
     if history:
         latest = history[-1]
-        st.subheader(f"최근 AI {latest['kind']}")
+        st.subheader(f"최근 인공지능 {latest['kind']}")
         st.write(latest["response"])
         link = latest.get("planner_link", {})
         if latest.get("kind") == "추천" and link.get("status") == "available":
             if st.button(
-                "Planner 목표·일정으로 연결",
+                "학습 계획 목표·일정으로 연결",
                 key=f"connect_ai_planner_{latest['id']}",
             ):
                 world_state.connect_ai_recommendation_to_planner(
@@ -1801,11 +1882,11 @@ def render_ai_world() -> None:
                 save_world_data()
                 st.rerun()
         elif latest.get("kind") == "추천" and link.get("status") == "linked":
-            st.info("이 AI Recommendation은 Planner 목표와 일정에 연결되었습니다.")
+            st.info("이 인공지능 추천은 학습 계획 목표와 일정에 연결되었습니다.")
 
 
 def render_planner_world() -> None:
-    st.header("Planner")
+    st.header("학습 계획")
     st.subheader("오늘 학습")
     today_items = world_state.today_schedule(st.session_state.world_data)
     if not today_items:
@@ -1813,7 +1894,7 @@ def render_planner_world() -> None:
     for item in today_items:
         columns = st.columns([4, 1, 1])
         columns[0].write(
-            f"{item['title']} · {item['world']}"
+            f"{item['title']} · {world_state.world_label(item['world'])}"
             + (f" · {item['topic']}" if item.get("topic") else "")
         )
         if columns[1].button("이동", key=f"open_schedule_{item['id']}"):
@@ -1874,7 +1955,10 @@ def render_planner_world() -> None:
         "학습일", value=date.today(), key="planner_schedule_date"
     )
     schedule_world = schedule_columns[2].selectbox(
-        "연결 World", world_state.WORLD_NAMES, key="planner_schedule_world"
+        "연결 학습 영역",
+        world_state.WORLD_NAMES,
+        format_func=world_state.world_label,
+        key="planner_schedule_world",
     )
     schedule_topic = st.text_input("연결 주제 (선택)", key="planner_schedule_topic")
     if st.button("일정 추가"):
@@ -1893,19 +1977,22 @@ def render_planner_world() -> None:
 
 
 def render_library_world() -> None:
-    st.header("Library")
+    st.header("학습 자료실")
     query = st.text_input("자료와 노트 검색", key="library_search_query")
     if query.strip():
         results = world_state.search_library(st.session_state.world_data, query)
         st.subheader(f"검색 결과 {len(results)}개")
         for item in results:
-            with st.expander(f"{item['kind']} · {item.get('title', '자료')}"):
+            with st.expander(
+                f"{world_state.resource_kind_label(item['kind'])} · "
+                f"{localize_system_text(item.get('title', '자료'))}"
+            ):
                 if item["kind"] == "노트":
                     st.write(item.get("content", ""))
                 else:
                     st.caption(
-                        f"{item.get('source_world', 'Learning')} · "
-                        f"{item.get('kind', '자료')}"
+                        f"{world_state.world_label(item.get('source_world', 'Learning'))} "
+                        f"· {world_state.resource_kind_label(item.get('kind', '자료'))}"
                     )
                     st.write(
                         item.get("content")
@@ -1938,10 +2025,10 @@ def render_library_world() -> None:
     if not resources:
         st.info("완료한 학습의 자료가 여기에 자동으로 보관됩니다.")
     for resource in reversed(resources[-10:]):
-        with st.expander(resource["title"]):
+        with st.expander(localize_system_text(resource["title"])):
             st.caption(
-                f"{resource.get('source_world', 'Learning')} · "
-                f"{resource.get('kind', '자료')}"
+                f"{world_state.world_label(resource.get('source_world', 'Learning'))} "
+                f"· {world_state.resource_kind_label(resource.get('kind', '자료'))}"
             )
             details = resource.get("details", {})
             if isinstance(details, dict) and details.get("tutorial"):
@@ -1961,48 +2048,172 @@ def render_library_world() -> None:
                 st.write(resource.get("direct_task", ""))
                 st.write(resource.get("practice", ""))
             else:
-                st.write(resource.get("content", ""))
+                content = resource.get("content", "")
+                if resource.get("source_world") in (
+                    "Recovery",
+                    "Challenge",
+                    "Planner",
+                ):
+                    content = localize_system_text(content)
+                st.write(content)
+
+
+def reset_transient_learning_state(*, next_view: str = "Management") -> None:
+    """Clear session-only views after durable records have been removed."""
+    reset_learning_state(clear_adaptation=True)
+    st.session_state.lesson_origin = "Learning"
+    st.session_state.learning_started_at = None
+    st.session_state.active_recovery_session_id = None
+    st.session_state.recovery_question_index = 0
+    st.session_state.recovery_feedback = None
+    st.session_state.pending_learning_topic = None
+    st.session_state.pending_challenge = None
+    st.session_state.active_challenge_source_recommendation_id = ""
+    st.session_state.pending_view = next_view
+
+
+def render_user_data_management() -> None:
+    st.subheader("사용자 데이터 관리")
+    st.caption(
+        "삭제한 기록은 복구할 수 없습니다. 필요한 경우 먼저 백업을 내려받으세요."
+    )
+    catalog = world_state.deletion_catalog(st.session_state.world_data)
+    labels = {item["token"]: item["label"] for item in catalog}
+    tokens = [item["token"] for item in catalog]
+
+    with st.expander("선택 삭제"):
+        selected_tokens = st.multiselect(
+            "삭제할 기록",
+            tokens,
+            format_func=lambda token: labels.get(token, "기록"),
+            key="data_delete_selected_records",
+            help="여러 기록을 선택할 수 있습니다. 연결된 자동 생성 자료도 함께 정리됩니다.",
+        )
+        selected_confirmed = st.checkbox(
+            "선택한 기록이 삭제되는 것에 동의합니다.",
+            key="data_delete_selected_confirm",
+        )
+        if st.button(
+            "선택한 기록 삭제",
+            disabled=not selected_tokens or not selected_confirmed,
+            key="data_delete_selected_button",
+        ):
+            deleted = world_state.delete_selected_records(
+                st.session_state.world_data,
+                selected_tokens,
+            )
+            save_world_data()
+            reset_transient_learning_state()
+            st.success(f"선택한 기록 {deleted}개를 삭제했습니다.")
+
+    with st.expander("종류별 기록 삭제"):
+        category = st.selectbox(
+            "삭제할 기록 종류",
+            tuple(world_state.RECORD_CATEGORY_LABELS),
+            format_func=lambda value: world_state.RECORD_CATEGORY_LABELS[value],
+            key="data_delete_category",
+        )
+        category_count = sum(
+            item["category"] == category for item in catalog
+        )
+        st.caption(f"현재 {category_count}개 기록이 있습니다.")
+        category_confirmed = st.checkbox(
+            "이 종류의 기록을 모두 삭제하는 것에 동의합니다.",
+            key="data_delete_category_confirm",
+        )
+        if st.button(
+            "이 종류의 기록 모두 삭제",
+            disabled=not category_count or not category_confirmed,
+            key="data_delete_category_button",
+        ):
+            deleted = world_state.clear_record_category(
+                st.session_state.world_data,
+                category,
+            )
+            save_world_data()
+            reset_transient_learning_state()
+            st.success(f"{world_state.RECORD_CATEGORY_LABELS[category]} {deleted}개를 삭제했습니다.")
+
+    with st.expander("전체 기록 삭제"):
+        st.write("학습 기록과 연결 자료를 모두 삭제합니다. 과목과 기본 설정은 유지됩니다.")
+        all_confirmation = st.text_input(
+            "확인을 위해 ‘전체 삭제’를 입력하세요.",
+            key="data_delete_all_confirmation",
+        )
+        if st.button(
+            "모든 학습 기록 삭제",
+            disabled=all_confirmation.strip() != "전체 삭제",
+            key="data_delete_all_button",
+        ):
+            deleted = world_state.clear_all_records(st.session_state.world_data)
+            save_world_data()
+            reset_transient_learning_state()
+            st.success(f"학습 기록 {deleted}개를 삭제했습니다. 과목과 기본 설정은 유지됩니다.")
+
+    with st.expander("앱 데이터 초기화"):
+        st.write(
+            "모든 기록, 과목, 기본 설정과 현재 인공지능 연결 키를 초기화합니다."
+        )
+        reset_confirmation = st.text_input(
+            "확인을 위해 ‘초기화’를 입력하세요.",
+            key="data_reset_confirmation",
+        )
+        if st.button(
+            "모든 사용자 데이터 초기화",
+            disabled=reset_confirmation.strip() != "초기화",
+            key="data_reset_button",
+        ):
+            deleted = world_state.reset_user_data(st.session_state.world_data)
+            delete_api_key()
+            save_world_data()
+            reset_transient_learning_state(next_view="My Learning")
+            st.success(f"사용자 데이터를 초기화했습니다. 정리된 기록: {deleted}개")
 
 
 def render_management_world() -> None:
-    st.header("Management")
-    st.subheader("Expansion Pack")
+    st.header("관리")
+    st.subheader("확장 기능")
     statuses = st.session_state.expansion_api.list()
     if not statuses:
-        st.info("설치된 Expansion Pack이 없습니다.")
+        st.info("설치된 확장 기능이 없습니다.")
     for status in statuses:
         st.write(
             f"- {status.name} {status.version} · "
             f"{'로드됨' if status.loaded else '설치됨'}"
         )
 
-    st.subheader("OpenAI API")
+    st.subheader("인공지능 연결")
+    st.write(
+        "본인의 오픈에이아이 계정에서 발급한 연결 키를 등록하면 "
+        "인공지능 학습 기능을 사용할 수 있습니다."
+    )
     registered_key = get_api_key()
     connection_status = st.session_state[BYOK_CONNECTION_STATE]
     notice = st.session_state.pop(BYOK_NOTICE_STATE, None)
     if notice == "registered":
-        st.success("OpenAI API Key가 현재 세션에 등록되었습니다.")
+        st.success("인공지능 연결 키가 현재 이용 중인 화면에 등록되었습니다.")
     elif notice == "deleted":
-        st.success("현재 세션의 OpenAI API Key를 삭제했습니다.")
+        st.success("현재 이용 중인 화면의 인공지능 연결 키를 삭제했습니다.")
     if not registered_key:
-        st.info("등록된 OpenAI API Key가 없습니다. AI 기능만 비활성화됩니다.")
+        st.info("등록된 연결 키가 없습니다. 인공지능 기능만 비활성화됩니다.")
     elif connection_status == "connected":
-        st.success("OpenAI API 연결이 확인되었습니다.")
+        st.success("인공지능 서비스 연결이 확인되었습니다.")
     elif connection_status == "failed":
-        st.warning("OpenAI API 연결을 확인할 수 없습니다.")
+        st.warning("인공지능 서비스 연결을 확인할 수 없습니다.")
     else:
-        st.info("OpenAI API Key가 현재 세션에 등록되어 있습니다.")
+        st.info("인공지능 연결 키가 등록되어 있습니다. 연결 확인을 실행해주세요.")
     st.caption(
-        "API Key는 현재 브라우저 세션의 서버 메모리에만 보관되며 "
-        "저장 파일, 백업, Repository, 로그에 포함되지 않습니다."
+        "연결 키는 현재 브라우저 이용 시간 동안 서버 메모리에만 보관되며 "
+        "저장 파일, 백업, 코드 저장소, 로그에 포함되지 않습니다."
     )
     with st.form("byok_api_key_form", clear_on_submit=True):
         api_key_input = st.text_input(
-            "OpenAI API Key",
+            "인공지능 연결 키",
             type="password",
+            help="앞뒤 공백 없이 발급받은 키 전체를 입력하세요.",
         )
         submitted = st.form_submit_button(
-            "API 변경" if registered_key else "API 등록"
+            "연결 키 변경" if registered_key else "연결 키 등록"
         )
     if submitted:
         try:
@@ -2014,20 +2225,25 @@ def render_management_world() -> None:
 
     api_columns = st.columns(2)
     if api_columns[0].button(
-        "연결 테스트",
+        "연결 확인",
         disabled=not bool(registered_key),
         use_container_width=True,
     ):
         try:
             test_openai_connection(registered_key or "")
             st.session_state[BYOK_CONNECTION_STATE] = "connected"
-            st.success("OpenAI API 연결이 정상입니다.")
+            st.success("인공지능 서비스 연결이 정상입니다.")
         except Exception as error:
             st.session_state[BYOK_CONNECTION_STATE] = "failed"
             st.error(user_facing_error_message(error))
-    if api_columns[1].button(
-        "API 삭제",
+    key_delete_confirmed = st.checkbox(
+        "연결 키 삭제에 동의합니다.",
+        key="byok_delete_confirm",
         disabled=not bool(registered_key),
+    )
+    if api_columns[1].button(
+        "연결 키 삭제",
+        disabled=not bool(registered_key) or not key_delete_confirmed,
         use_container_width=True,
     ):
         delete_api_key()
@@ -2083,6 +2299,7 @@ def render_management_world() -> None:
     default_difficulty = setting_columns[1].selectbox(
         "기본 난이도",
         DIFFICULTY_OPTIONS,
+        format_func=world_state.difficulty_label,
         index=DIFFICULTY_OPTIONS.index(settings["default_difficulty"]),
         key="management_default_difficulty",
     )
@@ -2100,13 +2317,13 @@ def render_management_world() -> None:
     st.download_button(
         "백업 다운로드",
         data=backup_text,
-        file_name="ule-backup.json",
-        mime="application/json",
+        file_name="통합학습엔진-백업.ule",
+        mime="application/octet-stream",
     )
     uploaded = st.file_uploader(
         "백업 파일 선택",
-        type=["json"],
         key="management_backup_file",
+        help="이 앱에서 내려받은 백업 파일을 선택하세요.",
     )
     if st.button("백업 복원"):
         if uploaded is None:
@@ -2121,23 +2338,32 @@ def render_management_world() -> None:
                 st.success("백업을 복원했습니다.")
                 st.rerun()
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
-                st.error(f"백업을 복원할 수 없습니다: {exc}")
+                LOGGER.warning(
+                    "backup_restore_failed error_type=%s",
+                    type(exc).__name__,
+                )
+                st.error(
+                    "백업 파일을 확인할 수 없습니다. "
+                    "이 앱에서 내려받은 파일인지 확인해주세요."
+                )
+
+    render_user_data_management()
 
 
 def render_analytics_world() -> None:
-    st.header("Analytics")
+    st.header("학습 분석")
     evidence = world_state.build_world_analytics(st.session_state.world_data)
     columns = st.columns(4)
     columns[0].metric(
-        "Learning",
+        "학습",
         evidence["learning_round_count"],
     )
     columns[1].metric(
-        "Recovery",
+        "회복 학습",
         evidence["recovery_session_count"],
     )
     columns[2].metric(
-        "Challenge",
+        "도전 학습",
         evidence["challenge_session_count"],
     )
     columns[3].metric("전체 정확도", f"{evidence['accuracy']:.1f}%")
@@ -2146,26 +2372,27 @@ def render_analytics_world() -> None:
         render_learning_analytics(lesson)
     elif not evidence["question_count"]:
         st.info("분석할 학습 기록이 없습니다.")
-    st.subheader("Challenge 분석")
+    st.subheader("도전 학습 분석")
     for mode, item in evidence["challenge_modes"].items():
         st.write(
-            f"- {mode}: {item['session_count']}회 · "
+            f"- {world_state.challenge_mode_label(mode)}: "
+            f"{item['session_count']}회 · "
             f"{item['question_count']}문항 · {item['accuracy']:.1f}%"
         )
-    st.subheader("World 연결 통계")
+    st.subheader("학습 영역 연결 통계")
     st.write(
-        f"AI {evidence['ai_count']}건 · "
-        f"Planner 목표 {evidence['planner_goal_count']}개 · "
-        f"Planner 일정 {evidence['planner_schedule_count']}개 · "
-        f"Library 자료 {evidence['library_resource_count']}개 · "
+        f"인공지능 {evidence['ai_count']}건 · "
+        f"학습 계획 목표 {evidence['planner_goal_count']}개 · "
+        f"학습 계획 일정 {evidence['planner_schedule_count']}개 · "
+        f"학습 자료실 자료 {evidence['library_resource_count']}개 · "
         f"노트 {evidence['library_note_count']}개"
     )
     report = world_state.build_report(st.session_state.world_data)
-    st.subheader("Report")
+    st.subheader("학습 보고서")
     st.download_button(
         "학습 리포트 다운로드",
         data=report,
-        file_name="ule-learning-report.md",
+        file_name="학습-보고서.md",
         mime="text/markdown",
     )
     with st.expander("리포트 미리보기"):
@@ -2173,7 +2400,7 @@ def render_analytics_world() -> None:
 
 
 def render_my_learning_world() -> None:
-    st.header("My Learning")
+    st.header("나의 학습")
     stats = world_state.learning_stats(st.session_state.world_data)
     challenge_count = stats.get(
         "challenge_count",
@@ -2198,26 +2425,30 @@ def render_my_learning_world() -> None:
     st.write(
         f"학습 주제 {stats['topic_count']}개 · "
         f"분석 문항 {stats['question_count']}개 · "
-        f"Recovery Session {stats['recovery_count']}회 · "
-        f"Challenge Session {challenge_count}회"
+        f"회복 학습 {stats['recovery_count']}회 · "
+        f"도전 학습 {challenge_count}회"
     )
     st.write(
-        f"AI {stats['ai_count']}건 · "
-        f"Planner 목표/일정 {stats['planner_goal_count']}/"
+        f"인공지능 {stats['ai_count']}건 · "
+        f"학습 계획 목표/일정 {stats['planner_goal_count']}/"
         f"{stats['planner_schedule_count']}개 · "
-        f"Library {stats['library_count']}개 · "
+        f"학습 자료실 {stats['library_count']}개 · "
         f"관리 과목 {stats['subject_count']}개"
     )
-    st.subheader("World별 기록")
+    st.subheader("학습 영역별 기록")
     for world in world_state.WORLD_NAMES:
-        st.write(f"- {world}: {stats['world_records'].get(world, 0)}")
+        st.write(
+            f"- {world_state.world_label(world)}: "
+            f"{stats['world_records'].get(world, 0)}"
+        )
     st.subheader("최근 활동")
     activity = st.session_state.world_data["activity"]
     if not activity:
         st.info("기록된 활동이 없습니다.")
     for item in reversed(activity[-10:]):
         st.write(
-            f"- {item.get('world', '-')} · {item.get('action', '-')}"
+            f"- {world_state.world_label(item.get('world', '-'))} · "
+            f"{localize_system_text(item.get('action', '-'))}"
             + (f" · {item['topic']}" if item.get("topic") else "")
         )
 
@@ -2225,7 +2456,7 @@ def render_my_learning_world() -> None:
 def main() -> None:
     configure_logging()
     st.set_page_config(
-        page_title=f"{APP_TITLE} v1.05",
+        page_title=f"{APP_TITLE} v1.06",
         page_icon="📘",
         layout="wide",
         initial_sidebar_state="collapsed",
@@ -2241,7 +2472,7 @@ def main() -> None:
     st.divider()
 
     if selected_view == "Learning":
-        st.header("Learning")
+        st.header("학습")
         render_learning_setup()
         if (
             isinstance(st.session_state.lesson, dict)

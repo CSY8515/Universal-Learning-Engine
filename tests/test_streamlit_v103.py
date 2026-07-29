@@ -37,7 +37,7 @@ class StreamlitV103Tests(IsolatedWorldStateTestCase):
         return [
             item
             for item in self.app.radio
-            if item.label == "Primary navigation"
+            if item.label == "주요 메뉴"
         ][0]
 
     def test_recovery_recommendation_opens_challenge_with_context(self):
@@ -58,7 +58,7 @@ class StreamlitV103Tests(IsolatedWorldStateTestCase):
         connect = [
             item
             for item in self.app.button
-            if item.label == "Challenge로 연결"
+            if item.label == "도전 학습으로 연결"
         ][0]
         connect.click().run()
 
@@ -66,7 +66,7 @@ class StreamlitV103Tests(IsolatedWorldStateTestCase):
         mode = [
             item
             for item in self.app.radio
-            if item.label == "Challenge 유형"
+            if item.label == "도전 유형"
         ][0]
         topic = [
             item
@@ -91,7 +91,7 @@ class StreamlitV103Tests(IsolatedWorldStateTestCase):
         connect = [
             item
             for item in self.app.button
-            if item.label == "Planner 목표·일정으로 연결"
+            if item.label == "학습 계획 목표·일정으로 연결"
         ][0]
         connect.click().run()
 
@@ -137,8 +137,8 @@ class StreamlitV103Tests(IsolatedWorldStateTestCase):
             )
         )
         markdown = "\n".join(item.value for item in self.app.markdown)
-        self.assertIn("## My Learning", markdown)
-        self.assertIn("## Analytics", markdown)
+        self.assertIn("## 나의 학습", markdown)
+        self.assertIn("## 학습 분석", markdown)
 
 
 if __name__ == "__main__":
