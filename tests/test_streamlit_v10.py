@@ -31,13 +31,23 @@ class StreamlitV10Tests(unittest.TestCase):
     def navigation(self):
         return [item for item in self.app.radio if item.label == "Primary navigation"][0]
 
-    def test_dashboard_is_the_home_screen(self):
+    def test_my_learning_is_the_home_screen(self):
         headers = [item.value for item in self.app.header]
-        self.assertIn("Dashboard", headers)
-        self.assertEqual(self.app.session_state["active_view"], "Dashboard")
+        self.assertIn("My Learning", headers)
+        self.assertEqual(self.app.session_state["active_view"], "My Learning")
         self.assertEqual(
             self.navigation().options,
-            ["Dashboard", "Learning", "Review"],
+            [
+                "Learning",
+                "Recovery",
+                "Challenge",
+                "Analytics",
+                "AI",
+                "Planner",
+                "Library",
+                "Management",
+                "My Learning",
+            ],
         )
 
     def test_injected_active_lesson_preserves_v09_learning_flow(self):
@@ -47,45 +57,44 @@ class StreamlitV10Tests(unittest.TestCase):
         answer_controls = [item for item in self.app.radio if item.label == "답을 선택하세요."]
         self.assertEqual(len(answer_controls), 1)
 
-    def test_explicit_dashboard_navigation_does_not_clear_lesson(self):
+    def test_explicit_my_learning_navigation_does_not_clear_lesson(self):
         self.app.session_state["lesson"] = make_lesson()
         self.app.run()
-        self.navigation().set_value("Dashboard").run()
-        self.assertEqual(self.app.session_state["active_view"], "Dashboard")
+        self.navigation().set_value("My Learning").run()
+        self.assertEqual(self.app.session_state["active_view"], "My Learning")
         self.assertEqual(self.app.session_state["lesson"]["topic"], "Python")
         headers = [item.value for item in self.app.header]
-        self.assertIn("Dashboard", headers)
+        self.assertIn("My Learning", headers)
 
-    def test_dashboard_uses_completed_session_evidence(self):
+    def test_my_learning_uses_completed_world_evidence(self):
         self.app.session_state["lesson"] = make_lesson()
         self.app.session_state["answers"] = {0: 0}
         self.app.session_state["answer_confidence"] = {0: "high"}
         self.app.session_state["round_finished"] = True
         self.app.run()
-        self.navigation().set_value("Dashboard").run()
+        self.navigation().set_value("My Learning").run()
 
         metrics = {item.label: item.value for item in self.app.metric}
-        self.assertEqual(metrics["Accuracy"], "100%")
-        self.assertEqual(metrics["Learning Progress"], "1")
+        self.assertEqual(metrics["전체 정확도"], "100.0%")
+        self.assertEqual(metrics["완료 라운드"], "1")
         subheaders = [item.value for item in self.app.subheader]
-        self.assertIn("Recommended Next Step", subheaders)
-        self.assertIn("Recent Round", subheaders)
-        self.assertIn("Weakness Summary", subheaders)
-        self.assertIn("Recent Activity", subheaders)
+        self.assertIn("업적", subheaders)
+        self.assertIn("장기 통계", subheaders)
+        self.assertIn("최근 활동", subheaders)
 
-    def test_review_has_a_controlled_empty_state(self):
-        self.navigation().set_value("Review").run()
+    def test_recovery_has_a_controlled_empty_state(self):
+        self.navigation().set_value("Recovery").run()
         headers = [item.value for item in self.app.header]
-        subheaders = [item.value for item in self.app.subheader]
-        self.assertIn("Review", headers)
-        self.assertIn("Nothing to review yet", subheaders)
+        self.assertIn("Recovery", headers)
+        info = [item.value for item in self.app.info]
+        self.assertTrue(any("복습할 오답이 없습니다" in item for item in info))
         self.assertFalse(self.app.exception)
 
     def test_invalid_pending_navigation_metadata_is_repaired(self):
         self.app.session_state["pending_view"] = "bad"
         self.app.session_state["navigation_explicit"] = "bad"
         self.app.run()
-        self.assertEqual(self.app.session_state["active_view"], "Dashboard")
+        self.assertEqual(self.app.session_state["active_view"], "My Learning")
         self.assertIsNone(self.app.session_state["pending_view"])
         self.assertFalse(self.app.session_state["navigation_explicit"])
 

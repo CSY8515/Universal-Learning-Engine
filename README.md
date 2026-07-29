@@ -1,6 +1,6 @@
-# Universal Learning Engine v1.0 Stable
+# Universal Learning Engine v1.02 World Integration
 
-![Version](https://img.shields.io/badge/version-v1.0.0-35C8DD)
+![Version](https://img.shields.io/badge/version-v1.02-35C8DD)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,12 +9,21 @@ Universal Learning Engine is a production-ready Streamlit learning application t
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository contains the approved **v1.0 Stable** implementation on the preserved v0.9 runtime. Publication operations remain separately controlled.
+The repository contains the **v1.02 World Integration** implementation on the preserved v1.0 learning and Expansion runtime. Publication operations remain separately controlled.
 
 ## Current features
 
 - Official ULE Signal Grid dark interface
-- Dashboard Home, Learning, and Review navigation
+- Nine-World functional navigation with My Learning as the session home
+- Independent Learning, Recovery, Challenge, Analytics, AI, Planner, Library,
+  Management, and My Learning functional Worlds
+- Completed-round flow into recovery queues, learning resources, subjects,
+  study time, achievements, long-term statistics, and reports
+- Executable Recovery Sessions with answer feedback and recovery history
+- Independent Exam, Hard, Nightmare, and mock-exam Challenge entry
+- AI question, recommendation, and summary actions using current learning context
+- Goals, dated schedules, Today Learning actions, notes, search, settings,
+  subject management, backup, and restore
 - Session Dashboard for current topic, recommendation, accuracy, recovery,
   recent results, weakness evidence, learning progress, and recent activity
 - Mobile-first responsive presentation, visible focus, and reduced-motion support
@@ -71,7 +80,7 @@ Hard questions emphasize application, comparison, cases, and plausible distracto
 
 The repository is the single source of truth. Use these documents in this order:
 
-1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.0
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.02
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
@@ -81,11 +90,12 @@ The repository is the single source of truth. Use these documents in this order:
 8. [ROADMAP_v0.8.md](./docs/ROADMAP_v0.8.md) — approved v0.8 Pack Runtime contract
 9. [ROADMAP_v0.9.md](./docs/ROADMAP_v0.9.md) — approved v0.9 final-stabilization contract
 10. [ROADMAP_v1.0.md](./docs/ROADMAP_v1.0.md) — approved v1.0 Stable contract
-11. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
-12. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
-13. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
-14. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-15. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
+11. [ROADMAP_v1.02.md](./docs/ROADMAP_v1.02.md) — v1.02 World Integration contract
+12. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
+13. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
+14. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
+15. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+16. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 ## Installation
 
@@ -129,18 +139,14 @@ The 101-test suite preserves all 90 v0.9 tests and adds 11 v1.0 Dashboard, UI co
 
 ## Explicit exclusions
 
-The following remain outside v1.0 Stable:
+The following remain outside v1.02:
 
 - Learning Decision Engine or Weakness Score
-- New Recovery Priority behavior or recovery content-generation engine
-- Learning history persistence or review scheduling
-- Database, background scheduler, or notifications
+- Background scheduler or notifications
 - Autonomous learning actions
 - Concrete Living OS functionality
-- Persistent or cross-session Dashboard history
 - Remote pack acquisition, durable pack persistence, dependency resolution, or automatic updates
 - Network, IPC, shared files, synchronization, command execution, background pack work, or cross-pack messaging
-- Unapproved post-v1.0 capability
 - Login, PDF, OCR, voice, or image features
 
 See [ROADMAP.md](./docs/ROADMAP.md) for approved placement. Roadmap entries are documentation, not implemented functionality.

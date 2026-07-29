@@ -30,6 +30,10 @@ class StreamlitV04Tests(unittest.TestCase):
 
     def test_v03_landing_controls_remain_available(self):
         self.assertEqual(self.app.title[0].value, "Universal Learning Engine")
+        navigation = [
+            item for item in self.app.radio if item.label == "Primary navigation"
+        ][0]
+        navigation.set_value("Learning").run()
         self.assertEqual(self.app.selectbox[0].options, ["5", "10", "15", "20"])
         self.assertEqual(
             self.app.selectbox[1].options, ["Easy", "Normal", "Hard", "Nightmare"]

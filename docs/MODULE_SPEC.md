@@ -388,3 +388,25 @@ preservation, evidence rendering, Review empty state, and metadata repair.
 `tests/test_v10_ui_contract.py` covers official theme, static-style safety,
 responsive rules, focus, and reduced motion. `tests/test_v10_public_api.py`
 freezes the recommended Expansion facade operations and interface compatibility.
+
+## v1.02 World state module
+
+Module: `world_state.py`
+
+Responsibilities:
+
+- Normalize, load, atomically save, export, and restore versioned World state.
+- Convert completed Learning and Challenge rounds into shared evidence.
+- Produce and execute Recovery Sessions from retained wrong-answer evidence.
+- Connect completed learning to Library resources and managed subjects.
+- Store Planner goals and dated World schedules.
+- Store Library notes and perform bounded resource/note search.
+- Retain explicit AI question, recommendation, and summary history.
+- Derive study time, level, achievements, long-term statistics, and reports.
+- Keep persistence and internal identifiers out of learner-facing presentation.
+
+## v1.02 presentation integration
+
+`app.py` preserves the existing Streamlit primitives and static theme while
+exposing the nine functional Worlds. No CSS, World background, Hover, Animation,
+Glass, or visual redesign work is part of v1.02.

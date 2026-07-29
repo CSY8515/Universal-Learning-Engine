@@ -1,7 +1,17 @@
 """Small session-safe primary navigation for the Streamlit application."""
 
 
-NAVIGATION_OPTIONS = ("Dashboard", "Learning", "Review")
+NAVIGATION_OPTIONS = (
+    "Learning",
+    "Recovery",
+    "Challenge",
+    "Analytics",
+    "AI",
+    "Planner",
+    "Library",
+    "Management",
+    "My Learning",
+)
 
 
 def render_navigation(st_module, *, on_change=None) -> str:

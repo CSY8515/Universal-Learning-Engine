@@ -229,3 +229,25 @@ second copy of analytics evidence.
 The v1.0 boundary changes no lesson schema, scoring rule, adaptive threshold,
 analytics classification, Expansion state authority, Pack callback, public API,
 or interface version.
+
+## v1.02 World integration boundary
+
+```text
+Learning / Challenge
+  -> completed round
+       -> Recovery queue and Recovery Sessions
+       -> Analytics and Report
+       -> Library learning resource
+       -> Management subject list
+       -> My Learning time, level, achievements, and statistics
+
+AI <- current lesson and aggregate evidence
+Planner -> explicit World navigation
+Management -> Expansion status, settings, subjects, backup, and restore
+```
+
+`world_state.py` is the single authority for serializable cross-World evidence.
+It writes a normalized local state file atomically after explicit learner
+actions. Streamlit session state holds the active copy; backup export and restore
+use the same validated schema. No World starts another action automatically.
+Planner navigation and recommended actions remain learner controlled.

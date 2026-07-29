@@ -258,3 +258,30 @@ lifecycle-only v0.7 compatibility, synchronous Runtime behavior, and structured
 errors remain unchanged. v1.0 adds no persistence, autonomous learning, external
 transport, remote Packs, background work, concrete Living OS behavior, or new
 learning algorithm.
+
+## v1.02 World Integration design
+
+v1.02 preserves the validated lesson generation, CBT, adaptive, analytics, and
+Expansion contracts while connecting them through nine functional Worlds:
+Learning, Recovery, Challenge, Analytics, AI, Planner, Library, Management, and
+My Learning.
+
+A completed Learning or Challenge round becomes shared World evidence. The same
+record creates recovery items, a reusable Library resource, a managed subject,
+study-time evidence, My Learning progression, activity history, and report
+input. Recovery Sessions consume the generated recovery queue and mark only
+correctly recovered items complete.
+
+Challenge owns Exam, Hard, Nightmare, and mock-exam entry while continuing to
+use the validated lesson and CBT contract. AI owns explicit learner-triggered
+question, recommendation, and summary calls. Planner owns goals, dated
+schedules, and Today Learning navigation. Library owns generated resources,
+notes, and search. Management exposes existing Expansion status together with
+subjects, learning defaults, backup, and restore. My Learning derives study
+time, level, achievements, and aggregate statistics from shared evidence.
+
+World state is serialized locally and may be exported or restored by the
+learner. Internal identifiers and raw storage remain outside the learner-facing
+interface. No background action, notification, remote Pack acquisition, login,
+UI redesign, World background change, Hover, Animation, or Glass change is
+introduced.
