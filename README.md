@@ -1,6 +1,6 @@
-# Universal Learning Engine v1.04 AI Integration & BYOK
+# Universal Learning Engine v1.05 End-to-End Validation
 
-![Version](https://img.shields.io/badge/version-v1.04-35C8DD)
+![Version](https://img.shields.io/badge/version-v1.05-35C8DD)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,8 +9,9 @@ Universal Learning Engine is a production-ready Streamlit learning application t
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository contains the **v1.04 AI Integration & BYOK** implementation on
-the preserved v1.03 learning-flow and Expansion runtime.
+The repository contains the **v1.05 End-to-End Validation** release on the
+preserved v1.04 AI Integration & BYOK, v1.03 learning-flow, and Expansion
+runtime.
 
 ## Current features
 
@@ -85,6 +86,11 @@ the preserved v1.03 learning-flow and Expansion runtime.
 - Structured sanitized lifecycle/execution errors and cleanup-failure status
 - Session metadata repair and atomic completed-round analytics invalidation
 - Branch coverage reporting and automated headless Streamlit health verification
+- End-to-end verification of the nine-World learning path, supported data
+  lifecycle operations, BYOK/no-key isolation, user-visible safety boundaries,
+  and all connected reports
+- 136 passing automated compile, unit, integration, Streamlit, and regression
+  tests
 
 Hard questions emphasize application, comparison, cases, and plausible distractors while connecting at least two concepts. Nightmare questions require a concrete scenario, multi-step reasoning, competing trade-offs, plausible traps, at least three connected concepts, and explanations of both correct and incorrect choices.
 
@@ -92,7 +98,7 @@ Hard questions emphasize application, comparison, cases, and plausible distracto
 
 The repository is the single source of truth. Use these documents in this order:
 
-1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.04
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.05
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
@@ -105,11 +111,12 @@ The repository is the single source of truth. Use these documents in this order:
 11. [ROADMAP_v1.02.md](./docs/ROADMAP_v1.02.md) — v1.02 World Integration contract
 12. [ROADMAP_v1.03.md](./docs/ROADMAP_v1.03.md) — v1.03 Learning Flow Integration contract
 13. [ROADMAP_v1.04.md](./docs/ROADMAP_v1.04.md) — v1.04 AI Integration & BYOK contract
-14. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
-15. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
-16. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
-17. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-18. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
+14. [ROADMAP_v1.05.md](./docs/ROADMAP_v1.05.md) — v1.05 end-to-end validation contract
+15. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
+16. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
+17. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
+18. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+19. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 ## Installation
 
@@ -148,16 +155,18 @@ streamlit run app.py
 python -m unittest discover
 ```
 
-The regression suite covers the preserved learning and Expansion contracts,
-v1.02 World behavior, v1.03 cross-World data flow, v1.04 BYOK lifecycle and AI
-error isolation, isolated persistence, navigation context transfer, integrated
-reports, and headless Streamlit behavior.
+The 136-test regression suite covers the preserved learning and Expansion
+contracts, v1.02 World behavior, v1.03 cross-World data flow, v1.04 BYOK
+lifecycle and AI error isolation, v1.05 end-to-end World flow and supported
+data lifecycle operations, isolated persistence, navigation context transfer,
+integrated reports, user-visible safety boundaries, and headless Streamlit
+behavior.
 GitHub Actions runs complete compilation, branch coverage, regression checks,
 and a headless health check on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following remain outside v1.04:
+The following remain outside v1.05:
 
 - Learning Decision Engine or Weakness Score
 - Background scheduler or notifications
@@ -180,6 +189,8 @@ Universal-Learning-Engine/
 ├─ tests/test_streamlit_v103.py
 ├─ tests/test_byok_v104.py
 ├─ tests/test_streamlit_v104.py
+├─ tests/test_e2e_v105.py
+├─ tests/test_streamlit_e2e_v105.py
 ├─ tests/test_world_integration_v103.py
 ├─ tests/test_v10_ui_contract.py
 ├─ tests/test_v10_public_api.py
@@ -190,6 +201,7 @@ Universal-Learning-Engine/
 ├─ docs/ROADMAP_v1.02.md
 ├─ docs/ROADMAP_v1.03.md
 ├─ docs/ROADMAP_v1.04.md
+├─ docs/ROADMAP_v1.05.md
 ├─ docs/DEVELOPER_GUIDE.md
 ├─ docs/EXPANSION_API.md
 ├─ docs/RELEASE_REVIEW_v1.0.md
@@ -257,7 +269,8 @@ Universal-Learning-Engine/
 ## Known limitations
 
 - Generated content quality depends on model behavior and prompt interpretation.
-- Live API behavior and generated difficulty quality require manual verification.
+- Live BYOK connection and one AI response were manually verified for v1.05;
+  generated difficulty quality remains model-dependent.
 - API keys are session-only and must be registered again after the browser
   session ends.
 - Detailed adaptive evidence remains session-local, while normalized World

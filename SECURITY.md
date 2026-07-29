@@ -2,7 +2,7 @@
 
 ## Supported release line
 
-Security fixes are accepted for the current v1.04 release line. Historical
+Security fixes are accepted for the current v1.05 release line. Historical
 releases are maintained as compatibility records rather than active security
 release lines.
 

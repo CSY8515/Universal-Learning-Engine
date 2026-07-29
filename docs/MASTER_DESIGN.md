@@ -339,3 +339,25 @@ Learning; the resulting evidence continues into My Learning and Report.
 
 v1.04 changes no layout, background, Hover, Animation, Glass, World ordering,
 learning algorithm, Expansion boundary, or Living OS behavior.
+
+## v1.05 End-to-End Validation design
+
+v1.05 preserves the complete v1.04 runtime and UI. It adds verification evidence
+rather than learner functionality. The validated path starts in Learning and
+continues through Recovery, Challenge, Analytics, AI, Planner, Library,
+Management, My Learning, and Report using one normalized evidence set.
+
+The validation contract covers real World entry, connected learner actions,
+supported create/read/update/delete operations, backup and restore, API-key and
+no-key behavior, sanitized provider failures, and the absence of raw JSON,
+debug details, internal state, obsolete routes, test doubles, and unfinished
+labels from learner-facing World screens.
+
+Automated evidence consists of compilation plus 136 unit, integration,
+Streamlit, and regression tests. Localhost acceptance requires an HTTP 200
+health response and successful initial rendering. An actual user-supplied API
+key remains a manual release gate because no developer key may be stored or
+injected by the project.
+
+v1.05 changes no learning algorithm, data schema, visual layout, World
+background, Hover, Animation, Glass, Expansion boundary, or Living OS behavior.

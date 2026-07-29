@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v1.04 preserves the single-process Streamlit learning
+Universal Learning Engine v1.05 preserves the single-process Streamlit learning
 application and independent in-process Expansion Platform. `app.py` remains the
 composition, configuration, OpenAI, validation, session, and World presentation
 boundary. `world_state.py` owns normalized persistent cross-World evidence and
@@ -330,3 +330,20 @@ into Learning; all resulting records continue into My Learning and Report.
 
 v1.04 changes no theme, layout, World background, Hover, Animation, or Glass
 behavior.
+
+## v1.05 validation boundary
+
+v1.05 adds no runtime component and changes no production data flow. Two
+verification modules exercise the existing boundaries from the learner-facing
+Streamlit controls down to normalized World state and integrated reports.
+
+The pure-state end-to-end case carries one evidence set through Learning,
+Recovery, Challenge, Analytics, AI, Planner, Library, Management, My Learning,
+and Report. It also verifies the supported goal, schedule, note, subject,
+settings, backup, and restore lifecycle.
+
+The Streamlit end-to-end cases drive learner-visible buttons with an isolated
+OpenAI-compatible test client, verify the no-key and provider-failure paths,
+and inspect every World for prohibited internal output. Actual API-key
+acceptance remains an explicit user action through Management and is never
+automated from repository configuration.

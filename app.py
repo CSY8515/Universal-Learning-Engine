@@ -2225,7 +2225,7 @@ def render_my_learning_world() -> None:
 def main() -> None:
     configure_logging()
     st.set_page_config(
-        page_title=f"{APP_TITLE} v1.04",
+        page_title=f"{APP_TITLE} v1.05",
         page_icon="📘",
         layout="wide",
         initial_sidebar_state="collapsed",

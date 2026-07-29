@@ -2,7 +2,7 @@
 
 ## Scope
 
-This specification describes the implemented v1.04 application on the preserved
+This specification describes the implemented v1.05 application on the preserved
 v1.03 learning-flow and v0.9 Expansion runtime baselines. Learning-runtime and
 BYOK coordination remain in `app.py`; presentation responsibilities are
 separated into `ui/`; deterministic adaptive rules remain in `adaptive.py`,
@@ -508,3 +508,21 @@ The tests cover input normalization, registration/change/deletion, bounded
 Responses connection testing, safe failure messages, no-key AI isolation,
 explanation generation, Library integration, and the absence of key material
 from normalized World state.
+
+## v1.05 end-to-end verification modules
+
+Files: `tests/test_e2e_v105.py`, `tests/test_streamlit_e2e_v105.py`
+
+Responsibilities:
+
+- Carry normalized evidence through all nine Worlds and the integrated Report.
+- Verify supported create/read/update/delete, backup, and restore behavior.
+- Exercise learner-visible Learning, Challenge, AI, Planner, Library, and
+  Management controls through Streamlit's application test interface.
+- Verify registered-key behavior with an isolated OpenAI-compatible client.
+- Verify no-key operation and sanitized provider failures without disabling
+  non-AI Worlds.
+- Inspect all World screens for raw internal output or unfinished labels.
+
+These modules add no production API, storage field, UI control, or runtime
+dependency.

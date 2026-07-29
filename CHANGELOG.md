@@ -2,6 +2,32 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.05 - End-to-End Validation
+
+### Added
+
+- End-to-end validation of the Learning, Recovery, Challenge, Analytics, AI,
+  Planner, Library, Management, My Learning, and Report data path
+- Supported create, read, update, delete, backup, and restore verification
+- Streamlit button-flow coverage for Learning, Challenge, AI, Planner, Library,
+  and Management actions
+- User-visible safety checks across all nine Worlds
+
+### Verified
+
+- 136 automated compile, unit, integration, Streamlit, and regression tests
+- API-key-free operation keeps every non-AI World functional
+- API success and isolated provider-failure paths
+- User-confirmed live BYOK connection and AI response
+- Session-only key handling outside World state and backup data
+- Localhost health endpoint returns HTTP 200 and `ok`
+
+### Preserved
+
+- v1.04 BYOK and AI integration behavior
+- v1.03 World data flow and Expansion runtime
+- Existing UI, layout, backgrounds, Hover, Animation, and Glass behavior
+
 ## v1.04 - AI Integration & BYOK
 
 ### Added

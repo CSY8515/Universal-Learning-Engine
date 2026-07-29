@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v1.04; publishing
+- The implemented working-tree version is v1.05; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -166,6 +166,19 @@ The implemented contract is `ROADMAP_v1.04.md`. v1.04 preserves the existing UI
 and v1.03 World structure. It adds no shared developer key, durable key storage,
 background action, notification, autonomous learning, or concrete Living OS
 behavior.
+
+### v1.05 — End-to-End Validation
+
+- Complete nine-World and Report data-flow validation
+- Learner-visible button-flow verification
+- Supported create/read/update/delete, backup, and restore verification
+- BYOK and no-key path verification
+- Learner-visible internal-output and unfinished-label inspection
+- Full compile, regression, Streamlit, and localhost health verification
+
+The implemented contract is `ROADMAP_v1.05.md`. v1.05 adds verification evidence
+only and preserves the complete v1.04 runtime, UI, data schema, Expansion
+boundary, and Living OS boundary.
 
 ## v0.4 preparation gates — complete
 
