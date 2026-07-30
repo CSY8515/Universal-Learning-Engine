@@ -13,9 +13,11 @@ import analytics
 import world_state
 from expansion import ExpansionAPI
 from ui import (
+    HOME_VIEW,
     NAVIGATION_OPTIONS,
     apply_official_theme,
     render_navigation,
+    render_world_stage,
 )
 
 # Streamlit Cloud may hot-reload this entrypoint while retaining an older
@@ -28,7 +30,7 @@ if not all(
     world_state = importlib.reload(world_state)
 
 
-APP_TITLE = "통합 학습 엔진"
+APP_TITLE = "Universal Learning Engine"
 APP_DESCRIPTION = "학습할 주제를 입력하면 동일한 학습 엔진이 해당 주제에 맞게 동작합니다."
 DEFAULT_MODEL = "gpt-4.1-mini"
 API_TIMEOUT_SECONDS = 60.0
@@ -92,7 +94,6 @@ PATTERN_LABELS = {
 def localize_system_text(value: object) -> str:
     text = str(value)
     replacements = (
-        ("Universal Learning Engine", "통합 학습 엔진"),
         ("Recovery Recommendation", "회복 학습 추천"),
         ("Recovery Session", "회복 학습"),
         ("Challenge Session", "도전 학습"),
@@ -677,7 +678,7 @@ def init_state() -> None:
         "pending_recommended_difficulty": None,
         "analytics_cache": None,
         "analytics_revision": 0,
-        "active_view": "My Learning",
+        "active_view": HOME_VIEW,
         "pending_view": None,
         "pending_learning_topic": None,
         "pending_challenge": None,
@@ -735,7 +736,7 @@ def init_state() -> None:
     if type(st.session_state.analytics_revision) is not int or st.session_state.analytics_revision < 0:
         st.session_state.analytics_revision = 0
     if st.session_state.active_view not in NAVIGATION_OPTIONS:
-        st.session_state.active_view = "My Learning"
+        st.session_state.active_view = HOME_VIEW
     if st.session_state.pending_view not in (None, *NAVIGATION_OPTIONS):
         st.session_state.pending_view = None
     if not isinstance(st.session_state.pending_learning_topic, (str, type(None))):
@@ -2327,7 +2328,7 @@ def render_management_world() -> None:
     st.download_button(
         "백업 다운로드",
         data=backup_text,
-        file_name="통합학습엔진-백업.ule",
+        file_name="Universal-Learning-Engine-백업.ule",
         mime="application/octet-stream",
     )
     uploaded = st.file_uploader(
@@ -2466,8 +2467,8 @@ def render_my_learning_world() -> None:
 def main() -> None:
     configure_logging()
     st.set_page_config(
-        page_title=f"{APP_TITLE} v1.06",
-        page_icon="📘",
+        page_title=f"{APP_TITLE} v1.07",
+        page_icon="✦",
         layout="wide",
         initial_sidebar_state="collapsed",
     )
@@ -2476,36 +2477,37 @@ def main() -> None:
     apply_pending_view()
 
     apply_official_theme(st)
-    st.title(APP_TITLE)
-    st.write(APP_DESCRIPTION)
     selected_view = render_navigation(st)
-    st.divider()
+    if selected_view == HOME_VIEW:
+        return
 
-    if selected_view == "Learning":
-        st.header("학습")
-        render_learning_setup()
-        if (
-            isinstance(st.session_state.lesson, dict)
-            and st.session_state.lesson_origin == "Learning"
-        ):
-            st.divider()
-            render_lesson(st.session_state.lesson)
-    elif selected_view == "Recovery":
-        render_recovery_world()
-    elif selected_view == "Challenge":
-        render_challenge_world()
-    elif selected_view == "Analytics":
-        render_analytics_world()
-    elif selected_view == "AI":
-        render_ai_world()
-    elif selected_view == "Planner":
-        render_planner_world()
-    elif selected_view == "Library":
-        render_library_world()
-    elif selected_view == "Management":
-        render_management_world()
-    else:
-        render_my_learning_world()
+    slug = render_world_stage(st, selected_view)
+    with st.container(key=f"ule_world_content_{slug}"):
+        if selected_view == "Learning":
+            st.header("학습")
+            render_learning_setup()
+            if (
+                isinstance(st.session_state.lesson, dict)
+                and st.session_state.lesson_origin == "Learning"
+            ):
+                st.divider()
+                render_lesson(st.session_state.lesson)
+        elif selected_view == "Recovery":
+            render_recovery_world()
+        elif selected_view == "Challenge":
+            render_challenge_world()
+        elif selected_view == "Analytics":
+            render_analytics_world()
+        elif selected_view == "AI":
+            render_ai_world()
+        elif selected_view == "Planner":
+            render_planner_world()
+        elif selected_view == "Library":
+            render_library_world()
+        elif selected_view == "Management":
+            render_management_world()
+        else:
+            render_my_learning_world()
 
 
 if __name__ == "__main__":

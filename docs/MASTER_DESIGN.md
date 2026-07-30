@@ -387,3 +387,22 @@ Learner errors do not reveal raw backup data, parser details, provider payloads,
 storage identifiers, stack traces, or internal state. v1.06 changes no learning
 algorithm, visual layout, World background, Hover, Animation, Glass, state
 schema, Expansion boundary, or Living OS behavior.
+
+## v1.07 Official UI / UX design
+
+v1.07 replaces the presentation shell with the official Living OS Learning
+World. The session home is a central Universal Learning Engine biosphere with a
+small tree ornament and nine surrounding functional World domes. Every dome
+retains the existing World identifier and opens the existing functional
+renderer.
+
+Each interior World has one repository-owned cinematic background, a Korean
+World introduction, a translucent functional surface, focused Hover response,
+restrained entrance motion, and a persistent World navigation dock. Static
+presentation content is separated from learner content, API keys, and generated
+responses. Keyboard focus, responsive layout, and reduced-motion behavior are
+part of the official presentation contract.
+
+v1.07 changes no Learning Engine, World-state schema, database behavior, CRUD,
+API, BYOK, Analytics, Report, learner record, Expansion Platform, or learning
+flow.

@@ -2,6 +2,33 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.07 - Official UI / UX
+
+### Added
+
+- Official central Learning World with nine functional orbital World domes
+- Dedicated cinematic background art for the World map and each of the nine
+  functional Worlds
+- Living OS glass surfaces, focused Hover glow, restrained entrance animation,
+  World transition, and persistent World navigation dock
+- Keyboard focus treatment, reduced-motion behavior, and responsive World-map
+  presentation
+- v1.07 presentation and nine-World entry regression tests
+
+### Changed
+
+- The presentation home is now the official Learning World map; My Learning
+  remains an unchanged independent functional World
+- Existing Streamlit function screens are presented as immersive World
+  interiors without changing their actions or data flow
+
+### Preserved
+
+- Learning Engine, World-state schema, database behavior, CRUD, API, BYOK,
+  Analytics, Report, and complete learning flow
+- Existing user records and backward-compatible normalization
+- Expansion Platform and Living OS integration boundary
+
 ## v1.06 - Localization & User Experience
 
 ### Added

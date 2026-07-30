@@ -1,6 +1,6 @@
-# Universal Learning Engine v1.06 Localization & User Experience
+# Universal Learning Engine v1.07 Official UI / UX
 
-![Version](https://img.shields.io/badge/version-v1.06-35C8DD)
+![Version](https://img.shields.io/badge/version-v1.07-DDB55B)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,15 +9,19 @@ Universal Learning Engine is a production-ready Streamlit learning application t
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository contains the **v1.06 Localization & User Experience** release
-on the preserved v1.05 end-to-end, v1.04 AI Integration & BYOK, v1.03
-learning-flow, and Expansion runtime.
+The repository contains the **v1.07 Official UI / UX** implementation on the
+preserved v1.06.1 production runtime, v1.05 end-to-end, v1.04 AI Integration &
+BYOK, v1.03 learning-flow, and Expansion runtime.
 
 ## Current features
 
-- Official ULE Signal Grid dark interface
+- Living OS official orbital Learning World with a central engine and nine
+  functional glass-domed Worlds
+- Dedicated cinematic background, theme, Glass surface, entrance transition,
+  animation, and Hover response for every World
 - Korean learner-facing navigation, controls, guidance, reports, and errors
-- Nine-World functional navigation with My Learning as the session home
+- Nine-World functional navigation with the official World map as the session
+  home
 - Independent Learning, Recovery, Challenge, Analytics, AI, Planner, Library,
   Management, and My Learning functional Worlds
 - Completed Learning flow into Recovery recommendations and linked Challenge
@@ -101,7 +105,7 @@ Hard questions emphasize application, comparison, cases, and plausible distracto
 
 The repository is the single source of truth. Use these documents in this order:
 
-1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.06
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.07
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
@@ -116,11 +120,12 @@ The repository is the single source of truth. Use these documents in this order:
 13. [ROADMAP_v1.04.md](./docs/ROADMAP_v1.04.md) — v1.04 AI Integration & BYOK contract
 14. [ROADMAP_v1.05.md](./docs/ROADMAP_v1.05.md) — v1.05 end-to-end validation contract
 15. [ROADMAP_v1.06.md](./docs/ROADMAP_v1.06.md) — v1.06 localization and user-experience contract
-16. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
-17. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
-18. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
-19. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-20. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
+16. [ROADMAP_v1.07.md](./docs/ROADMAP_v1.07.md) — v1.07 official UI and UX contract
+17. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
+18. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
+19. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
+20. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+21. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 ## Installation
 
@@ -196,6 +201,7 @@ Universal-Learning-Engine/
 ├─ tests/test_e2e_v105.py
 ├─ tests/test_streamlit_e2e_v105.py
 ├─ tests/test_localization_v106.py
+├─ tests/test_official_ui_v107.py
 ├─ tests/test_world_integration_v103.py
 ├─ tests/test_v10_ui_contract.py
 ├─ tests/test_v10_public_api.py
@@ -208,6 +214,7 @@ Universal-Learning-Engine/
 ├─ docs/ROADMAP_v1.04.md
 ├─ docs/ROADMAP_v1.05.md
 ├─ docs/ROADMAP_v1.06.md
+├─ docs/ROADMAP_v1.07.md
 ├─ docs/DEVELOPER_GUIDE.md
 ├─ docs/EXPANSION_API.md
 ├─ docs/RELEASE_REVIEW_v1.0.md
@@ -260,6 +267,7 @@ Universal-Learning-Engine/
 
 ## Release information
 
+- [v1.07 release notes](./RELEASE_NOTES_v1.07.md)
 - [v1.06 release notes](./RELEASE_NOTES_v1.06.md)
 - [v1.0 Stable release notes](./RELEASE_NOTES_v1.0.md)
 - [v1.0 release review](./docs/RELEASE_REVIEW_v1.0.md)

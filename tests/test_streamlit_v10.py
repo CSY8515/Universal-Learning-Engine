@@ -33,13 +33,12 @@ class StreamlitV10Tests(IsolatedWorldStateTestCase):
     def navigation(self):
         return [item for item in self.app.radio if item.label == "주요 메뉴"][0]
 
-    def test_my_learning_is_the_home_screen(self):
-        headers = [item.value for item in self.app.header]
-        self.assertIn("나의 학습", headers)
-        self.assertEqual(self.app.session_state["active_view"], "My Learning")
+    def test_official_world_map_is_the_home_screen(self):
+        self.assertEqual(self.app.session_state["active_view"], "World Map")
         self.assertEqual(
             self.navigation().options,
             [
+                "학습 세계",
                 "학습",
                 "회복 학습",
                 "도전 학습",
@@ -99,7 +98,7 @@ class StreamlitV10Tests(IsolatedWorldStateTestCase):
         self.app.session_state["pending_learning_topic"] = 123
         self.app.session_state["pending_challenge"] = "bad"
         self.app.run()
-        self.assertEqual(self.app.session_state["active_view"], "My Learning")
+        self.assertEqual(self.app.session_state["active_view"], "World Map")
         self.assertIsNone(self.app.session_state["pending_view"])
         self.assertIsNone(self.app.session_state["pending_learning_topic"])
         self.assertIsNone(self.app.session_state["pending_challenge"])

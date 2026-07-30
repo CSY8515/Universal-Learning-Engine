@@ -31,7 +31,7 @@ class StreamlitV04Tests(IsolatedWorldStateTestCase):
         self.assertFalse(self.app.exception)
 
     def test_v03_landing_controls_remain_available(self):
-        self.assertEqual(self.app.title[0].value, "통합 학습 엔진")
+        self.assertEqual(self.app.session_state["active_view"], "World Map")
         navigation = [
             item for item in self.app.radio if item.label == "주요 메뉴"
         ][0]

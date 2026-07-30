@@ -11,8 +11,9 @@ class V10UIContractTests(unittest.TestCase):
         css = (ROOT / "assets" / "ule.css").read_text(encoding="utf-8")
         combined = (config + css).casefold()
         self.assertIn('base = "dark"', config)
-        self.assertIn("#06101a", combined)
-        self.assertIn("#35c8dd", combined)
+        self.assertIn("#02060b", combined)
+        self.assertIn("#e1bd6b", combined)
+        self.assertIn("#58a7ff", combined)
         self.assertNotIn("jarvis", combined)
         self.assertNotIn("iron man", combined)
 
@@ -24,7 +25,8 @@ class V10UIContractTests(unittest.TestCase):
 
     def test_responsive_and_reduced_motion_rules_exist(self):
         css = (ROOT / "assets" / "ule.css").read_text(encoding="utf-8")
-        self.assertIn("@media (max-width: 700px)", css)
+        self.assertIn("@media (max-width: 980px)", css)
+        self.assertIn("@media (max-width: 560px)", css)
         self.assertIn("prefers-reduced-motion", css)
         self.assertIn(":focus-visible", css)
 

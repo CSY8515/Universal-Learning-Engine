@@ -239,8 +239,12 @@ class StreamlitLocalizationV106Tests(IsolatedWorldStateTestCase):
             self.navigation().set_value(world).run()
             self.assertFalse(self.app.exception)
             self.assertIn(heading, [item.value for item in self.app.header])
+            visible_text = self.visible_text().replace(
+                "Universal Learning Engine",
+                "",
+            )
             self.assertIsNone(
-                forbidden.search(self.visible_text()),
+                forbidden.search(visible_text),
                 f"{world} 화면에 개발자용 또는 영문 문구가 노출되었습니다.",
             )
 

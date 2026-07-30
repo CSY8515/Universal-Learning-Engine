@@ -194,6 +194,20 @@ The implemented contract is `ROADMAP_v1.06.md`. v1.06 preserves the v1.05
 learning behavior, World data flow, UI structure, visuals, state schema,
 Expansion Platform, and Living OS boundary.
 
+### v1.07 — Official UI / UX
+
+- Central Learning World and nine functional orbital glass domes
+- Dedicated World backgrounds and themes in the Living OS visual language
+- World-map navigation, persistent interior navigation, Hover, animation,
+  transition, and Glass polish
+- Korean learner-facing functional surfaces with no developer-output exposure
+- Static, repository-owned presentation assets with responsive and
+  reduced-motion behavior
+
+The implemented contract is `ROADMAP_v1.07.md`. v1.07 changes the presentation
+layer only. The Learning Engine, World data, CRUD, API, BYOK, Analytics, Report,
+and learning-flow contracts remain those of v1.06.1.
+
 ## v0.4 preparation gates — complete
 
 Implementation may begin only after approval of:
