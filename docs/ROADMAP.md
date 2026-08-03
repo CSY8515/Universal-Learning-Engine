@@ -208,6 +208,23 @@ The implemented contract is `ROADMAP_v1.07.md`. v1.07 changes the presentation
 layer only. The Learning Engine, World data, CRUD, API, BYOK, Analytics, Report,
 and learning-flow contracts remain those of v1.06.1.
 
+### v1.08 — Architecture Audit & Implementation Recovery
+
+- Repository-based Database and Database Manager architecture audit
+- Closed operational classification Registry and versioned SQLite Data Plane
+- Append-only preservation of operational success, failure, recovery, rollback,
+  validation, execution, invalid-data, decision, and unresolved evidence
+- Database Manager validation, duplicate control, deterministic analysis,
+  recommendations, Rule Candidates, Standard Candidates, and reporting
+- OS Ecosystem Personal Secretary Core Capability report port and adapter
+- Unchanged Streamlit, UI, World state, learner data, Learning Engine, API,
+  BYOK, Analytics, Report, Expansion, and Living OS runtime
+
+The implemented contract is `ROADMAP_v1.08.md`. The recovered package remains
+independent and inert until explicitly instantiated by an authorized caller.
+It adds no automatic event capture, background work, autonomous rule activation,
+concrete Personal Secretary behavior, or learner-facing UI.
+
 ## v0.4 preparation gates — complete
 
 Implementation may begin only after approval of:

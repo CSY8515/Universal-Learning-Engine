@@ -26,16 +26,20 @@ variables, or Streamlit Secrets and defaults to `gpt-4.1-mini`. Never commit
 - `adaptive.py`: pure deterministic learning recommendations
 - `analytics.py`: pure deterministic session analytics
 - `expansion/`: independent Expansion Platform and synchronous Pack Runtime
+- `operational_database/`: independent operational Database, Manager,
+  Reporting, and Personal Secretary port
 - `tests/`: unit, integration, Streamlit, compatibility, and stability tests
 
 The UI package may read prepared dictionaries but must not redefine adaptive or
-analytics policy. Expansion code must remain independent of Streamlit and the
-learning engine.
+analytics policy. Expansion and operational database code must remain
+independent of Streamlit and the learning engine. Operational records are
+append-only; duplicate control may change analytical views but must not delete
+source evidence.
 
 ## Common commands
 
 ```bash
-python -m compileall -q app.py adaptive.py analytics.py expansion ui tests
+python -m compileall -q app.py adaptive.py analytics.py operational_database expansion ui tests
 python -m unittest discover -v
 python -m coverage run -m unittest discover -v
 python -m coverage report

@@ -1,6 +1,6 @@
-# Universal Learning Engine v1.07 Official UI / UX
+# Universal Learning Engine v1.08 Architecture Audit & Recovery
 
-![Version](https://img.shields.io/badge/version-v1.07-DDB55B)
+![Version](https://img.shields.io/badge/version-v1.08-DDB55B)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,9 +9,9 @@ Universal Learning Engine is a production-ready Streamlit learning application t
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository contains the **v1.07 Official UI / UX** implementation on the
-preserved v1.06.1 production runtime, v1.05 end-to-end, v1.04 AI Integration &
-BYOK, v1.03 learning-flow, and Expansion runtime.
+The repository contains the **v1.08 Architecture Audit & Implementation
+Recovery** on the preserved v1.07 Official UI / UX, v1.06.1 production runtime,
+v1.05 end-to-end flow, v1.04 AI Integration & BYOK, and Expansion runtime.
 
 ## Current features
 
@@ -96,7 +96,16 @@ BYOK, v1.03 learning-flow, and Expansion runtime.
 - End-to-end verification of the nine-World learning path, supported data
   lifecycle operations, BYOK/no-key isolation, user-visible safety boundaries,
   and all connected reports
-- 145 passing automated compile, unit, integration, Streamlit, and regression
+- Independent operational Database Interface, Contract, Registry, SQLite Data
+  Plane, and stable Database facade
+- Append-only preservation of Success, Failure, Error, Warning, Incident,
+  Recovery, Rollback, Validation Failure, Execution Failure, Invalid Data,
+  Rejected Decision, and Unresolved Issue
+- Database Manager validation, explicit classification, non-destructive
+  duplicate control, pattern and operational analysis, recommendations,
+  inactive Rule and Standard Candidates, and retained Operational Reports
+- OS Ecosystem Personal Secretary Core Capability report port and adapter
+- 159 passing automated compile, unit, integration, Streamlit, and regression
   tests
 
 Hard questions emphasize application, comparison, cases, and plausible distractors while connecting at least two concepts. Nightmare questions require a concrete scenario, multi-step reasoning, competing trade-offs, plausible traps, at least three connected concepts, and explanations of both correct and incorrect choices.
@@ -105,7 +114,7 @@ Hard questions emphasize application, comparison, cases, and plausible distracto
 
 The repository is the single source of truth. Use these documents in this order:
 
-1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.07
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.08
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
@@ -121,11 +130,13 @@ The repository is the single source of truth. Use these documents in this order:
 14. [ROADMAP_v1.05.md](./docs/ROADMAP_v1.05.md) — v1.05 end-to-end validation contract
 15. [ROADMAP_v1.06.md](./docs/ROADMAP_v1.06.md) — v1.06 localization and user-experience contract
 16. [ROADMAP_v1.07.md](./docs/ROADMAP_v1.07.md) — v1.07 official UI and UX contract
-17. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
-18. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
-19. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
-20. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-21. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
+17. [ROADMAP_v1.08.md](./docs/ROADMAP_v1.08.md) — v1.08 operational architecture contract
+18. [ARCHITECTURE_AUDIT_v1.08.md](./docs/ARCHITECTURE_AUDIT_v1.08.md) — audit and recovery evidence
+19. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
+20. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
+21. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
+22. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+23. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 ## Installation
 
@@ -164,23 +175,26 @@ streamlit run app.py
 python -m unittest discover
 ```
 
-The 145-test regression suite covers the preserved learning and Expansion
+The 159-test regression suite covers the preserved learning and Expansion
 contracts, v1.02 World behavior, v1.03 cross-World data flow, v1.04 BYOK
 lifecycle and AI error isolation, v1.05 end-to-end World flow and supported
 data lifecycle operations, v1.06 Korean presentation and confirmed record
 cleanup, isolated persistence, navigation context transfer, integrated reports,
-user-visible safety boundaries, and headless Streamlit behavior.
+user-visible safety boundaries, headless Streamlit behavior, and the v1.08
+operational Database, Manager, Reporting, and Personal Secretary boundaries.
 GitHub Actions runs complete compilation, branch coverage, regression checks,
 and a headless health check on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following remain outside v1.06:
+The following remain outside v1.08:
 
 - Learning Decision Engine or Weakness Score
 - Background scheduler or notifications
 - Autonomous learning actions
 - Concrete Living OS functionality
+- Concrete Personal Secretary behavior or transport
+- Autonomous activation of Rule or Standard Candidates
 - Remote pack acquisition, durable pack persistence, dependency resolution, or automatic updates
 - Network, IPC, shared files, synchronization, command execution, background pack work, or cross-pack messaging
 - Login, PDF, OCR, voice, or image features
@@ -194,6 +208,7 @@ Universal-Learning-Engine/
 ├─ assets/                    # Official static ULE stylesheet
 ├─ ui/                        # Navigation and trusted static theme
 ├─ expansion/                 # Stable Expansion Platform and Pack Runtime
+├─ operational_database/      # v1.08 operational Database and Manager
 ├─ tests/test_streamlit_v10.py
 ├─ tests/test_streamlit_v103.py
 ├─ tests/test_byok_v104.py
@@ -202,6 +217,7 @@ Universal-Learning-Engine/
 ├─ tests/test_streamlit_e2e_v105.py
 ├─ tests/test_localization_v106.py
 ├─ tests/test_official_ui_v107.py
+├─ tests/test_operational_database_v108.py
 ├─ tests/test_world_integration_v103.py
 ├─ tests/test_v10_ui_contract.py
 ├─ tests/test_v10_public_api.py
@@ -215,6 +231,8 @@ Universal-Learning-Engine/
 ├─ docs/ROADMAP_v1.05.md
 ├─ docs/ROADMAP_v1.06.md
 ├─ docs/ROADMAP_v1.07.md
+├─ docs/ROADMAP_v1.08.md
+├─ docs/ARCHITECTURE_AUDIT_v1.08.md
 ├─ docs/DEVELOPER_GUIDE.md
 ├─ docs/EXPANSION_API.md
 ├─ docs/RELEASE_REVIEW_v1.0.md

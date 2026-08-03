@@ -2,14 +2,16 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.06 behavior. It does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.08 behavior. It does not authorize future functionality.
 
-- Implemented working-tree design: **v1.06 Localization & User Experience**
-- Release version file: **v1.06**
+- Implemented working-tree design: **v1.08 Architecture Audit & Implementation Recovery**
+- Release version file: **v1.08**
 
-Runtime entry point: `app.py`  
-Interface: Streamlit  
-Persistence: Streamlit session state only
+Runtime entry point: `app.py`
+Interface: Streamlit
+Learner-state persistence: Streamlit session state and normalized World JSON
+Operational-data persistence: versioned SQLite Data Plane, instantiated only by
+the independent `operational_database` subsystem
 
 ## Design principles
 
@@ -406,3 +408,35 @@ part of the official presentation contract.
 v1.07 changes no Learning Engine, World-state schema, database behavior, CRUD,
 API, BYOK, Analytics, Report, learner record, Expansion Platform, or learning
 flow.
+
+## v1.08 Architecture Audit & Implementation Recovery design
+
+The v1.08 repository audit found no Database Subsystem, Database Manager,
+operational reporting boundary, or Personal Secretary Core Capability adapter.
+The existing `world_state.py` JSON store remains the sole learner-state
+authority and is not replaced or migrated.
+
+v1.08 adds an independent, additive `operational_database` package. Its public
+contract uses a closed Registry for Success, Failure, Error, Warning, Incident,
+Recovery, Rollback, Validation Failure, Execution Failure, Invalid Data,
+Rejected Decision, and Unresolved Issue. A versioned SQLite Data Plane appends
+immutable records and generated report snapshots. There is deliberately no
+public record-deletion operation. Duplicate observations are retained and
+linked to a canonical record; canonical analysis excludes duplicates without
+destroying evidence.
+
+Database Manager owns input validation, explicit Registry classification,
+non-destructive duplicate control, deterministic pattern and operational
+analysis, advisory recommendations, inactive Rule Candidates, inactive
+Standard Candidates, and Operational Report generation. Reports contain only
+aggregated summaries and unresolved record identifiers, not raw payloads.
+
+The OS Ecosystem Personal Secretary integration is an explicit port and adapter.
+It forwards a versioned Operational Report envelope only after a concrete Core
+Capability is connected. No network, discovery, scheduler, background process,
+autonomous rule activation, or concrete Personal Secretary implementation is
+introduced.
+
+`app.py`, learner state, UI, Learning Engine, CRUD, BYOK, Analytics, Report,
+Expansion, and every released runtime path remain unchanged. The new subsystem
+is inert until an authorized caller explicitly instantiates it.

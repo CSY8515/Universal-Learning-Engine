@@ -571,3 +571,79 @@ Responsibilities:
 - Verify full reset restores defaults.
 - Verify BYOK and record deletion controls remain disabled before explicit
   confirmation.
+
+## v1.08 operational database contracts
+
+Package: `operational_database`
+
+### Contracts and errors
+
+Files: `operational_database/contracts.py`,
+`operational_database/errors.py`
+
+Responsibilities:
+
+- Freeze interface version `1.0` and schema version `1`.
+- Define the twelve closed operational record categories.
+- Define immutable input, retained-record, query, Registry-definition, and
+  report-sink values.
+- Define the abstract `OperationalDataPlane` without a deletion operation.
+- Expose sanitized stable errors without storage or payload details.
+
+### Registry and Data Plane
+
+Files: `operational_database/registry.py`,
+`operational_database/data_plane.py`,
+`operational_database/database.py`
+
+Responsibilities:
+
+- Resolve only explicit registered classifications and reject ambiguity.
+- Persist Registry definitions, schema metadata, records, and report snapshots.
+- Append records atomically through parameterized SQLite statements.
+- Preserve duplicate observations with canonical linkage.
+- Expose deterministic bounded query and count operations.
+- Add no record delete, reset, truncate, migration of World data, UI, or
+  background behavior.
+
+### Database Manager and reporting
+
+Files: `operational_database/manager.py`,
+`operational_database/reporting.py`
+
+Responsibilities:
+
+- Validate required text, timestamps, status, severity, and JSON-compatible
+  payload structure before storage.
+- Redact values under known sensitive keys before persistence.
+- Classify through the Database Registry rather than inferred free text.
+- Exclude linked duplicates from analysis without deleting source evidence.
+- Generate deterministic patterns, operational aggregates, recommendations,
+  inactive Rule Candidates, inactive Standard Candidates, and an immutable
+  Operational Report.
+- Retain every report before optional upper-layer delivery.
+- Include no raw operational payload or message in the report contract.
+
+### Personal Secretary integration
+
+File: `operational_database/personal_secretary.py`
+
+Responsibilities:
+
+- Define `PersonalSecretaryCoreCapability` as the OS Ecosystem receiving port.
+- Require explicit connect and disconnect lifecycle.
+- Deliver only versioned Operational Report envelopes under the stable
+  Universal Learning Engine capability id.
+- Add no network, authentication, discovery, scheduling, or concrete Personal
+  Secretary behavior.
+
+### v1.08 verification
+
+File: `tests/test_operational_database_v108.py`
+
+The tests cover the closed classification Registry, Manager capability
+Registry, all twelve retained data categories, validation and secret redaction,
+non-destructive duplicate control, pattern and operational analysis,
+recommendations, Rule and Standard Candidates, retained report snapshots,
+Personal Secretary delivery, the no-deletion contract, and unchanged
+`app.py` runtime isolation.

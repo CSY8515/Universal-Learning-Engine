@@ -377,3 +377,78 @@ tokens against the live catalog before deleting selected records and dependent
 generated evidence. Category deletion delegates to the same path. All-record
 deletion preserves Management configuration; full reset restores defaults.
 Every destructive control is gated in the presentation layer.
+
+## v1.08 operational database boundary
+
+The architecture audit distinguishes learner state from operational evidence:
+
+```text
+app.py / world_state.py
+  -> existing learner runtime and World JSON (unchanged)
+
+authorized operational producer
+  -> DatabaseManager
+       -> data validation
+       -> explicit Registry classification
+       -> non-destructive duplicate control
+       -> OperationalDatabase
+            -> OperationalRecordRegistry
+            -> OperationalDataPlane contract
+                 -> SQLiteOperationalDataPlane
+                      -> record types
+                      -> append-only operational records
+                      -> retained report snapshots
+       -> pattern and operational analysis
+       -> advisory Recommendation
+       -> inactive Rule Candidate
+       -> inactive Standard Candidate
+       -> Operational Report
+            -> optional PersonalSecretaryIntegration
+                 -> PersonalSecretaryCoreCapability port
+```
+
+### Database structure and authority
+
+`OperationalRecordRegistry` is the only classification authority. It contains
+the twelve v1.08 operational categories and their default severities. The
+Data Plane persists a synchronized record-type table, schema metadata,
+operational records, and operational report snapshots. `OperationalDatabase`
+coordinates Registry and Data Plane access but performs no analysis.
+
+Operational records are immutable after append. Failure, Error, Incident,
+Validation Failure, Execution Failure, Invalid Data, Rejected Decision,
+Unresolved Issue, Recovery, and Rollback evidence has no delete, truncate, or
+reset contract. Exact duplicate observations remain stored with `duplicate_of`
+pointing to the first canonical record. This preserves evidence while allowing
+Database Manager to exclude duplicates from canonical counts.
+
+### Database Manager structure and authority
+
+`DatabaseManagerRegistry` declares the fixed v1.08 capabilities: validation,
+classification, duplicate control, pattern analysis, operational analysis,
+recommendation, rule candidate, standard candidate, and reporting. Database
+Manager validates untrusted mappings, redacts values carried under known secret
+keys, accepts only Registry categories, and appends through the Database facade.
+
+Analysis is deterministic and bounded. A Recovery or Rollback with the same
+correlation identifier resolves an earlier open operational record in report
+analysis without mutating the source record. Recommendations and candidates are
+advisory outputs only; candidates remain in `candidate` status and cannot
+activate a rule or standard.
+
+### Operational reporting and Personal Secretary boundary
+
+Operational Reports aggregate category, severity, status, source, duplicate,
+pattern, recommendation, candidate, and unresolved-identifier evidence. Raw
+messages, payloads, metadata, API keys, and provider objects are not included.
+Each generated report is retained by the Data Plane before optional delivery.
+
+`PersonalSecretaryCoreCapability` is the explicit OS Ecosystem port.
+`PersonalSecretaryIntegration` requires a connected implementation and sends a
+versioned report envelope under capability id
+`universal-learning-engine.operational-reporting`. The adapter adds no transport,
+authentication, scheduling, discovery, or Personal Secretary behavior.
+
+The package is not imported by `app.py`. Therefore v1.08 changes no Streamlit
+runtime, learner data flow, UI, World state, Learning Engine, Database CRUD,
+BYOK, Analytics, Report, Expansion, or Living OS presentation behavior.

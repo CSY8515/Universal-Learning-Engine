@@ -2,6 +2,34 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.08 - Architecture Audit & Implementation Recovery
+
+### Added
+
+- Independent operational Database Interface, Contract, Registry, SQLite Data
+  Plane, and stable facade
+- Append-only operational records covering all twelve required outcome and
+  failure categories
+- Database Manager validation, explicit classification, non-destructive
+  duplicate control, pattern and operational analysis, recommendations,
+  inactive Rule Candidates, inactive Standard Candidates, and retained reports
+- OS Ecosystem Personal Secretary Core Capability port and report adapter
+- Repository-based architecture audit and eight focused verification tests
+
+### Preserved
+
+- Failure, Error, Incident, Recovery, Rollback, validation, execution, invalid
+  data, rejected decision, and unresolved issue evidence has no deletion path
+- Existing Streamlit runtime, UI, World state, Learning Engine, CRUD, BYOK,
+  Analytics, Report, Expansion Platform, and Living OS presentation
+
+### Verified
+
+- Pre-recovery baseline: 151 tests PASS
+- Focused v1.08 operational architecture suite: 8 tests PASS
+- Full compile and 159-test regression suite PASS
+- Branch coverage report: 85%
+
 ## v1.07 - Official UI / UX
 
 ### Added
