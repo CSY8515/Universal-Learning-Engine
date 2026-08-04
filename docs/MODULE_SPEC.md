@@ -2,7 +2,7 @@
 
 ## Scope
 
-This specification describes the implemented v1.06 application on the preserved
+This specification describes the implemented v1.09 application on the preserved
 v1.03 learning-flow and v0.9 Expansion runtime baselines. Learning-runtime and
 BYOK coordination remain in `app.py`; presentation responsibilities are
 separated into `ui/`; deterministic adaptive rules remain in `adaptive.py`,
@@ -647,3 +647,32 @@ non-destructive duplicate control, pattern and operational analysis,
 recommendations, Rule and Standard Candidates, retained report snapshots,
 Personal Secretary delivery, the no-deletion contract, and unchanged
 `app.py` runtime isolation.
+
+## v1.09 UI Foundation contracts
+
+Files: `ui/contracts.py`, `ui/adapter.py`, `ui/registry.py`,
+`ui/interface.py`, `ui/theme.py`, `assets/ule.css`
+
+Responsibilities:
+
+- Define immutable Theme, Design Token, Component, and Module contracts under
+  UI Foundation interface version `1.0`.
+- Register the official theme and every implemented UI module and component
+  family by stable identity.
+- Validate a closed Ultra Brain presentation mapping, reject unknown or unsafe
+  values, and emit only known CSS custom properties.
+- Apply external token overrides after the repository-owned stylesheet while
+  preserving exact defaults when settings are omitted.
+- Keep theme selection and persistence in Ultra Brain; add no customization
+  screen or application state in ULE.
+- Keep learner data, Database, CRUD, API, BYOK, Learning Flow, Analytics,
+  Report, Expansion, and operational architecture outside the adapter.
+
+### v1.09 verification
+
+File: `tests/test_ui_foundation_v109.py`
+
+The tests cover interface conformance, official default preservation, all
+requested token groups, closed-field and CSS-safety validation, module and
+component registry completeness, background contracts, CSS consumption, and
+the static-theme-plus-validated-override loading order.

@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v1.06; publishing
+- The implemented working-tree version is v1.09; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -224,6 +224,23 @@ The implemented contract is `ROADMAP_v1.08.md`. The recovered package remains
 independent and inert until explicitly instantiated by an authorized caller.
 It adds no automatic event capture, background work, autonomous rule activation,
 concrete Personal Secretary behavior, or learner-facing UI.
+
+### v1.09 — UI Foundation Compatibility Hotfix
+
+- Versioned Theme Contract and immutable Design Tokens
+- Validated Theme Adapter, Theme Registry, Component Contract, UI Registry,
+  public UI Interface, and Compatibility Layer
+- Module compatibility for Dashboard, Learning, CBT, Recovery, Challenge,
+  Analytics, Reports, AI, Planner, Library, Management, and My Learning
+- Semantic theme application for palette, mode, fonts, icons, cards, buttons,
+  layouts, widgets, dashboard surfaces, animation, radii, shadows, and World
+  backgrounds
+- Exact preservation of the v1.07 official UI and all functional runtime paths
+
+The implemented contract is `ROADMAP_v1.09.md`. Ultra Brain owns customization
+and persistence. ULE only validates and applies a versioned presentation
+mapping; it adds no UI, runtime capability, data change, or undocumented host
+transport.
 
 ## v0.4 preparation gates — complete
 

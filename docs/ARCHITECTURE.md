@@ -2,12 +2,14 @@
 
 ## Current architecture
 
-Universal Learning Engine v1.06 preserves the single-process Streamlit learning
+Universal Learning Engine v1.09 preserves the single-process Streamlit learning
 application and independent in-process Expansion Platform. `app.py` remains the
 composition, configuration, OpenAI, validation, session, and World presentation
 boundary. `world_state.py` owns normalized persistent cross-World evidence and
-all deterministic World connections. `ui/` owns only the official theme and
-nine-World navigation. `adaptive.py` and `analytics.py` preserve their pure
+all deterministic World connections. `ui/` owns the official theme,
+nine-World navigation, and presentation-only Ultra Brain Theme Contract,
+Design Tokens, registries, validated adapter, and Compatibility Layer.
+`adaptive.py` and `analytics.py` preserve their pure
 deterministic contracts. The `expansion` package preserves the common
 interface, Registry, Loader, Manager, API, connection-only Living OS boundary,
 execution layer, and shared transition guard.
@@ -452,3 +454,24 @@ authentication, scheduling, discovery, or Personal Secretary behavior.
 The package is not imported by `app.py`. Therefore v1.08 changes no Streamlit
 runtime, learner data flow, UI, World state, Learning Engine, Database CRUD,
 BYOK, Analytics, Report, Expansion, or Living OS presentation behavior.
+
+## v1.09 UI compatibility boundary
+
+`ui/contracts.py` defines immutable, versioned theme, token, component, and
+module contracts. `ui/registry.py` owns exact-ID Theme and UI registries.
+`ui/adapter.py` validates the closed host mapping and converts it to the fixed
+CSS-variable vocabulary. `ui/interface.py` exposes the stable Ultra Brain host
+port and coordinates the registries and adapter.
+
+`ui/theme.py` continues to read the repository-owned stylesheet. Optional host
+settings are validated and appended as declaration-only CSS overrides. With no
+host settings, the official defaults are identical to v1.07. The adapter has
+no dependency on Streamlit state, learner records, databases, APIs, secrets, or
+business logic.
+
+The UI Registry maps Dashboard, Learning, CBT, Recovery, Challenge, Analytics,
+Reports, AI, Planner, Library, Management, and My Learning to shared background,
+layout, header, navigation, card, button, widget, dialog, icon, typography, and
+animation contracts. Ultra Brain owns customization and persistence; ULE owns
+only payload validation and application. No transport, discovery, sync, or
+second customization interface is implemented.

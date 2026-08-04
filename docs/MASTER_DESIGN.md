@@ -2,10 +2,10 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.08 behavior. It does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.09 behavior. It does not authorize future functionality.
 
-- Implemented working-tree design: **v1.08 Architecture Audit & Implementation Recovery**
-- Release version file: **v1.08**
+- Implemented working-tree design: **v1.09 UI Foundation Compatibility Hotfix**
+- Release version file: **v1.09**
 
 Runtime entry point: `app.py`
 Interface: Streamlit
@@ -29,6 +29,9 @@ the independent `operational_database` subsystem
 10. **Confirm destructive actions.** Selective deletion, category deletion,
     all-record deletion, full reset, and BYOK deletion require an explicit
     learner confirmation appropriate to their scope.
+11. **Keep host presentation separate.** Ultra Brain owns user customization;
+    ULE validates and applies versioned presentation tokens without introducing
+    a second customization screen or touching learner behavior.
 
 ## v0.2 feature freeze
 
@@ -440,3 +443,20 @@ introduced.
 `app.py`, learner state, UI, Learning Engine, CRUD, BYOK, Analytics, Report,
 Expansion, and every released runtime path remain unchanged. The new subsystem
 is inert until an authorized caller explicitly instantiates it.
+
+## v1.09 UI Foundation Compatibility design
+
+The v1.09 repository audit found an approved static visual implementation but
+no versioned Ultra Brain UI compatibility contract. v1.09 preserves the
+complete visual and functional baseline and adds presentation-only contracts,
+registries, a validated adapter, and a stable host interface under `ui/`.
+
+The default Design Tokens reproduce every approved official value. Ultra Brain
+may provide a closed version `1.0` mapping for palette, mode, fonts, icons,
+cards, buttons, layout, widgets, dashboard surfaces, motion, radii, shadows,
+and backgrounds. Unknown, incompatible, or unsafe values fail before rendering.
+ULE provides no internal customization screen and owns no theme persistence.
+
+All current modules resolve registered component and background contracts. The
+foundation changes no screen, route, user action, learner state, database,
+business logic, API, BYOK, Analytics, Report, runtime, or operational subsystem.

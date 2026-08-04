@@ -1,17 +1,108 @@
 :root {
-  --ule-night: #02060b;
-  --ule-navy: #06101c;
-  --ule-glass: rgba(5, 16, 27, 0.74);
-  --ule-glass-strong: rgba(4, 12, 21, 0.9);
-  --ule-line: rgba(133, 188, 255, 0.24);
-  --ule-line-gold: rgba(221, 181, 91, 0.42);
-  --ule-blue: #58a7ff;
-  --ule-cyan: #8ad8ff;
-  --ule-gold: #e1bd6b;
-  --ule-gold-soft: #a88442;
-  --ule-text: #f4f7fb;
-  --ule-muted: #a9b6c5;
-  --ule-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  --ule-color-background: #02060b;
+  --ule-color-background-alt: #06101c;
+  --ule-color-surface: rgba(5, 16, 27, 0.74);
+  --ule-color-surface-strong: rgba(4, 12, 21, 0.9);
+  --ule-color-text: #f4f7fb;
+  --ule-color-muted: #a9b6c5;
+  --ule-color-accent: #58a7ff;
+  --ule-color-accent-secondary: #8ad8ff;
+  --ule-color-border: rgba(133, 188, 255, 0.24);
+  --ule-color-border-accent: rgba(221, 181, 91, 0.42);
+  --ule-color-focus: rgba(110, 186, 255, 0.72);
+  --ule-color-gold: #e1bd6b;
+  --ule-color-gold-soft: #a88442;
+  --ule-color-success: #79d8b0;
+  --ule-color-warning: #e1bd6b;
+  --ule-color-error: #ff8f9b;
+  --ule-font-body: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --ule-font-display: "Batang", "Nanum Myeongjo", serif;
+  --ule-font-monospace: "Cascadia Code", Consolas, monospace;
+  --ule-font-base-size: 16px;
+  --ule-font-heading-weight: 700;
+  --ule-icon-color: #f4f7fb;
+  --ule-icon-accent: #bddcff;
+  --ule-icon-size: 1.08rem;
+  --ule-icon-family: "Segoe UI Symbol", sans-serif;
+  --ule-card-background: linear-gradient(135deg, rgba(13, 31, 46, 0.8), rgba(2, 9, 17, 0.72)), rgba(4, 13, 23, 0.72);
+  --ule-card-border: rgba(133, 188, 255, 0.24);
+  --ule-card-radius: 1.35rem;
+  --ule-card-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  --ule-card-hover-shadow: 0 18px 48px rgba(19, 101, 187, 0.24);
+  --ule-glass-blur: 22px;
+  --ule-dock-blur: 20px;
+  --ule-scene-border: rgba(129, 177, 236, 0.18);
+  --ule-scene-radius: 1.5rem;
+  --ule-home-dock-background: linear-gradient(180deg, rgba(7, 22, 43, 0.9), rgba(1, 7, 16, 0.94));
+  --ule-home-dock-border: rgba(112, 174, 246, 0.32);
+  --ule-home-dock-radius: 1.5rem;
+  --ule-world-dock-background: linear-gradient(180deg, rgba(10, 24, 40, 0.84), rgba(2, 9, 17, 0.9)), rgba(2, 9, 17, 0.84);
+  --ule-world-dock-border: rgba(135, 184, 236, 0.24);
+  --ule-world-dock-radius: 1.2rem;
+  --ule-world-dock-item-radius: 0.8rem;
+  --ule-button-background: linear-gradient(180deg, rgba(16, 43, 72, 0.88), rgba(4, 16, 30, 0.92));
+  --ule-button-primary-background: linear-gradient(180deg, rgba(34, 98, 170, 0.94), rgba(6, 34, 70, 0.96));
+  --ule-button-text: #edf5ff;
+  --ule-button-border: rgba(120, 181, 246, 0.32);
+  --ule-button-radius: 999px;
+  --ule-button-shadow: inset 0 0 18px rgba(68, 138, 231, 0.12);
+  --ule-button-hint-background: linear-gradient(180deg, rgba(8, 32, 61, 0.88), rgba(2, 10, 22, 0.88));
+  --ule-button-hint-border: rgba(103, 178, 255, 0.58);
+  --ule-button-hint-text: #f5f9ff;
+  --ule-button-orbit-background: rgba(2, 8, 15, 0.78);
+  --ule-button-orbit-border: rgba(215, 181, 98, 0.42);
+  --ule-button-orbit-text: rgba(244, 248, 255, 0.86);
+  --ule-layout-app-max-width: 1640px;
+  --ule-layout-scene-max-width: 1600px;
+  --ule-layout-content-padding: 1rem 1.25rem 7.5rem;
+  --ule-layout-home-dock-max-width: 50rem;
+  --ule-layout-world-dock-max-width: 1040px;
+  --ule-layout-gap: 1rem;
+  --ule-widget-background: rgba(3, 12, 21, 0.48);
+  --ule-widget-border: rgba(130, 178, 230, 0.18);
+  --ule-widget-radius: 1rem;
+  --ule-widget-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  --ule-input-background: rgba(1, 8, 15, 0.72);
+  --ule-input-border: rgba(136, 184, 237, 0.26);
+  --ule-dialog-background: rgba(3, 12, 21, 0.96);
+  --ule-dashboard-background: rgba(3, 12, 21, 0.72);
+  --ule-metric-background: radial-gradient(circle at 85% 15%, rgba(65, 139, 232, 0.16), transparent 40%), rgba(4, 15, 26, 0.68);
+  --ule-metric-border: rgba(135, 183, 233, 0.18);
+  --ule-tab-background: rgba(2, 9, 17, 0.46);
+  --ule-tab-border: rgba(131, 180, 232, 0.14);
+  --ule-animation-fast: 180ms;
+  --ule-animation-normal: 320ms;
+  --ule-animation-label: 260ms;
+  --ule-animation-slow: 900ms;
+  --ule-animation-world-reveal: 1.05s;
+  --ule-animation-panel: 650ms;
+  --ule-animation-content: 700ms;
+  --ule-animation-dock: 600ms;
+  --ule-animation-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ule-color-scheme: dark;
+  --ule-background-world-map: url("./app/static/worlds/world-map.png");
+  --ule-background-w01: url("./app/static/worlds/w01.png");
+  --ule-background-w02: url("./app/static/worlds/w02.png");
+  --ule-background-w03: url("./app/static/worlds/w03.png");
+  --ule-background-w04: url("./app/static/worlds/w04.png");
+  --ule-background-w05: url("./app/static/worlds/w05.png");
+  --ule-background-w06: url("./app/static/worlds/w06.png");
+  --ule-background-w07: url("./app/static/worlds/w07.png");
+  --ule-background-w08: url("./app/static/worlds/w08.png");
+  --ule-background-w09: url("./app/static/worlds/w09.png");
+  --ule-night: var(--ule-color-background);
+  --ule-navy: var(--ule-color-background-alt);
+  --ule-glass: var(--ule-color-surface);
+  --ule-glass-strong: var(--ule-color-surface-strong);
+  --ule-line: var(--ule-color-border);
+  --ule-line-gold: var(--ule-color-border-accent);
+  --ule-blue: var(--ule-color-accent);
+  --ule-cyan: var(--ule-color-accent-secondary);
+  --ule-gold: var(--ule-color-gold);
+  --ule-gold-soft: var(--ule-color-gold-soft);
+  --ule-text: var(--ule-color-text);
+  --ule-muted: var(--ule-color-muted);
+  --ule-shadow: var(--ule-card-shadow);
 }
 
 html {
@@ -20,10 +111,11 @@ html {
 
 body,
 .stApp {
+  color-scheme: var(--ule-color-scheme);
   color: var(--ule-text);
   background: var(--ule-night);
-  font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo",
-    "Malgun Gothic", sans-serif;
+  font-family: var(--ule-font-body);
+  font-size: var(--ule-font-base-size);
 }
 
 .stApp {
@@ -52,8 +144,8 @@ body,
 [data-testid="stAppViewContainer"] > .main .block-container,
 [data-testid="stMainBlockContainer"] {
   width: 100%;
-  max-width: 1640px;
-  padding: 1rem 1.25rem 7.5rem;
+  max-width: var(--ule-layout-app-max-width);
+  padding: var(--ule-layout-content-padding);
 }
 
 .ule-brand {
@@ -126,21 +218,21 @@ label,
 
 .st-key-ule_world_map_navigation {
   position: relative;
-  width: min(100%, 1600px, calc((100dvh - 3rem) * 1.7777778));
-  max-width: 1600px;
+  width: min(100%, var(--ule-layout-scene-max-width), calc((100dvh - 3rem) * 1.7777778));
+  max-width: var(--ule-layout-scene-max-width);
   min-height: 0;
   aspect-ratio: 16 / 9;
   margin: 0 auto;
   overflow: hidden;
-  border: 1px solid rgba(129, 177, 236, 0.18);
-  border-radius: 1.5rem;
+  border: 1px solid var(--ule-scene-border);
+  border-radius: var(--ule-scene-radius);
   background:
     linear-gradient(180deg, rgba(1, 5, 9, 0.08), rgba(1, 5, 9, 0.18)),
-    url("./app/static/worlds/world-map.png") center / cover no-repeat;
+    var(--ule-background-world-map) center / cover no-repeat;
   box-shadow:
     var(--ule-shadow),
     inset 0 0 100px rgba(0, 0, 0, 0.24);
-  animation: ule-scene-enter 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: ule-scene-enter var(--ule-animation-slow) var(--ule-animation-easing) both;
 }
 
 .st-key-ule_world_map_navigation::before {
@@ -182,7 +274,7 @@ label,
 
 .ule-map-copy h1 {
   margin: 0;
-  font-family: "Batang", "Nanum Myeongjo", serif;
+  font-family: var(--ule-font-display);
   font-size: clamp(1.15rem, 1.65vw, 1.9rem);
   font-weight: 600;
   letter-spacing: -0.015em;
@@ -198,13 +290,13 @@ label,
   justify-content: center;
   min-width: 10rem;
   padding: 0.65rem 1.3rem;
-  border: 1px solid rgba(103, 178, 255, 0.58);
-  border-radius: 999px;
-  color: #f5f9ff;
+  border: 1px solid var(--ule-button-hint-border);
+  border-radius: var(--ule-button-radius);
+  color: var(--ule-button-hint-text);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   transform: translateX(-50%);
-  background: linear-gradient(180deg, rgba(8, 32, 61, 0.88), rgba(2, 10, 22, 0.88));
+  background: var(--ule-button-hint-background);
   box-shadow:
     inset 0 0 18px rgba(50, 130, 255, 0.25),
     0 0 22px rgba(38, 123, 255, 0.24);
@@ -266,11 +358,11 @@ label,
   backdrop-filter: brightness(1) saturate(1);
   box-shadow: inset 0 0 12px rgba(78, 160, 255, 0.025);
   transition:
-    border-color 180ms ease-out,
-    background 180ms ease-out,
-    box-shadow 180ms ease-out,
-    -webkit-backdrop-filter 180ms ease-out,
-    backdrop-filter 180ms ease-out;
+    border-color var(--ule-animation-fast) ease-out,
+    background var(--ule-animation-fast) ease-out,
+    box-shadow var(--ule-animation-fast) ease-out,
+    -webkit-backdrop-filter var(--ule-animation-fast) ease-out,
+    backdrop-filter var(--ule-animation-fast) ease-out;
 }
 
 .st-key-ule_world_map_navigation [role="radiogroup"] > label:first-child {
@@ -288,7 +380,7 @@ label,
   opacity: 0;
   clip-path: ellipse(31% 30% at 50% 47%);
   background:
-    url("./app/static/worlds/world-map.png")
+    var(--ule-background-world-map)
     var(--ule-world-bg-x) var(--ule-world-bg-y) / 952.381% auto no-repeat;
   mix-blend-mode: screen;
   filter:
@@ -298,9 +390,9 @@ label,
   transform: scale(0.985);
   transform-origin: 50% 47%;
   transition:
-    opacity 180ms ease-out,
-    filter 180ms ease-out,
-    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    opacity var(--ule-animation-fast) ease-out,
+    filter var(--ule-animation-fast) ease-out,
+    transform var(--ule-animation-fast) var(--ule-animation-easing);
 }
 
 .st-key-ule_world_map_navigation [role="radiogroup"] > label > div:first-child > * {
@@ -313,24 +405,24 @@ label,
   min-width: 5.4rem;
   margin: 0;
   padding: 0.32rem 0.55rem;
-  border: 1px solid rgba(215, 181, 98, 0.42);
-  border-radius: 999px;
-  color: rgba(244, 248, 255, 0.86);
+  border: 1px solid var(--ule-button-orbit-border);
+  border-radius: var(--ule-button-radius);
+  color: var(--ule-button-orbit-text);
   font-size: clamp(0.65rem, 0.78vw, 0.84rem);
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
   white-space: nowrap;
-  background: rgba(2, 8, 15, 0.78);
+  background: var(--ule-button-orbit-background);
   box-shadow:
     inset 0 0 14px rgba(64, 133, 224, 0.12),
     0 4px 12px rgba(0, 0, 0, 0.5);
   transition:
-    border-color 260ms ease,
-    color 260ms ease,
-    background 260ms ease,
-    box-shadow 260ms ease,
-    transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    border-color var(--ule-animation-label) ease,
+    color var(--ule-animation-label) ease,
+    background var(--ule-animation-label) ease,
+    box-shadow var(--ule-animation-label) ease,
+    transform var(--ule-animation-normal) var(--ule-animation-easing);
 }
 
 .st-key-ule_world_map_navigation [role="radiogroup"] > label::before {
@@ -345,10 +437,10 @@ label,
   opacity: 0;
   transform: scale(0.9);
   transition:
-    opacity 180ms ease-out,
-    border-color 180ms ease-out,
-    box-shadow 180ms ease-out,
-    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    opacity var(--ule-animation-fast) ease-out,
+    border-color var(--ule-animation-fast) ease-out,
+    box-shadow var(--ule-animation-fast) ease-out,
+    transform var(--ule-animation-fast) var(--ule-animation-easing);
 }
 
 .st-key-ule_world_map_navigation [role="radiogroup"] > label::after {
@@ -364,7 +456,7 @@ label,
   opacity: 0;
   clip-path: ellipse(32% 28% at 50% 38%);
   background:
-    url("./app/static/worlds/world-map.png")
+    var(--ule-background-world-map)
     var(--ule-world-bg-x) var(--ule-world-crown-y) / 952.381% auto no-repeat;
   mix-blend-mode: screen;
   filter:
@@ -374,9 +466,9 @@ label,
   transform: scale(0.985);
   transform-origin: 50% 38%;
   transition:
-    opacity 180ms ease-out,
-    filter 180ms ease-out,
-    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    opacity var(--ule-animation-fast) ease-out,
+    filter var(--ule-animation-fast) ease-out,
+    transform var(--ule-animation-fast) var(--ule-animation-easing);
 }
 
 .st-key-ule_world_map_navigation [role="radiogroup"] > label:nth-child(2) {
@@ -517,18 +609,17 @@ label,
 .st-key-ule_home_dock {
   position: relative;
   z-index: 100;
-  width: min(50rem, calc(100% - 2rem));
+  width: min(var(--ule-layout-home-dock-max-width), calc(100% - 2rem));
   margin: 0.75rem auto 1rem;
   padding: 0.38rem 0.65rem;
-  border: 1px solid rgba(112, 174, 246, 0.32);
-  border-radius: 1.5rem;
-  background:
-    linear-gradient(180deg, rgba(7, 22, 43, 0.9), rgba(1, 7, 16, 0.94));
+  border: 1px solid var(--ule-home-dock-border);
+  border-radius: var(--ule-home-dock-radius);
+  background: var(--ule-home-dock-background);
   box-shadow:
     0 18px 48px rgba(0, 0, 0, 0.58),
     inset 0 0 24px rgba(50, 126, 230, 0.14);
-  backdrop-filter: blur(20px) saturate(130%);
-  animation: ule-home-dock-enter 600ms 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  backdrop-filter: blur(var(--ule-dock-blur)) saturate(130%);
+  animation: ule-home-dock-enter var(--ule-animation-dock) 220ms var(--ule-animation-easing) both;
 }
 
 .st-key-ule_home_dock [data-testid="stWidgetLabel"] {
@@ -549,13 +640,13 @@ label,
   gap: 0.12rem;
   padding: 0.35rem 0.45rem 0.42rem;
   border: 1px solid transparent;
-  border-radius: 1rem;
+  border-radius: var(--ule-widget-radius);
   cursor: pointer;
   transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    background 180ms ease,
-    box-shadow 180ms ease;
+    transform var(--ule-animation-fast) ease,
+    border-color var(--ule-animation-fast) ease,
+    background var(--ule-animation-fast) ease,
+    box-shadow var(--ule-animation-fast) ease;
 }
 
 .st-key-ule_home_dock [role="radiogroup"] > label > div:first-child {
@@ -568,9 +659,9 @@ label,
 }
 
 .st-key-ule_home_dock [role="radiogroup"] > label::before {
-  color: #bddcff;
-  font-family: "Segoe UI Symbol", sans-serif;
-  font-size: 1.08rem;
+  color: var(--ule-icon-accent);
+  font-family: var(--ule-icon-family);
+  font-size: var(--ule-icon-size);
   line-height: 1;
   text-shadow:
     0 0 8px rgba(110, 183, 255, 0.88),
@@ -624,7 +715,7 @@ label,
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  animation: ule-world-reveal 1.05s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: ule-world-reveal var(--ule-animation-world-reveal) var(--ule-animation-easing) both;
 }
 
 .ule-world-backdrop::after {
@@ -637,15 +728,15 @@ label,
   box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.36);
 }
 
-.ule-world-backdrop--w01 { background-image: url("./app/static/worlds/w01.png"); }
-.ule-world-backdrop--w02 { background-image: url("./app/static/worlds/w02.png"); }
-.ule-world-backdrop--w03 { background-image: url("./app/static/worlds/w03.png"); }
-.ule-world-backdrop--w04 { background-image: url("./app/static/worlds/w04.png"); }
-.ule-world-backdrop--w05 { background-image: url("./app/static/worlds/w05.png"); }
-.ule-world-backdrop--w06 { background-image: url("./app/static/worlds/w06.png"); }
-.ule-world-backdrop--w07 { background-image: url("./app/static/worlds/w07.png"); }
-.ule-world-backdrop--w08 { background-image: url("./app/static/worlds/w08.png"); }
-.ule-world-backdrop--w09 { background-image: url("./app/static/worlds/w09.png"); }
+.ule-world-backdrop--w01 { background-image: var(--ule-background-w01); }
+.ule-world-backdrop--w02 { background-image: var(--ule-background-w02); }
+.ule-world-backdrop--w03 { background-image: var(--ule-background-w03); }
+.ule-world-backdrop--w04 { background-image: var(--ule-background-w04); }
+.ule-world-backdrop--w05 { background-image: var(--ule-background-w05); }
+.ule-world-backdrop--w06 { background-image: var(--ule-background-w06); }
+.ule-world-backdrop--w07 { background-image: var(--ule-background-w07); }
+.ule-world-backdrop--w08 { background-image: var(--ule-background-w08); }
+.ule-world-backdrop--w09 { background-image: var(--ule-background-w09); }
 
 .ule-world-intro,
 [class*="st-key-ule_world_content_"],
@@ -659,12 +750,12 @@ label,
   margin: clamp(7.5rem, 15vh, 10rem) 0 0.8rem;
   padding-left: clamp(0.5rem, 2vw, 2rem);
   text-shadow: 0 4px 24px rgba(0, 0, 0, 0.88);
-  animation: ule-panel-enter 650ms 120ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: ule-panel-enter var(--ule-animation-panel) 120ms var(--ule-animation-easing) both;
 }
 
 .ule-world-intro h1 {
   margin: 0.5rem 0 0.35rem;
-  font-family: "Batang", "Nanum Myeongjo", serif;
+  font-family: var(--ule-font-display);
   font-size: clamp(2.15rem, 4.6vw, 4.7rem);
   font-weight: 500;
 }
@@ -689,41 +780,37 @@ label,
   width: min(790px, calc(100% - 1rem));
   margin: 1.4rem 0 4rem clamp(0rem, 1.5vw, 1.5rem);
   padding: clamp(1.1rem, 2.4vw, 2rem);
-  border: 1px solid var(--ule-line);
-  border-radius: 1.35rem;
-  background:
-    linear-gradient(135deg, rgba(13, 31, 46, 0.8), rgba(2, 9, 17, 0.72)),
-    rgba(4, 13, 23, 0.72);
+  border: 1px solid var(--ule-card-border);
+  border-radius: var(--ule-card-radius);
+  background: var(--ule-card-background);
   box-shadow:
     var(--ule-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     inset 0 0 44px rgba(49, 118, 201, 0.055);
-  backdrop-filter: blur(22px) saturate(118%);
-  animation: ule-panel-enter 700ms 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  backdrop-filter: blur(var(--ule-glass-blur)) saturate(118%);
+  animation: ule-panel-enter var(--ule-animation-content) 180ms var(--ule-animation-easing) both;
 }
 
 [class*="st-key-ule_world_content_"] h2 {
-  font-family: "Batang", "Nanum Myeongjo", serif;
+  font-family: var(--ule-font-display);
   font-weight: 500;
 }
 
 [class*="st-key-ule_world_content_"] [data-testid="stVerticalBlockBorderWrapper"],
 [class*="st-key-ule_world_content_"] [data-testid="stForm"],
 [class*="st-key-ule_world_content_"] [data-testid="stExpander"] {
-  border: 1px solid rgba(130, 178, 230, 0.18) !important;
-  border-radius: 1rem;
-  background: rgba(3, 12, 21, 0.48);
+  border: 1px solid var(--ule-widget-border) !important;
+  border-radius: var(--ule-widget-radius);
+  background: var(--ule-widget-background);
 }
 
 [data-testid="stMetric"] {
   min-height: 6.7rem;
   padding: 1rem;
-  border: 1px solid rgba(135, 183, 233, 0.18);
-  border-radius: 1rem;
-  background:
-    radial-gradient(circle at 85% 15%, rgba(65, 139, 232, 0.16), transparent 40%),
-    rgba(4, 15, 26, 0.68);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--ule-metric-border);
+  border-radius: var(--ule-widget-radius);
+  background: var(--ule-metric-background);
+  box-shadow: var(--ule-widget-shadow);
 }
 
 [data-testid="stMetricLabel"] { color: var(--ule-muted); }
@@ -732,24 +819,24 @@ label,
 [data-baseweb="input"] > div,
 [data-baseweb="textarea"] > div,
 [data-baseweb="select"] > div {
-  border-color: rgba(136, 184, 237, 0.26) !important;
-  background: rgba(1, 8, 15, 0.72) !important;
+  border-color: var(--ule-input-border) !important;
+  background: var(--ule-input-background) !important;
 }
 
 .stButton > button,
 .stFormSubmitButton > button,
 .stDownloadButton > button {
   min-height: 2.75rem;
-  border: 1px solid rgba(120, 181, 246, 0.32);
-  border-radius: 999px;
-  color: #edf5ff;
+  border: 1px solid var(--ule-button-border);
+  border-radius: var(--ule-button-radius);
+  color: var(--ule-button-text);
   font-weight: 700;
-  background: linear-gradient(180deg, rgba(16, 43, 72, 0.88), rgba(4, 16, 30, 0.92));
-  box-shadow: inset 0 0 18px rgba(68, 138, 231, 0.12);
+  background: var(--ule-button-background);
+  box-shadow: var(--ule-button-shadow);
   transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease;
+    transform var(--ule-animation-fast) ease,
+    border-color var(--ule-animation-fast) ease,
+    box-shadow var(--ule-animation-fast) ease;
 }
 
 .stButton > button:hover,
@@ -767,7 +854,7 @@ label,
 .stFormSubmitButton > button[kind="primary"] {
   border-color: rgba(105, 179, 255, 0.74);
   color: #fff;
-  background: linear-gradient(180deg, rgba(34, 98, 170, 0.94), rgba(6, 34, 70, 0.96));
+  background: var(--ule-button-primary-background);
   box-shadow:
     inset 0 0 24px rgba(92, 173, 255, 0.27),
     0 0 18px rgba(52, 132, 230, 0.2);
@@ -779,20 +866,20 @@ label,
 input:focus-visible,
 textarea:focus-visible,
 [role="radio"]:focus-visible {
-  outline: 3px solid rgba(110, 186, 255, 0.72) !important;
+  outline: 3px solid var(--ule-color-focus) !important;
   outline-offset: 3px;
 }
 
 [data-baseweb="tab-list"] {
   gap: 0.35rem;
   padding: 0.25rem;
-  border: 1px solid rgba(131, 180, 232, 0.14);
-  border-radius: 999px;
-  background: rgba(2, 9, 17, 0.46);
+  border: 1px solid var(--ule-tab-border);
+  border-radius: var(--ule-button-radius);
+  background: var(--ule-tab-background);
 }
 
 [data-baseweb="tab"] {
-  border-radius: 999px;
+  border-radius: var(--ule-button-radius);
 }
 
 hr {
@@ -805,19 +892,17 @@ hr {
   right: 50%;
   bottom: 1rem;
   z-index: 1000;
-  width: min(1040px, calc(100vw - 2rem));
+  width: min(var(--ule-layout-world-dock-max-width), calc(100vw - 2rem));
   padding: 0.5rem;
-  border: 1px solid rgba(135, 184, 236, 0.24);
-  border-radius: 1.2rem;
+  border: 1px solid var(--ule-world-dock-border);
+  border-radius: var(--ule-world-dock-radius);
   transform: translateX(50%);
-  background:
-    linear-gradient(180deg, rgba(10, 24, 40, 0.84), rgba(2, 9, 17, 0.9)),
-    rgba(2, 9, 17, 0.84);
+  background: var(--ule-world-dock-background);
   box-shadow:
     0 16px 50px rgba(0, 0, 0, 0.54),
     inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  backdrop-filter: blur(20px) saturate(125%);
-  animation: ule-dock-enter 600ms 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  backdrop-filter: blur(var(--ule-dock-blur)) saturate(125%);
+  animation: ule-dock-enter var(--ule-animation-dock) 240ms var(--ule-animation-easing) both;
 }
 
 .st-key-ule_world_dock [data-testid="stWidgetLabel"] {
@@ -836,9 +921,9 @@ hr {
   min-width: 0;
   padding: 0.58rem 0.35rem;
   border: 1px solid transparent;
-  border-radius: 0.8rem;
+  border-radius: var(--ule-world-dock-item-radius);
   cursor: pointer;
-  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+  transition: background var(--ule-animation-fast) ease, border-color var(--ule-animation-fast) ease, transform var(--ule-animation-fast) ease;
 }
 
 .st-key-ule_world_dock [role="radiogroup"] > label > div:first-child {

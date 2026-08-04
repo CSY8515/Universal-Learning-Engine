@@ -2,6 +2,36 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.09 - UI Foundation Compatibility Hotfix
+
+### Added
+
+- Versioned Theme Contract and immutable Design Token groups
+- Validated Theme Adapter, Theme Registry, Component Contract, UI Registry,
+  public Ultra Brain UI Interface, and Compatibility Layer
+- Module theme contracts for Dashboard, Learning, CBT, Recovery, Challenge,
+  Analytics, Reports, AI, Planner, Library, Management, and My Learning
+- Focused contract, registry, safety, CSS-consumption, and compatibility tests
+
+### Changed
+
+- Existing official CSS now consumes semantic tokens for palette, fonts, icons,
+  cards, buttons, layout, widgets, dashboard surfaces, animation, radii,
+  shadows, navigation, and every World background
+
+### Preserved
+
+- v1.07 approved UI defaults and all existing screens, functionality, runtime,
+  learner data, Learning Flow, CRUD, API, BYOK, Analytics, Reports, Expansion,
+  and v1.08 operational architecture
+
+### Verified
+
+- Full compile and 160-test unittest regression suite PASS
+- 177-test pytest suite with 22 subtests PASS
+- Branch coverage: 85%
+- Localhost HTTP 200, nine-World entry, computed-token, and browser-error checks PASS
+
 ## v1.08 - Architecture Audit & Implementation Recovery
 
 ### Added

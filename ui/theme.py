@@ -2,6 +2,9 @@
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Any, Mapping
+
+from .interface import get_ui_compatibility_layer
 
 
 _STYLE_PATH = Path(__file__).resolve().parent.parent / "assets" / "ule.css"
@@ -29,10 +32,24 @@ def _official_styles() -> str:
     return _STYLE_PATH.read_text(encoding="utf-8")
 
 
-def apply_official_theme(st_module) -> None:
-    """Apply the official ULE skin without mixing user content into HTML."""
+def apply_official_theme(
+    st_module,
+    theme_settings: Mapping[str, Any] | None = None,
+) -> None:
+    """Apply static official CSS plus validated Ultra Brain token overrides.
 
-    st_module.markdown(f"<style>{_official_styles()}</style>", unsafe_allow_html=True)
+    Existing callers pass no settings and therefore receive the exact official
+    defaults.  An Ultra Brain host may supply the versioned Theme Contract
+    mapping without introducing a second customization screen inside ULE.
+    """
+
+    compatibility_css = get_ui_compatibility_layer().render_theme_css(
+        theme_settings
+    )
+    st_module.markdown(
+        f"<style>{_official_styles()}\n{compatibility_css}</style>",
+        unsafe_allow_html=True,
+    )
     st_module.markdown(
         """
         <div class="ule-brand" aria-label="Universal Learning Engine">
