@@ -26,7 +26,7 @@
 - Existing official UI contract regression: PASS
 - Full compile: PASS
 - Full automatic unittest regression: 160 tests PASS
-- Full pytest regression: 177 tests and 22 subtests PASS
+- Full pytest regression: 170 tests and 15 subtests PASS
 - Branch coverage: 85%
 - Localhost health: HTTP 200
 - Nine-World entry, computed-token, and browser-error checks: PASS

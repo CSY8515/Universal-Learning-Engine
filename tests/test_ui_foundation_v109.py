@@ -5,8 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 import unittest
 
-import pytest
-
 from ui.adapter import ThemeAdapter, ThemeContractError
 from ui.contracts import UI_FOUNDATION_INTERFACE_VERSION
 from ui.interface import UltraBrainUIInterface, get_ui_compatibility_layer
@@ -68,22 +66,25 @@ def test_adapter_accepts_every_required_ultra_brain_setting_group() -> None:
     assert "--ule-color-scheme: light" in css
 
 
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"unknown": "value"},
-        {"mode": "neon"},
-        {"theme_id": 'bad\"] {}'},
-        {"colors": {"unknown": "#fff"}},
-        {"colors": {"accent": "red; background: black"}},
-        {"backgrounds": {"w01": "url(javascript:alert(1))"}},
-        {"animation": {"enabled": "yes"}},
-        {"interface_version": "2.0"},
-    ],
+UNSAFE_SETTINGS = (
+    {"unknown": "value"},
+    {"mode": "neon"},
+    {"theme_id": 'bad\"] {}'},
+    {"colors": {"unknown": "#fff"}},
+    {"colors": {"accent": "red; background: black"}},
+    {"backgrounds": {"w01": "url(javascript:alert(1))"}},
+    {"animation": {"enabled": "yes"}},
+    {"interface_version": "2.0"},
 )
-def test_adapter_rejects_unknown_or_unsafe_payloads(settings: dict) -> None:
-    with pytest.raises(ThemeContractError):
-        ThemeAdapter().adapt(settings)
+
+
+def test_adapter_rejects_unknown_or_unsafe_payloads() -> None:
+    for settings in UNSAFE_SETTINGS:
+        try:
+            ThemeAdapter().adapt(settings)
+        except ThemeContractError:
+            continue
+        raise AssertionError(f"unsafe settings were accepted: {settings!r}")
 
 
 def test_registry_covers_all_existing_ui_modules() -> None:
@@ -183,18 +184,8 @@ class UICompatibilityAutomaticTest(unittest.TestCase):
         test_public_compatibility_layer_implements_host_interface()
         test_default_contract_preserves_official_visual_baseline()
         test_adapter_accepts_every_required_ultra_brain_setting_group()
-        for settings in (
-            {"unknown": "value"},
-            {"mode": "neon"},
-            {"theme_id": 'bad\"] {}'},
-            {"colors": {"unknown": "#fff"}},
-            {"colors": {"accent": "red; background: black"}},
-            {"backgrounds": {"w01": "url(javascript:alert(1))"}},
-            {"animation": {"enabled": "yes"}},
-            {"interface_version": "2.0"},
-        ):
-            with self.subTest(settings=settings):
-                test_adapter_rejects_unknown_or_unsafe_payloads(settings)
+        with self.subTest(case="unsafe and unknown payloads"):
+            test_adapter_rejects_unknown_or_unsafe_payloads()
         test_registry_covers_all_existing_ui_modules()
         test_registry_covers_every_shared_component_family()
         test_all_adapter_variables_are_declared_and_consumed_by_repository_css()
