@@ -90,6 +90,24 @@
   --ule-background-w07: url("./app/static/worlds/w07.png");
   --ule-background-w08: url("./app/static/worlds/w08.png");
   --ule-background-w09: url("./app/static/worlds/w09.png");
+  --ule-inherited-brightness: 1;
+  --ule-inherited-contrast: 1;
+  --ule-inherited-saturation: 1;
+  --ule-inherited-hue: 0deg;
+  --ule-inherited-blur: 0px;
+  --ule-inherited-opacity: 1;
+  --ule-inherited-lighting: linear-gradient(transparent, transparent);
+  --ule-inherited-texture: linear-gradient(transparent, transparent);
+  --ule-inherited-content-shadow: var(--ule-shadow);
+  --ule-inherited-content-glow: 0 0 0 transparent;
+  --ule-inherited-topbar-transform: translate(0px, 0px) scale(1);
+  --ule-inherited-center-transform: translate(0px, 0px) scale(1);
+  --ule-inherited-seed-transform: translate(0px, 0px) scale(1);
+  --ule-inherited-rail-transform: translate(0px, 0px) scale(1);
+  --ule-inherited-topbar-display: flex;
+  --ule-inherited-center-display: block;
+  --ule-inherited-seed-display: block;
+  --ule-inherited-rail-display: block;
   --ule-night: var(--ule-color-background);
   --ule-navy: var(--ule-color-background-alt);
   --ule-glass: var(--ule-color-surface);
@@ -153,10 +171,11 @@ body,
   top: 1.35rem;
   left: max(1.6rem, calc((100vw - 1600px) / 2 + 1.5rem));
   z-index: 1002;
-  display: flex;
+  display: var(--ule-inherited-topbar-display);
   align-items: center;
   gap: 0.75rem;
   pointer-events: none;
+  transform: var(--ule-inherited-topbar-transform);
   filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.75));
 }
 
@@ -223,12 +242,11 @@ label,
   min-height: 0;
   aspect-ratio: 16 / 9;
   margin: 0 auto;
+  display: var(--ule-inherited-center-display);
   overflow: hidden;
   border: 1px solid var(--ule-scene-border);
   border-radius: var(--ule-scene-radius);
-  background:
-    linear-gradient(180deg, rgba(1, 5, 9, 0.08), rgba(1, 5, 9, 0.18)),
-    var(--ule-background-world-map) center / cover no-repeat;
+  background: var(--ule-color-background);
   box-shadow:
     var(--ule-shadow),
     inset 0 0 100px rgba(0, 0, 0, 0.24);
@@ -242,8 +260,18 @@ label,
   z-index: 0;
   pointer-events: none;
   background:
+    var(--ule-inherited-texture),
+    var(--ule-inherited-lighting),
     linear-gradient(180deg, rgba(0, 4, 9, 0.1), transparent 13%, transparent 82%, rgba(0, 4, 9, 0.2)),
-    radial-gradient(circle at 50% 52%, transparent 44%, rgba(0, 5, 12, 0.08) 84%);
+    radial-gradient(circle at 50% 52%, transparent 44%, rgba(0, 5, 12, 0.08) 84%),
+    var(--ule-background-world-map) center / cover no-repeat;
+  opacity: var(--ule-inherited-opacity);
+  filter:
+    brightness(var(--ule-inherited-brightness))
+    contrast(var(--ule-inherited-contrast))
+    saturate(var(--ule-inherited-saturation))
+    hue-rotate(var(--ule-inherited-hue))
+    blur(var(--ule-inherited-blur));
 }
 
 .st-key-ule_world_map_navigation > div,
@@ -609,6 +637,7 @@ label,
 .st-key-ule_home_dock {
   position: relative;
   z-index: 100;
+  display: var(--ule-inherited-rail-display);
   width: min(var(--ule-layout-home-dock-max-width), calc(100% - 2rem));
   margin: 0.75rem auto 1rem;
   padding: 0.38rem 0.65rem;
@@ -715,7 +744,22 @@ label,
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
+  opacity: var(--ule-inherited-opacity);
+  filter:
+    brightness(var(--ule-inherited-brightness))
+    contrast(var(--ule-inherited-contrast))
+    saturate(var(--ule-inherited-saturation))
+    hue-rotate(var(--ule-inherited-hue))
+    blur(var(--ule-inherited-blur));
   animation: ule-world-reveal var(--ule-animation-world-reveal) var(--ule-animation-easing) both;
+}
+
+.ule-world-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ule-inherited-texture), var(--ule-inherited-lighting);
+  pointer-events: none;
 }
 
 .ule-world-backdrop::after {
@@ -746,6 +790,8 @@ label,
 }
 
 .ule-world-intro {
+  --ule-inherited-component-transform: var(--ule-inherited-center-transform);
+  display: var(--ule-inherited-center-display);
   width: min(42rem, 54vw);
   margin: clamp(7.5rem, 15vh, 10rem) 0 0.8rem;
   padding-left: clamp(0.5rem, 2vw, 2rem);
@@ -777,6 +823,8 @@ label,
 }
 
 [class*="st-key-ule_world_content_"] {
+  --ule-inherited-component-transform: var(--ule-inherited-seed-transform);
+  display: var(--ule-inherited-seed-display);
   width: min(790px, calc(100% - 1rem));
   margin: 1.4rem 0 4rem clamp(0rem, 1.5vw, 1.5rem);
   padding: clamp(1.1rem, 2.4vw, 2rem);
@@ -784,7 +832,8 @@ label,
   border-radius: var(--ule-card-radius);
   background: var(--ule-card-background);
   box-shadow:
-    var(--ule-shadow),
+    var(--ule-inherited-content-shadow),
+    var(--ule-inherited-content-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     inset 0 0 44px rgba(49, 118, 201, 0.055);
   backdrop-filter: blur(var(--ule-glass-blur)) saturate(118%);
@@ -892,6 +941,7 @@ hr {
   right: 50%;
   bottom: 1rem;
   z-index: 1000;
+  display: var(--ule-inherited-rail-display);
   width: min(var(--ule-layout-world-dock-max-width), calc(100vw - 2rem));
   padding: 0.5rem;
   border: 1px solid var(--ule-world-dock-border);
@@ -958,28 +1008,28 @@ hr {
 }
 
 @keyframes ule-scene-enter {
-  from { opacity: 0; transform: scale(1.014); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: var(--ule-inherited-center-transform) scale(1.014); }
+  to { opacity: 1; transform: var(--ule-inherited-center-transform); }
 }
 
 @keyframes ule-world-reveal {
-  from { opacity: 0; transform: scale(1.035); filter: brightness(0.75); }
-  to { opacity: 1; transform: scale(1); filter: brightness(1); }
+  from { transform: scale(1.035); }
+  to { transform: scale(1); }
 }
 
 @keyframes ule-panel-enter {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: var(--ule-inherited-component-transform, translate(0px, 0px) scale(1)) translateY(18px); }
+  to { opacity: 1; transform: var(--ule-inherited-component-transform, translate(0px, 0px) scale(1)); }
 }
 
 @keyframes ule-dock-enter {
-  from { opacity: 0; transform: translate(50%, 18px); }
-  to { opacity: 1; transform: translate(50%, 0); }
+  from { opacity: 0; transform: translateX(50%) var(--ule-inherited-rail-transform) translateY(18px); }
+  to { opacity: 1; transform: translateX(50%) var(--ule-inherited-rail-transform); }
 }
 
 @keyframes ule-home-dock-enter {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: var(--ule-inherited-rail-transform) translateY(18px); }
+  to { opacity: 1; transform: var(--ule-inherited-rail-transform); }
 }
 
 @media (max-width: 980px) {

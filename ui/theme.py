@@ -35,6 +35,7 @@ def _official_styles() -> str:
 def apply_official_theme(
     st_module,
     theme_settings: Mapping[str, Any] | None = None,
+    inherited_effect_css: str = "",
 ) -> None:
     """Apply static official CSS plus validated Ultra Brain token overrides.
 
@@ -47,7 +48,7 @@ def apply_official_theme(
         theme_settings
     )
     st_module.markdown(
-        f"<style>{_official_styles()}\n{compatibility_css}</style>",
+        f"<style>{_official_styles()}\n{compatibility_css}\n{inherited_effect_css}</style>",
         unsafe_allow_html=True,
     )
     st_module.markdown(

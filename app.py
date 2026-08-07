@@ -18,6 +18,7 @@ from ui import (
     apply_official_theme,
     render_navigation,
     render_world_stage,
+    resolve_inherited_theme,
 )
 
 # Streamlit Cloud may hot-reload this entrypoint while retaining an older
@@ -2476,7 +2477,12 @@ def main() -> None:
     apply_pending_difficulty_recommendation()
     apply_pending_view()
 
-    apply_official_theme(st)
+    inherited_theme = resolve_inherited_theme(st.query_params)
+    apply_official_theme(
+        st,
+        inherited_theme.settings if inherited_theme else None,
+        inherited_theme.effect_css if inherited_theme else "",
+    )
     selected_view = render_navigation(st)
     if selected_view == HOME_VIEW:
         return
