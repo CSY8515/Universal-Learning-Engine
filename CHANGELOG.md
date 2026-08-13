@@ -2,6 +2,19 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.094 - Home and Dedicated Background Recovery
+
+### Fixed
+
+- Restored the approved Home scene scale using the original viewport-fit ratio
+- Removed the excessive black margins introduced by the v1.093 height reserve
+- Restored each functional World's dedicated background at full color and clarity
+
+### Preserved
+
+- Functional content, scrolling, navigation, Theme Contract, routes, learning
+  data, business logic, Database, CRUD, API, BYOK, Analytics, and Report
+
 ## v1.093 - Original UI Composition Recovery
 
 ### Fixed

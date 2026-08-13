@@ -264,7 +264,13 @@ def test_theme_home_and_functional_worlds_use_real_distinct_assets() -> None:
     assert "var(--ule-home-detail-image) center / cover no-repeat" in home_detail_block
     assert "var(--ule-background-world-map) center / cover no-repeat" not in home_detail_block
     assert "background-image: var(--ule-feature-image)" in styles
-    assert "mix-blend-mode: luminosity" in styles
+    feature_art_start = styles.index(".ule-world-backdrop::before")
+    feature_art_block = styles[
+        feature_art_start : styles.index("\n}", feature_art_start)
+    ]
+    assert "opacity: 1" in feature_art_block
+    assert "mix-blend-mode: normal" in feature_art_block
+    assert "filter: none" in feature_art_block
 
 
 def test_theme_world_definition_preserves_source_world_and_revision() -> None:

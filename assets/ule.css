@@ -249,7 +249,7 @@ label,
 
 .st-key-ule_world_map_navigation {
   position: relative;
-  width: min(100%, var(--ule-layout-scene-max-width), calc((100dvh - 9rem) * 1.7777778));
+  width: min(100%, var(--ule-layout-scene-max-width), calc((100dvh - 3rem) * 1.7777778));
   max-width: var(--ule-layout-scene-max-width);
   min-height: 0;
   aspect-ratio: 16 / 9;
@@ -858,9 +858,9 @@ label,
   background-position: var(--ule-feature-focus, center);
   background-size: cover;
   background-repeat: no-repeat;
-  opacity: 0.66;
-  mix-blend-mode: luminosity;
-  filter: contrast(1.08) saturate(0.82);
+  opacity: 1;
+  mix-blend-mode: normal;
+  filter: none;
   pointer-events: none;
 }
 

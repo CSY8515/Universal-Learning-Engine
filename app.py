@@ -2474,7 +2474,7 @@ def render_my_learning_world() -> None:
 def main() -> None:
     configure_logging()
     st.set_page_config(
-        page_title=f"{APP_TITLE} v1.093",
+        page_title=f"{APP_TITLE} v1.094",
         page_icon="✦",
         layout="wide",
         initial_sidebar_state="collapsed",
@@ -2505,7 +2505,7 @@ def main() -> None:
         theme_settings = theme_settings_from_mapping(query_contract)
     else:
         theme_settings = dict(inherited_theme.settings or {})
-        # v1.093 preserves distinct Home and per-feature scene assets. The upstream
+        # v1.094 preserves distinct Home and per-feature scene assets. The upstream
         # contract may style their tokens but must not collapse them to one
         # repeated background image.
         theme_settings.pop("backgrounds", None)
