@@ -2,10 +2,10 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.092 behavior. It does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.093 behavior. It does not authorize future functionality.
 
-- Implemented working-tree design: **v1.092 Original Learning World Presentation Recovery**
-- Release version file: **v1.092**
+- Implemented working-tree design: **v1.093 Original UI Composition Recovery**
+- Release version file: **v1.093**
 
 Runtime entry point: `app.py`
 Interface: Streamlit

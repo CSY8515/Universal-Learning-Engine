@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v1.092 preserves the single-process Streamlit learning
+Universal Learning Engine v1.093 preserves the single-process Streamlit learning
 application and independent in-process Expansion Platform. `app.py` remains the
 composition, configuration, OpenAI, validation, session, and World presentation
 boundary. `world_state.py` owns normalized persistent cross-World evidence and

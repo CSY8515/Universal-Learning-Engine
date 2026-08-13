@@ -101,13 +101,16 @@ class OfficialUiV107Tests(IsolatedWorldStateTestCase):
         self.assertNotIn("하나로 이어지는 학습 생태계", navigation)
         self.assertNotIn("아홉 개의 학습 세계", navigation)
 
-    def test_v1092_restores_full_viewport_home_and_bounded_feature_glass(self):
+    def test_v1093_restores_uncropped_home_and_original_feature_split(self):
         styles = STYLE_PATH.read_text(encoding="utf-8")
         theme = (ROOT / "ui" / "theme.py").read_text(encoding="utf-8")
-        self.assertIn("height: 100dvh !important", styles)
-        self.assertIn("min-height: 100dvh", styles)
-        self.assertIn("position: fixed", styles[styles.index(".st-key-ule_home_dock") :])
-        self.assertIn("max-height: min(36vh, 32rem)", styles)
+        self.assertIn("calc((100dvh - 9rem) * 1.7777778)", styles)
+        self.assertIn("aspect-ratio: 16 / 9", styles)
+        home_dock = styles[styles.index(".st-key-ule_home_dock") :]
+        self.assertIn("position: relative", home_dock)
+        self.assertNotIn("height: 100dvh !important", styles)
+        self.assertNotIn("max-height: min(36vh, 32rem)", styles)
+        self.assertIn("width: min(790px, calc(100% - 1rem))", styles)
         self.assertNotIn("width:100vw!important;margin-left:calc(50% - 50vw)", theme)
         self.assertNotIn("공식 학습 세계", theme)
 

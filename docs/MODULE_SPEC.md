@@ -2,7 +2,7 @@
 
 ## Scope
 
-This specification describes the implemented v1.092 application on the preserved
+This specification describes the implemented v1.093 application on the preserved
 v1.03 learning-flow and v0.9 Expansion runtime baselines. Learning-runtime and
 BYOK coordination remain in `app.py`; presentation responsibilities are
 separated into `ui/`; deterministic adaptive rules remain in `adaptive.py`,

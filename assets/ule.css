@@ -181,18 +181,14 @@ body,
 [data-testid="stAppViewContainer"] > .main .block-container,
 [data-testid="stMainBlockContainer"] {
   width: 100%;
-  max-width: max(100vw, var(--ule-layout-app-max-width));
-  padding: 0;
-}
-
-[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] {
-  gap: 0;
+  max-width: var(--ule-layout-app-max-width);
+  padding: var(--ule-layout-content-padding);
 }
 
 .ule-brand {
   position: fixed;
   top: 1.35rem;
-  left: 1.6rem;
+  left: max(1.6rem, calc((100vw - 1600px) / 2 + 1.5rem));
   z-index: 1002;
   display: var(--ule-inherited-topbar-display);
   align-items: center;
@@ -253,15 +249,15 @@ label,
 
 .st-key-ule_world_map_navigation {
   position: relative;
-  width: 100vw;
-  max-width: none;
-  height: 100dvh !important;
-  min-height: 100dvh;
-  margin: 0;
+  width: min(100%, var(--ule-layout-scene-max-width), calc((100dvh - 9rem) * 1.7777778));
+  max-width: var(--ule-layout-scene-max-width);
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
   display: var(--ule-inherited-center-display);
   overflow: hidden;
-  border: 0;
-  border-radius: 0;
+  border: 1px solid var(--ule-scene-border);
+  border-radius: var(--ule-scene-radius);
   background:
     linear-gradient(180deg, rgba(1, 5, 9, 0.08), rgba(1, 5, 9, 0.18)),
     var(--ule-active-theme-image) center / cover no-repeat;
@@ -734,13 +730,11 @@ label,
 }
 
 .st-key-ule_home_dock {
-  position: fixed;
-  left: 50%;
-  bottom: max(0.85rem, env(safe-area-inset-bottom));
-  z-index: 1000;
+  position: relative;
+  z-index: 100;
   display: var(--ule-inherited-rail-display);
   width: min(var(--ule-layout-home-dock-max-width), calc(100% - 2rem));
-  margin: 0;
+  margin: 0.75rem auto 1rem;
   padding: 0.38rem 0.65rem;
   border: 1px solid var(--ule-home-dock-border);
   border-radius: var(--ule-home-dock-radius);
@@ -749,7 +743,6 @@ label,
     0 18px 48px rgba(0, 0, 0, 0.58),
     inset 0 0 24px rgba(50, 126, 230, 0.14);
   backdrop-filter: blur(var(--ule-dock-blur)) saturate(130%);
-  transform: translateX(-50%);
   animation: ule-home-dock-enter var(--ule-animation-dock) 220ms var(--ule-animation-easing) both;
 }
 
@@ -919,7 +912,7 @@ label,
   display: var(--ule-inherited-center-display);
   width: min(42rem, 54vw);
   margin: clamp(7.5rem, 15vh, 10rem) 0 0.8rem;
-  padding-left: clamp(2rem, 4vw, 4.5rem);
+  padding-left: clamp(0.5rem, 2vw, 2rem);
   text-shadow: 0 4px 24px rgba(0, 0, 0, 0.88);
   animation: ule-panel-enter var(--ule-animation-panel) 120ms var(--ule-animation-easing) both;
 }
@@ -978,10 +971,8 @@ label,
 [class*="st-key-ule_world_content_"] {
   --ule-inherited-component-transform: var(--ule-inherited-seed-transform);
   display: var(--ule-inherited-seed-display);
-  width: min(790px, calc(100vw - 4rem));
-  max-height: min(36vh, 32rem);
-  overflow-y: auto;
-  margin: 1.4rem 0 7rem clamp(2rem, 4vw, 4.5rem);
+  width: min(790px, calc(100% - 1rem));
+  margin: 1.4rem 0 4rem clamp(0rem, 1.5vw, 1.5rem);
   padding: clamp(1.1rem, 2.4vw, 2rem);
   border: 1px solid var(--ule-card-border);
   border-radius: var(--ule-card-radius);
@@ -1183,8 +1174,8 @@ hr {
 }
 
 @keyframes ule-home-dock-enter {
-  from { opacity: 0; transform: translateX(-50%) var(--ule-inherited-rail-transform) translateY(18px); }
-  to { opacity: 1; transform: translateX(-50%) var(--ule-inherited-rail-transform); }
+  from { opacity: 0; transform: var(--ule-inherited-rail-transform) translateY(18px); }
+  to { opacity: 1; transform: var(--ule-inherited-rail-transform); }
 }
 
 @media (max-width: 980px) {
@@ -1199,8 +1190,9 @@ hr {
   }
 
   .st-key-ule_world_map_navigation {
-    width: 100vw;
-    min-height: 36rem;
+    width: 100%;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
     background-position: center;
   }
 
@@ -1252,8 +1244,9 @@ hr {
   }
 
   .st-key-ule_home_dock {
+    position: relative;
     width: min(44rem, calc(100% - 1rem));
-    margin: 0;
+    margin: 0.6rem auto 1rem;
     padding: 0.3rem 0.45rem;
   }
 
@@ -1268,9 +1261,8 @@ hr {
   }
 
   [class*="st-key-ule_world_content_"] {
-    width: calc(100vw - 1rem);
-    max-height: none;
-    margin-left: 0.5rem;
+    width: 100%;
+    margin-left: 0;
   }
 
   .ule-world-backdrop::after {
@@ -1304,14 +1296,15 @@ hr {
   }
 
   .st-key-ule_world_map_navigation {
-    width: 100vw;
+    width: 42.5rem;
     max-width: none;
     min-width: 42.5rem;
   }
 
   .st-key-ule_home_dock {
-    width: calc(100vw - 1rem);
-    min-width: 0;
+    width: 34rem;
+    min-width: 34rem;
+    margin-left: 4.25rem;
   }
 
   .ule-world-intro h1 {

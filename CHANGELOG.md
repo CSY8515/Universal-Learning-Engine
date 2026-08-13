@@ -2,6 +2,22 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.093 - Original UI Composition Recovery
+
+### Fixed
+
+- Restored the uncropped 16:9 Home composition with all nine functional domes
+- Kept the Home scene and its navigation dock inside one browser viewport
+- Restored the original long-form left content and right dedicated background
+  structure for every functional World
+- Removed the artificial internal height cap and internal scrollbar from
+  functional content
+
+### Preserved
+
+- Theme mapping, internal routes, learning data, business logic, Database,
+  CRUD, API, BYOK, Analytics, Report, and operational subsystems
+
 ## v1.092 - Original Learning World Presentation Recovery
 
 ### Fixed

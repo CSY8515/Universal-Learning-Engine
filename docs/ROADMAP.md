@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v1.092; publishing
+- The implemented working-tree version is v1.093; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -259,6 +259,14 @@ transport.
 - Restore bounded feature glass surfaces after Theme propagation
 - Remove redundant learner-facing World-category copy without changing
   internal route or feature ids
+
+### v1.093 — Original UI Composition Recovery
+
+- Restore the complete 16:9 orbital Home without cropping any functional dome
+- Keep the Home scene and its navigation dock within one browser viewport
+- Restore the approved long-form left content and right dedicated background
+  layout for functional Worlds
+- Preserve Theme World compatibility and all functional contracts
 
 ## v0.4 preparation gates — complete
 
