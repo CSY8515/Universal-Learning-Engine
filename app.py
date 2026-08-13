@@ -24,6 +24,7 @@ from ui import (
     theme_settings_from_mapping,
     render_navigation,
     render_world_stage,
+    resolve_inherited_theme,
 )
 
 # Streamlit Cloud may hot-reload this entrypoint while retaining an older
@@ -2486,19 +2487,35 @@ def main() -> None:
         query_params = dict(st.query_params)
     except (AttributeError, TypeError, RuntimeError):
         query_params = {}
+    inherited_theme = resolve_inherited_theme(query_params)
     incoming_contract = query_contract_from_mapping(query_params)
+    inherited_blocked = bool(
+        inherited_theme
+        and {"theme", "background"}.intersection(inherited_theme.blocked_targets)
+    )
+    if inherited_blocked:
+        incoming_contract["locked_systems"] = ("universal-learning-engine",)
     query_contract, remember_incoming = resolve_applied_query_contract(
         incoming_contract,
         st.session_state.get(APPLIED_QUERY_CONTRACT_SESSION_KEY),
     )
     if remember_incoming:
         st.session_state[APPLIED_QUERY_CONTRACT_SESSION_KEY] = dict(query_contract)
-    theme_settings = theme_settings_from_mapping(query_contract)
+    if inherited_blocked or inherited_theme is None:
+        theme_settings = theme_settings_from_mapping(query_contract)
+    else:
+        theme_settings = dict(inherited_theme.settings or {})
+        # v1.091 owns distinct Home and per-feature scene assets. The upstream
+        # contract may style their tokens but must not collapse them to one
+        # repeated background image.
+        theme_settings.pop("backgrounds", None)
     theme_world = resolve_theme_world(query_contract)
-    apply_official_theme(st, theme_settings or None)
-    adjustment_css = query_adjustment_css(query_contract)
-    if adjustment_css:
-        st.markdown(adjustment_css, unsafe_allow_html=True)
+    inherited_effect_css = (
+        inherited_theme.effect_css
+        if inherited_theme is not None
+        else query_adjustment_css(query_contract)
+    )
+    apply_official_theme(st, theme_settings or None, inherited_effect_css)
     selected_view = render_navigation(st, theme_world)
     if selected_view == HOME_VIEW:
         return

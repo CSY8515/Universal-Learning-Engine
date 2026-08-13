@@ -17,6 +17,7 @@ from .theme import (
     resolve_theme_world,
     theme_settings_from_mapping,
 )
+from .propagation import InheritedTheme, THEME_KEYS, resolve_inherited_theme
 
 __all__ = [
     "HOME_VIEW",
@@ -25,6 +26,8 @@ __all__ = [
     "UICompatibilityLayer",
     "UltraBrainUIInterface",
     "APPLIED_QUERY_CONTRACT_SESSION_KEY",
+    "InheritedTheme",
+    "THEME_KEYS",
     "apply_official_theme",
     "query_adjustment_css",
     "query_contract_from_mapping",
@@ -34,4 +37,5 @@ __all__ = [
     "get_ui_compatibility_layer",
     "render_navigation",
     "render_world_stage",
+    "resolve_inherited_theme",
 ]
