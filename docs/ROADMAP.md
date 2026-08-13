@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v1.09; publishing
+- The implemented working-tree version is v1.091; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -241,6 +241,16 @@ The implemented contract is `ROADMAP_v1.09.md`. Ultra Brain owns customization
 and persistence. ULE only validates and applies a versioned presentation
 mapping; it adds no UI, runtime capability, data change, or undocumented host
 transport.
+
+### v1.091 — Theme World Integration
+
+- Consume the existing Ultra Brain Theme World query contract at the ULE edge
+- Apply one of thirteen approved Theme Worlds to Home and existing feature scenes
+- Preserve source World, revision, bounded visual adjustments, and explicit
+  ULE lock/override precedence
+- Keep internal feature ids and routing stable while using Korean display labels
+- Preserve all learner data, business logic, Database, CRUD, API, BYOK,
+  Analytics, Report, Expansion, and operational architecture
 
 ## v0.4 preparation gates — complete
 

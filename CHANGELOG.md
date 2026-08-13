@@ -2,6 +2,34 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.091 - Theme World Integration
+
+### Added
+
+- Bounded Ultra Brain query-contract consumption for Theme World, revision,
+  visual adjustments, locks, and overrides
+- Thirteen Theme World backgrounds and distinct presentation identities for
+  the nine existing functional Worlds
+- Theme context propagation through Home, navigation, and feature scenes
+
+### Preserved
+
+- Internal feature identifiers, routing, learning data, business logic,
+  Database, CRUD, API, BYOK, Analytics, Report, and operational subsystems
+
+### Fixed
+
+- Removed the sole learner-output `learning` leak from a stylesheet comment
+  collected through Streamlit markup without translating any internal id
+
+### Verified
+
+- Focused Korean-visible output regression PASS
+- Minimal ULE Home, Learning, Recovery, Analytics, routing, Theme Context, and
+  markup regression PASS
+- Ultra Brain to OS Ecosystem to Universal Learning Engine contract path and
+  representative Learning screen PASS
+
 ## v1.09 - UI Foundation Compatibility Hotfix
 
 ### Added

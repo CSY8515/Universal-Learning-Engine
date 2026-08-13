@@ -2,10 +2,10 @@
 
 ## Status and purpose
 
-This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.09 behavior. It does not authorize future functionality.
+This document defines the frozen v0.2 feature boundary and records the implemented v0.3.1 through v1.091 behavior. It does not authorize future functionality.
 
-- Implemented working-tree design: **v1.09 UI Foundation Compatibility Hotfix**
-- Release version file: **v1.09**
+- Implemented working-tree design: **v1.091 Theme World Integration**
+- Release version file: **v1.091**
 
 Runtime entry point: `app.py`
 Interface: Streamlit
@@ -460,3 +460,15 @@ ULE provides no internal customization screen and owns no theme persistence.
 All current modules resolve registered component and background contracts. The
 foundation changes no screen, route, user action, learner state, database,
 business logic, API, BYOK, Analytics, Report, runtime, or operational subsystem.
+
+## v1.091 Theme World Integration design
+
+v1.091 consumes the existing versioned Ultra Brain presentation contract at the
+ULE boundary. It validates the incoming theme, source World, revision, bounded
+visual adjustments, and lock/override metadata without persisting any of them
+to learner data or business storage.
+
+Home and the nine existing functional Worlds receive theme-aware presentation
+scenes while their internal feature ids, routes, data flow, actions, and runtime
+contracts remain unchanged. Learner-facing labels remain Korean and are kept
+separate from internal English identifiers.

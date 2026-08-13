@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-Universal Learning Engine v1.09 preserves the single-process Streamlit learning
+Universal Learning Engine v1.091 preserves the single-process Streamlit learning
 application and independent in-process Expansion Platform. `app.py` remains the
 composition, configuration, OpenAI, validation, session, and World presentation
 boundary. `world_state.py` owns normalized persistent cross-World evidence and
@@ -475,3 +475,15 @@ layout, header, navigation, card, button, widget, dialog, icon, typography, and
 animation contracts. Ultra Brain owns customization and persistence; ULE owns
 only payload validation and application. No transport, discovery, sync, or
 second customization interface is implemented.
+
+## v1.091 Theme World consumption boundary
+
+`ui/theme.py` normalizes the existing `ultra-brain.ui/v1` query contract into a
+presentation-only Theme World definition. Only approved theme ids, a bounded
+source World id and revision, declared visual adjustments, and explicit
+lock/override metadata cross this boundary. Invalid values fail closed.
+
+The resolved context is passed to the existing navigation and World renderer.
+Internal route and feature ids remain stable; separate Korean display labels
+are used for learner-visible markup. No Theme World input enters learner state,
+the Database, CRUD, API, BYOK, Analytics, Report, or operational storage.

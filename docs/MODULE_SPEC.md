@@ -2,7 +2,7 @@
 
 ## Scope
 
-This specification describes the implemented v1.09 application on the preserved
+This specification describes the implemented v1.091 application on the preserved
 v1.03 learning-flow and v0.9 Expansion runtime baselines. Learning-runtime and
 BYOK coordination remain in `app.py`; presentation responsibilities are
 separated into `ui/`; deterministic adaptive rules remain in `adaptive.py`,
@@ -676,3 +676,19 @@ The tests cover interface conformance, official default preservation, all
 requested token groups, closed-field and CSS-safety validation, module and
 component registry completeness, background contracts, CSS consumption, and
 the static-theme-plus-validated-override loading order.
+
+## v1.091 Theme World integration
+
+Files: `app.py`, `ui/theme.py`, `ui/navigation.py`, `assets/ule.css`,
+`static/theme-worlds/`
+
+Responsibilities:
+
+- Validate and consume the existing Ultra Brain query contract without adding
+  a second theme authority or persistence layer.
+- Resolve theme, source World, revision, visual adjustments, and ULE-specific
+  lock/override precedence for presentation only.
+- Render Theme-aware Home and distinct scenes for the nine existing functional
+  Worlds while preserving internal feature ids and routing.
+- Keep learner-visible display labels Korean and exclude internal identifiers
+  from collected user output.

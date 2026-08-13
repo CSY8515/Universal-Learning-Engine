@@ -13,9 +13,15 @@ import analytics
 import world_state
 from expansion import ExpansionAPI
 from ui import (
+    APPLIED_QUERY_CONTRACT_SESSION_KEY,
     HOME_VIEW,
     NAVIGATION_OPTIONS,
     apply_official_theme,
+    query_adjustment_css,
+    query_contract_from_mapping,
+    resolve_applied_query_contract,
+    resolve_theme_world,
+    theme_settings_from_mapping,
     render_navigation,
     render_world_stage,
 )
@@ -2467,7 +2473,7 @@ def render_my_learning_world() -> None:
 def main() -> None:
     configure_logging()
     st.set_page_config(
-        page_title=f"{APP_TITLE} v1.07",
+        page_title=f"{APP_TITLE} v1.091",
         page_icon="✦",
         layout="wide",
         initial_sidebar_state="collapsed",
@@ -2476,12 +2482,28 @@ def main() -> None:
     apply_pending_difficulty_recommendation()
     apply_pending_view()
 
-    apply_official_theme(st)
-    selected_view = render_navigation(st)
+    try:
+        query_params = dict(st.query_params)
+    except (AttributeError, TypeError, RuntimeError):
+        query_params = {}
+    incoming_contract = query_contract_from_mapping(query_params)
+    query_contract, remember_incoming = resolve_applied_query_contract(
+        incoming_contract,
+        st.session_state.get(APPLIED_QUERY_CONTRACT_SESSION_KEY),
+    )
+    if remember_incoming:
+        st.session_state[APPLIED_QUERY_CONTRACT_SESSION_KEY] = dict(query_contract)
+    theme_settings = theme_settings_from_mapping(query_contract)
+    theme_world = resolve_theme_world(query_contract)
+    apply_official_theme(st, theme_settings or None)
+    adjustment_css = query_adjustment_css(query_contract)
+    if adjustment_css:
+        st.markdown(adjustment_css, unsafe_allow_html=True)
+    selected_view = render_navigation(st, theme_world)
     if selected_view == HOME_VIEW:
         return
 
-    slug = render_world_stage(st, selected_view)
+    slug = render_world_stage(st, selected_view, theme_world)
     with st.container(key=f"ule_world_content_{slug}"):
         if selected_view == "Learning":
             st.header("학습")

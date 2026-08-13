@@ -7,7 +7,16 @@ from .interface import (
     UltraBrainUIInterface,
     get_ui_compatibility_layer,
 )
-from .theme import apply_official_theme, render_world_stage
+from .theme import (
+    APPLIED_QUERY_CONTRACT_SESSION_KEY,
+    apply_official_theme,
+    query_adjustment_css,
+    query_contract_from_mapping,
+    render_world_stage,
+    resolve_applied_query_contract,
+    resolve_theme_world,
+    theme_settings_from_mapping,
+)
 
 __all__ = [
     "HOME_VIEW",
@@ -15,7 +24,13 @@ __all__ = [
     "UI_FOUNDATION_INTERFACE_VERSION",
     "UICompatibilityLayer",
     "UltraBrainUIInterface",
+    "APPLIED_QUERY_CONTRACT_SESSION_KEY",
     "apply_official_theme",
+    "query_adjustment_css",
+    "query_contract_from_mapping",
+    "resolve_applied_query_contract",
+    "resolve_theme_world",
+    "theme_settings_from_mapping",
     "get_ui_compatibility_layer",
     "render_navigation",
     "render_world_stage",

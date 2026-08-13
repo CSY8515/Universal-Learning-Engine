@@ -1,6 +1,6 @@
-# Universal Learning Engine v1.09 UI Foundation Compatibility Hotfix
+# Universal Learning Engine v1.091 Theme World Integration
 
-![Version](https://img.shields.io/badge/version-v1.09-DDB55B)
+![Version](https://img.shields.io/badge/version-v1.091-DDB55B)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,10 +9,10 @@ Universal Learning Engine is a production-ready Streamlit learning application t
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository contains the **v1.09 Ultra Brain UI Foundation Compatibility
-Hotfix** on the preserved v1.08 operational architecture, v1.07 Official UI /
-UX, v1.06.1 production runtime, v1.05 end-to-end flow, v1.04 AI Integration &
-BYOK, and Expansion runtime.
+The repository contains the **v1.091 Ultra Brain Theme World integration** on
+the preserved v1.09 UI Foundation, v1.08 operational architecture, v1.07
+Official UI / UX, v1.06.1 production runtime, v1.05 end-to-end flow, v1.04 AI
+Integration & BYOK, and Expansion runtime.
 
 ## Current features
 
@@ -121,7 +121,7 @@ Hard questions emphasize application, comparison, cases, and plausible distracto
 
 The repository is the single source of truth. Use these documents in this order:
 
-1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.09
+1. [MASTER_DESIGN.md](./docs/MASTER_DESIGN.md) — canonical design through v1.091
 2. [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — current components, state, data flow, and boundaries
 3. [MODULE_SPEC.md](./docs/MODULE_SPEC.md) — current logical module contracts
 4. [ROADMAP_v0.4.md](./docs/ROADMAP_v0.4.md) — implemented v0.4 contract and acceptance plan
@@ -142,11 +142,11 @@ The repository is the single source of truth. Use these documents in this order:
 19. [ROADMAP_v1.09.md](./docs/ROADMAP_v1.09.md) — v1.09 UI Foundation compatibility contract
 20. [ARCHITECTURE_AUDIT_v1.09.md](./docs/ARCHITECTURE_AUDIT_v1.09.md) — UI architecture audit and recovery evidence
 21. [UI_FOUNDATION.md](./docs/UI_FOUNDATION.md) — Ultra Brain host contract and integration boundary
-19. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
-20. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
-21. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
-22. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
-23. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
+22. [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) — development and verification workflow
+23. [EXPANSION_API.md](./docs/EXPANSION_API.md) — supported Expansion API contract
+24. [RELEASE_CHECKLIST.md](./docs/RELEASE_CHECKLIST.md) — release evidence and publication gates
+25. [ROADMAP.md](./docs/ROADMAP.md) — overall version boundaries
+26. [CHANGELOG.md](./CHANGELOG.md) and release notes — historical change records
 
 ## Installation
 
@@ -185,20 +185,22 @@ streamlit run app.py
 python -m unittest discover
 ```
 
-The 160-test automatic regression suite covers the preserved learning and Expansion
+The automatic regression suite covers the preserved learning and Expansion
 contracts, v1.02 World behavior, v1.03 cross-World data flow, v1.04 BYOK
 lifecycle and AI error isolation, v1.05 end-to-end World flow and supported
 data lifecycle operations, v1.06 Korean presentation and confirmed record
 cleanup, isolated persistence, navigation context transfer, integrated reports,
 user-visible safety boundaries, headless Streamlit behavior, the v1.08
 operational Database, Manager, Reporting, and Personal Secretary boundaries,
-and the v1.09 Ultra Brain UI Foundation compatibility contract.
+the v1.09 Ultra Brain UI Foundation compatibility contract, and the v1.091
+Theme World, query-contract, lock/override, feature-scene, and Korean-visible
+output boundaries.
 GitHub Actions runs complete compilation, branch coverage, regression checks,
 and a headless health check on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following remain outside v1.09:
+The following remain outside v1.091:
 
 - Learning Decision Engine or Weakness Score
 - Background scheduler or notifications
@@ -296,6 +298,7 @@ Universal-Learning-Engine/
 
 ## Release information
 
+- [v1.091 release notes](./RELEASE_NOTES_v1.091.md)
 - [v1.09 release notes](./RELEASE_NOTES_v1.09.md)
 - [v1.07 release notes](./RELEASE_NOTES_v1.07.md)
 - [v1.06 release notes](./RELEASE_NOTES_v1.06.md)
