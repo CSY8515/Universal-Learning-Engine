@@ -533,10 +533,6 @@ def apply_official_theme(
         """
         <style data-ultra-brain-theme-bleed="v1">
         .ule-world-backdrop{inset:0!important;width:100vw!important;height:100vh!important}
-        [data-testid="stAppViewContainer"] > .main .block-container,
-        [data-testid="stMainBlockContainer"]{max-width:none!important;width:100%!important;padding-left:.5rem!important;padding-right:.5rem!important}
-        .ule-world-backdrop + [class*="st-key-ule_world_content_"],
-        [class*="st-key-ule_world_content_"]{max-width:none!important;width:100vw!important;margin-left:calc(50% - 50vw)!important;margin-right:calc(50% - 50vw)!important}
         body:has(.ule-world-theme--light),body:has(.ule-world-theme--paper){--ule-color-text:#3c2c20;--ule-color-muted:#765f4c;--ule-color-accent:#9b6b3d;--ule-color-gold:#9b6b3d}
         body:has(.ule-world-theme--dark),body:has(.ule-world-theme--minimal),body:has(.ule-world-theme--archive){--ule-color-accent:#b49b78;--ule-color-gold:#b49b78}
         body:has(.ule-world-theme--calm){--ule-color-accent:#82aaa8;--ule-color-gold:#82aaa8}
@@ -556,7 +552,6 @@ def apply_official_theme(
             <div class="ule-brand__mark" aria-hidden="true">✦</div>
           <div>
             <div class="ule-brand__name">Universal Learning Engine</div>
-            <div class="ule-brand__meta">공식 학습 세계 · v1.091</div>
           </div>
         </div>
         """,

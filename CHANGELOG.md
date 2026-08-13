@@ -2,6 +2,24 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.092 - Original Learning World Presentation Recovery
+
+### Fixed
+
+- Restored the Home World to the full browser viewport and fixed its dock in
+  the visible viewport
+- Removed the Theme bleed rule that expanded every functional glass panel to
+  the entire viewport
+- Restored bounded functional glass surfaces so feature backgrounds remain
+  visible
+- Removed redundant `학습 세계` and `공식 학습 세계 · v1.091` learner copy
+
+### Preserved
+
+- Internal routes and feature identifiers, Theme Contract, learning data,
+  business logic, Database, CRUD, API, BYOK, Analytics, Report, and operational
+  subsystems
+
 ## v1.091 - Theme World Integration
 
 ### Added

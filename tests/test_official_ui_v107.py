@@ -45,7 +45,7 @@ class OfficialUiV107Tests(IsolatedWorldStateTestCase):
         dock = [
             item
             for item in self.app.radio
-            if item.label == "학습 세계 빠른 이동"
+            if item.label == "빠른 이동"
         ][0]
         dock.set_value("Planner").run()
         self.assertFalse(self.app.exception)
@@ -95,8 +95,21 @@ class OfficialUiV107Tests(IsolatedWorldStateTestCase):
     def test_home_copy_keeps_only_the_compact_engine_title(self):
         navigation = NAVIGATION_PATH.read_text(encoding="utf-8")
         self.assertIn("<h1>Universal Learning Engine</h1>", navigation)
+        self.assertIn('HOME_VIEW: "홈"', navigation)
+        self.assertNotIn('HOME_VIEW: "학습 세계"', navigation)
+        self.assertNotIn("학습 세계 빠른 이동", navigation)
         self.assertNotIn("하나로 이어지는 학습 생태계", navigation)
         self.assertNotIn("아홉 개의 학습 세계", navigation)
+
+    def test_v1092_restores_full_viewport_home_and_bounded_feature_glass(self):
+        styles = STYLE_PATH.read_text(encoding="utf-8")
+        theme = (ROOT / "ui" / "theme.py").read_text(encoding="utf-8")
+        self.assertIn("height: 100dvh !important", styles)
+        self.assertIn("min-height: 100dvh", styles)
+        self.assertIn("position: fixed", styles[styles.index(".st-key-ule_home_dock") :])
+        self.assertIn("max-height: min(36vh, 32rem)", styles)
+        self.assertNotIn("width:100vw!important;margin-left:calc(50% - 50vw)", theme)
+        self.assertNotIn("공식 학습 세계", theme)
 
 
 if __name__ == "__main__":

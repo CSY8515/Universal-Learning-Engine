@@ -38,7 +38,7 @@ class StreamlitV10Tests(IsolatedWorldStateTestCase):
         self.assertEqual(
             self.navigation().options,
             [
-                "학습 세계",
+                "홈",
                 "학습",
                 "회복 학습",
                 "도전 학습",

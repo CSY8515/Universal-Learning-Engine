@@ -17,7 +17,7 @@ NAVIGATION_OPTIONS = (
     "My Learning",
 )
 NAVIGATION_LABELS = {
-    HOME_VIEW: "학습 세계",
+    HOME_VIEW: "홈",
     "Learning": "학습",
     "Recovery": "회복 학습",
     "Challenge": "도전 학습",
@@ -36,7 +36,7 @@ HOME_DOCK_OPTIONS = (
     "AI",
 )
 HOME_DOCK_LABELS = {
-    HOME_VIEW: "학습 세계",
+    HOME_VIEW: "홈",
     "Learning": "학습",
     "Planner": "오늘",
     "Analytics": "리포트",
@@ -99,7 +99,7 @@ def render_navigation(st_module, theme_world="official") -> str:
 
         with st_module.container(key="ule_home_dock"):
             st_module.radio(
-                "학습 세계 빠른 이동",
+                "빠른 이동",
                 HOME_DOCK_OPTIONS,
                 format_func=lambda option: HOME_DOCK_LABELS[option],
                 horizontal=True,

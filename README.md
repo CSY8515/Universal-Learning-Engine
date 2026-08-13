@@ -1,6 +1,6 @@
-# Universal Learning Engine v1.091 Theme World Integration
+# Universal Learning Engine v1.092 Original Learning World Presentation Recovery
 
-![Version](https://img.shields.io/badge/version-v1.091-DDB55B)
+![Version](https://img.shields.io/badge/version-v1.092-DDB55B)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,7 +9,7 @@ Universal Learning Engine is a production-ready Streamlit learning application t
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository contains the **v1.091 Ultra Brain Theme World integration** on
+The repository contains the **v1.092 original Learning World presentation recovery** on
 the preserved v1.09 UI Foundation, v1.08 operational architecture, v1.07
 Official UI / UX, v1.06.1 production runtime, v1.05 end-to-end flow, v1.04 AI
 Integration & BYOK, and Expansion runtime.
@@ -192,15 +192,15 @@ data lifecycle operations, v1.06 Korean presentation and confirmed record
 cleanup, isolated persistence, navigation context transfer, integrated reports,
 user-visible safety boundaries, headless Streamlit behavior, the v1.08
 operational Database, Manager, Reporting, and Personal Secretary boundaries,
-the v1.09 Ultra Brain UI Foundation compatibility contract, and the v1.091
+the v1.09 Ultra Brain UI Foundation compatibility contract, the v1.091
 Theme World, query-contract, lock/override, feature-scene, and Korean-visible
-output boundaries.
+output boundaries, and the v1.092 full-viewport and bounded-glass regression.
 GitHub Actions runs complete compilation, branch coverage, regression checks,
 and a headless health check on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following remain outside v1.091:
+The following remain outside v1.092:
 
 - Learning Decision Engine or Weakness Score
 - Background scheduler or notifications
@@ -298,6 +298,7 @@ Universal-Learning-Engine/
 
 ## Release information
 
+- [v1.092 release notes](./RELEASE_NOTES_v1.092.md)
 - [v1.091 release notes](./RELEASE_NOTES_v1.091.md)
 - [v1.09 release notes](./RELEASE_NOTES_v1.09.md)
 - [v1.07 release notes](./RELEASE_NOTES_v1.07.md)

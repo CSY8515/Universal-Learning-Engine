@@ -251,6 +251,18 @@ def test_theme_home_and_functional_worlds_use_real_distinct_assets() -> None:
     assert WORLD_PRESENTATION["Learning"][0] == "w01"
     assert WORLD_PRESENTATION["Recovery"][0] == "w02"
     assert "background-image: var(--ule-active-theme-image)" in styles
+    assert "--ule-home-detail-image: var(--ule-background-world-map)" in styles
+    assert (
+        '.st-key-ule_world_map_navigation:has(.ule-theme-context:not([data-theme-world="official"]))'
+        in styles
+    )
+    assert "--ule-home-detail-image: linear-gradient(transparent, transparent)" in styles
+    home_detail_start = styles.index(".st-key-ule_world_map_navigation::before")
+    home_detail_block = styles[
+        home_detail_start : styles.index("\n}", home_detail_start)
+    ]
+    assert "var(--ule-home-detail-image) center / cover no-repeat" in home_detail_block
+    assert "var(--ule-background-world-map) center / cover no-repeat" not in home_detail_block
     assert "background-image: var(--ule-feature-image)" in styles
     assert "mix-blend-mode: luminosity" in styles
 

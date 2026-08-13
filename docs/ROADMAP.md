@@ -7,7 +7,7 @@
 - Features may enter development only after their requirements and acceptance criteria are approved.
 - Missing algorithms, thresholds, schemas, and UI behavior must not be invented.
 - Features assigned to later versions must not be implemented early.
-- The implemented working-tree version is v1.091; publishing
+- The implemented working-tree version is v1.092; publishing
   remains separately controlled.
 
 ## Version sequence
@@ -251,6 +251,14 @@ transport.
 - Keep internal feature ids and routing stable while using Korean display labels
 - Preserve all learner data, business logic, Database, CRUD, API, BYOK,
   Analytics, Report, Expansion, and operational architecture
+
+### v1.092 — Original Learning World Presentation Recovery
+
+- Restore the Learning World Home to the complete browser viewport
+- Keep navigation available without obscuring the World composition
+- Restore bounded feature glass surfaces after Theme propagation
+- Remove redundant learner-facing World-category copy without changing
+  internal route or feature ids
 
 ## v0.4 preparation gates — complete
 
