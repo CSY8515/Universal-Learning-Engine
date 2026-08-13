@@ -2,6 +2,25 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.095 - Original UI Recovery & Stabilization
+
+### Stabilized
+
+- Confirmed the restored official Home, orbital navigation, dedicated feature
+  backgrounds, functional panels, and bottom navigation as the immutable ULE
+  presentation baseline
+- Confirmed the default route remains isolated from inherited Theme World art
+  and retains the repository-owned Home and nine dedicated feature assets
+- Added no new Theme World, UI redesign, feature, or learning-engine behavior
+
+### Verified
+
+- Python compilation and the complete 179-test regression suite
+- Localhost HTTP 200 and browser navigation through Home, Library, Learning,
+  Recovery, Analytics, and back to Home
+- Existing learning, recovery, analytics, report, routing, and markup safety
+  contracts with no critical browser or Streamlit runtime error
+
 ## v1.094 - Home and Dedicated Background Recovery
 
 ### Fixed

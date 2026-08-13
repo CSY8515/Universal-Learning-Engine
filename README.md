@@ -1,6 +1,6 @@
-# Universal Learning Engine v1.094 Home and Background Recovery
+# Universal Learning Engine v1.095 Original UI Recovery & Stabilization
 
-![Version](https://img.shields.io/badge/version-v1.094-DDB55B)
+![Version](https://img.shields.io/badge/version-v1.095-DDB55B)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,7 +9,7 @@ Universal Learning Engine is a production-ready Streamlit learning application t
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository contains the **v1.094 Home and dedicated background recovery** on
+The repository contains the **v1.095 original UI recovery stabilization** on
 the preserved v1.09 UI Foundation, v1.08 operational architecture, v1.07
 Official UI / UX, v1.06.1 production runtime, v1.05 end-to-end flow, v1.04 AI
 Integration & BYOK, and Expansion runtime.
@@ -201,7 +201,7 @@ and a headless health check on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following remain outside v1.094:
+The following remain outside v1.095:
 
 - Learning Decision Engine or Weakness Score
 - Background scheduler or notifications
@@ -299,6 +299,7 @@ Universal-Learning-Engine/
 
 ## Release information
 
+- [v1.095 release notes](./RELEASE_NOTES_v1.095.md)
 - [v1.094 release notes](./RELEASE_NOTES_v1.094.md)
 - [v1.093 release notes](./RELEASE_NOTES_v1.093.md)
 - [v1.092 release notes](./RELEASE_NOTES_v1.092.md)
