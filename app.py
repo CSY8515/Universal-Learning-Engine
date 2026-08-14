@@ -11,7 +11,20 @@ import streamlit as st
 import adaptive
 import analytics
 import world_state
+import ui as ui_module
+import ui.theme as ui_theme_module
 from expansion import ExpansionAPI
+
+# Streamlit Cloud can reload this entrypoint while keeping the previous UI
+# module in memory. Refresh only when the Theme role-asset API required by the
+# deployed entrypoint is absent, then import the public UI surface below.
+if not hasattr(
+    getattr(ui_theme_module, "ThemeWorldDefinition", object),
+    "theme_asset_required",
+):
+    ui_theme_module = importlib.reload(ui_theme_module)
+    ui_module = importlib.reload(ui_module)
+
 from ui import (
     APPLIED_QUERY_CONTRACT_SESSION_KEY,
     HOME_VIEW,
