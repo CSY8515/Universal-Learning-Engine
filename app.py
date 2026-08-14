@@ -13,18 +13,11 @@ import analytics
 import world_state
 from expansion import ExpansionAPI
 from ui import (
-    APPLIED_QUERY_CONTRACT_SESSION_KEY,
     HOME_VIEW,
     NAVIGATION_OPTIONS,
     apply_official_theme,
-    query_adjustment_css,
-    query_contract_from_mapping,
-    resolve_applied_query_contract,
-    resolve_theme_world,
-    theme_settings_from_mapping,
     render_navigation,
     render_world_stage,
-    resolve_inherited_theme,
 )
 
 # Streamlit Cloud may hot-reload this entrypoint while retaining an older
@@ -2474,7 +2467,7 @@ def render_my_learning_world() -> None:
 def main() -> None:
     configure_logging()
     st.set_page_config(
-        page_title=f"{APP_TITLE} v1.095",
+        page_title=f"{APP_TITLE} v1.096",
         page_icon="✦",
         layout="wide",
         initial_sidebar_state="collapsed",
@@ -2483,44 +2476,12 @@ def main() -> None:
     apply_pending_difficulty_recommendation()
     apply_pending_view()
 
-    try:
-        query_params = dict(st.query_params)
-    except (AttributeError, TypeError, RuntimeError):
-        query_params = {}
-    inherited_theme = resolve_inherited_theme(query_params)
-    incoming_contract = query_contract_from_mapping(query_params)
-    inherited_blocked = bool(
-        inherited_theme
-        and {"theme", "background"}.intersection(inherited_theme.blocked_targets)
-    )
-    if inherited_blocked:
-        incoming_contract["locked_systems"] = ("universal-learning-engine",)
-    query_contract, remember_incoming = resolve_applied_query_contract(
-        incoming_contract,
-        st.session_state.get(APPLIED_QUERY_CONTRACT_SESSION_KEY),
-    )
-    if remember_incoming:
-        st.session_state[APPLIED_QUERY_CONTRACT_SESSION_KEY] = dict(query_contract)
-    if inherited_blocked or inherited_theme is None:
-        theme_settings = theme_settings_from_mapping(query_contract)
-    else:
-        theme_settings = dict(inherited_theme.settings or {})
-        # v1.095 preserves distinct Home and per-feature scene assets. The upstream
-        # contract may style their tokens but must not collapse them to one
-        # repeated background image.
-        theme_settings.pop("backgrounds", None)
-    theme_world = resolve_theme_world(query_contract)
-    inherited_effect_css = (
-        inherited_theme.effect_css
-        if inherited_theme is not None
-        else query_adjustment_css(query_contract)
-    )
-    apply_official_theme(st, theme_settings or None, inherited_effect_css)
-    selected_view = render_navigation(st, theme_world)
+    apply_official_theme(st)
+    selected_view = render_navigation(st)
     if selected_view == HOME_VIEW:
         return
 
-    slug = render_world_stage(st, selected_view, theme_world)
+    slug = render_world_stage(st, selected_view)
     with st.container(key=f"ule_world_content_{slug}"):
         if selected_view == "Learning":
             st.header("학습")

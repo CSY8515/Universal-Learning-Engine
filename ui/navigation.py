@@ -1,7 +1,5 @@
 """Session-safe navigation for the official Universal Learning World."""
 
-from html import escape
-
 
 HOME_VIEW = "World Map"
 NAVIGATION_OPTIONS = (
@@ -44,14 +42,8 @@ HOME_DOCK_LABELS = {
 }
 
 
-def render_navigation(st_module, theme_world="official") -> str:
+def render_navigation(st_module) -> str:
     """Render the orbital map or compact World dock."""
-
-    theme_id = escape(str(getattr(theme_world, "theme_id", theme_world)), quote=True)
-    source_world_id = escape(
-        str(getattr(theme_world, "source_world_id", "")), quote=True
-    )
-    revision = int(getattr(theme_world, "revision", 1))
     is_world_map = st_module.session_state.get("active_view") == HOME_VIEW
     container_key = (
         "ule_world_map_navigation"
@@ -60,14 +52,6 @@ def render_navigation(st_module, theme_world="official") -> str:
     )
 
     with st_module.container(key=container_key):
-        st_module.markdown(
-            (
-                f'<span class="ule-theme-context" data-theme-world="{theme_id}" '
-                f'data-theme-source-world="{source_world_id}" '
-                f'data-theme-revision="{revision}" hidden></span>'
-            ),
-            unsafe_allow_html=True,
-        )
         if is_world_map:
             st_module.markdown(
                 """

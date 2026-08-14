@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from functools import lru_cache
-from html import escape
 import math
 from pathlib import Path
 import re
@@ -513,7 +512,6 @@ def _official_styles() -> str:
 def apply_official_theme(
     st_module,
     theme_settings: Mapping[str, Any] | None = None,
-    inherited_effect_css: str = "",
 ) -> None:
     """Apply static official CSS plus validated Ultra Brain token overrides.
 
@@ -526,24 +524,7 @@ def apply_official_theme(
         theme_settings
     )
     st_module.markdown(
-        f"<style>{_official_styles()}\n{compatibility_css}\n{inherited_effect_css}</style>",
-        unsafe_allow_html=True,
-    )
-    st_module.markdown(
-        """
-        <style data-ultra-brain-theme-bleed="v1">
-        .ule-world-backdrop{inset:0!important;width:100vw!important;height:100vh!important}
-        body:has(.ule-world-theme--light),body:has(.ule-world-theme--paper){--ule-color-text:#3c2c20;--ule-color-muted:#765f4c;--ule-color-accent:#9b6b3d;--ule-color-gold:#9b6b3d}
-        body:has(.ule-world-theme--dark),body:has(.ule-world-theme--minimal),body:has(.ule-world-theme--archive){--ule-color-accent:#b49b78;--ule-color-gold:#b49b78}
-        body:has(.ule-world-theme--calm){--ule-color-accent:#82aaa8;--ule-color-gold:#82aaa8}
-        body:has(.ule-world-theme--universe){--ule-color-accent:#9d91e8;--ule-color-gold:#9d91e8}
-        body:has(.ule-world-theme--ecosystem){--ule-color-accent:#79b67b;--ule-color-gold:#79b67b}
-        body:has(.ule-world-theme--ocean){--ule-color-accent:#56b8cf;--ule-color-gold:#56b8cf}
-        body:has(.ule-world-theme--grassland){--ule-color-accent:#668744;--ule-color-gold:#668744}
-        body:has(.ule-world-theme--lava){--ule-color-accent:#e87943;--ule-color-gold:#e87943}
-        body:has(.ule-world-theme--galaxy){--ule-color-accent:#df86b8;--ule-color-gold:#df86b8}
-        </style>
-        """,
+        f"<style>{_official_styles()}\n{compatibility_css}</style>",
         unsafe_allow_html=True,
     )
     st_module.markdown(
@@ -562,32 +543,15 @@ def apply_official_theme(
 def render_world_stage(
     st_module,
     selected_view: str,
-    theme_world: ThemeWorldDefinition | str = "official",
 ) -> str:
-    """Render a Theme-aware Scene for one real functional World."""
+    """Render the original static scene for one real functional World."""
 
     definition = FEATURE_WORLD_DEFINITIONS[selected_view]
-    if isinstance(theme_world, ThemeWorldDefinition):
-        resolved_world = theme_world
-    else:
-        theme_id = theme_world if theme_world in THEME_WORLD_DEFINITIONS else "official"
-        asset, metaphor, material, lighting = THEME_WORLD_DEFINITIONS[theme_id]
-        resolved_world = ThemeWorldDefinition(
-            theme_id, "", 1, asset, metaphor, material, lighting
-        )
-    safe_theme = escape(resolved_world.theme_id, quote=True)
-    safe_source_world = escape(resolved_world.source_world_id, quote=True)
     st_module.markdown(
         f"""
-        <div class="ule-world-backdrop ule-world-backdrop--{definition.slug} ule-world-theme--{safe_theme}"
-             data-theme-world="{safe_theme}"
-             data-theme-source-world="{safe_source_world}"
-             data-theme-revision="{resolved_world.revision}"
+        <div class="ule-world-backdrop ule-world-backdrop--{definition.slug}"
              aria-hidden="true"></div>
-        <section class="ule-world-intro ule-world-intro--{definition.slug}"
-                 data-feature-world="{definition.slug}"
-                 aria-label="{definition.label}">
-          <span class="ule-world-intro__motif" aria-hidden="true">{definition.motif}</span>
+        <section class="ule-world-intro" aria-label="{definition.label}">
           <span class="ule-world-intro__place">{definition.place}</span>
           <h1>{definition.label}</h1>
           <p>{definition.description}</p>

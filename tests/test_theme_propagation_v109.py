@@ -402,7 +402,7 @@ class InheritedThemePropagationTests(unittest.TestCase):
         assert result is not None and result.settings is not None
         self.assertNotIn("layout", result.settings)
 
-    def test_static_css_keeps_inherited_effects_after_animation(self) -> None:
+    def test_v1096_original_ui_is_isolated_from_inherited_effects(self) -> None:
         css = (ROOT / "assets" / "ule.css").read_text(encoding="utf-8")
         propagation_source = (ROOT / "ui" / "propagation.py").read_text(
             encoding="utf-8"
@@ -414,25 +414,22 @@ class InheritedThemePropagationTests(unittest.TestCase):
         )
         self.assertIsNotNone(match)
         body = match.group("body") if match else ""
-        self.assertNotIn("filter:", body)
-        self.assertNotIn("opacity:", body)
+        self.assertIn("filter:", body)
+        self.assertIn("opacity:", body)
         self.assertNotIn("repeating-linear-gradient", propagation_source)
 
-        for selector in (
-            ".st-key-ule_world_map_navigation::before",
-            ".ule-world-backdrop",
+        for inherited in (
+            "--ule-inherited-brightness",
+            "--ule-inherited-contrast",
+            "--ule-inherited-saturation",
+            "--ule-inherited-hue",
+            "--ule-inherited-blur",
+            "--ule-inherited-opacity",
+            "--ule-inherited-center-display",
+            "--ule-inherited-seed-display",
+            "--ule-inherited-rail-display",
         ):
-            start = css.index(selector)
-            block = css[start : css.index("\n}", start)]
-            for inherited in (
-                "--ule-inherited-brightness",
-                "--ule-inherited-contrast",
-                "--ule-inherited-saturation",
-                "--ule-inherited-hue",
-                "--ule-inherited-blur",
-                "--ule-inherited-opacity",
-            ):
-                self.assertIn(inherited, block, f"{selector}: {inherited}")
+            self.assertNotIn(inherited, css)
 
         for index in range(1, 10):
             self.assertIn(f".ule-world-backdrop--w{index:02d}", css)

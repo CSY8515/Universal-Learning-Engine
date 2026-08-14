@@ -236,41 +236,24 @@ def test_ultra_brain_theme_bridge_is_bounded_and_uses_existing_ule_worlds() -> N
     assert "javascript" not in css
 
 
-def test_theme_home_and_functional_worlds_use_real_distinct_assets() -> None:
+def test_original_home_and_functional_worlds_use_real_distinct_assets() -> None:
     styles = (ROOT / "assets" / "ule.css").read_text(encoding="utf-8")
     assert (ROOT / "static" / "worlds" / "world-map.png").is_file()
     for theme_id, definition in THEME_WORLD_DEFINITIONS.items():
         asset = definition[0]
         assert (ROOT / "static" / "theme-worlds" / asset).is_file()
-        assert f"--ule-background-theme-{theme_id}" in styles
-        assert f'.ule-world-theme--{theme_id} {{ --ule-active-theme-image:' in styles
     for index in range(1, 10):
         slug = f"w{index:02d}"
-        assert f".ule-world-backdrop--{slug} {{ --ule-feature-image: var(--ule-background-{slug});" in styles
+        assert f".ule-world-backdrop--{slug} {{ background-image: var(--ule-background-{slug}); }}" in styles
         assert (ROOT / "static" / "worlds" / f"{slug}.png").is_file()
     assert WORLD_PRESENTATION["Learning"][0] == "w01"
     assert WORLD_PRESENTATION["Recovery"][0] == "w02"
-    assert "background-image: var(--ule-active-theme-image)" in styles
-    assert "--ule-home-detail-image: var(--ule-background-world-map)" in styles
-    assert (
-        '.st-key-ule_world_map_navigation:has(.ule-theme-context:not([data-theme-world="official"]))'
-        in styles
-    )
-    assert "--ule-home-detail-image: linear-gradient(transparent, transparent)" in styles
-    home_detail_start = styles.index(".st-key-ule_world_map_navigation::before")
-    home_detail_block = styles[
-        home_detail_start : styles.index("\n}", home_detail_start)
-    ]
-    assert "var(--ule-home-detail-image) center / cover no-repeat" in home_detail_block
-    assert "var(--ule-background-world-map) center / cover no-repeat" not in home_detail_block
-    assert "background-image: var(--ule-feature-image)" in styles
-    feature_art_start = styles.index(".ule-world-backdrop::before")
-    feature_art_block = styles[
-        feature_art_start : styles.index("\n}", feature_art_start)
-    ]
-    assert "opacity: 1" in feature_art_block
-    assert "mix-blend-mode: normal" in feature_art_block
-    assert "filter: none" in feature_art_block
+    assert "var(--ule-background-world-map) center / cover no-repeat" in styles
+    assert "--ule-active-theme-image" not in styles
+    assert "--ule-home-detail-image" not in styles
+    assert "--ule-feature-image" not in styles
+    assert ".ule-theme-context" not in styles
+    assert ".ule-world-backdrop::before" not in styles
 
 
 def test_theme_world_definition_preserves_source_world_and_revision() -> None:
@@ -297,7 +280,7 @@ def test_theme_world_definition_preserves_source_world_and_revision() -> None:
     assert galaxy.metaphor != ocean.metaphor
 
 
-def test_representative_features_render_distinct_scenes_in_the_same_theme() -> None:
+def test_representative_features_render_distinct_original_scenes() -> None:
     calls: list[str] = []
 
     class FakeStreamlit:
@@ -306,28 +289,20 @@ def test_representative_features_render_distinct_scenes_in_the_same_theme() -> N
             assert unsafe_allow_html is True
             calls.append(value)
 
-    theme_world = resolve_theme_world(
-        {
-            "source": "ultra-brain",
-            "theme": "ocean",
-            "world": "deep-tide-world",
-            "revision": "4",
-        }
-    )
     slugs = [
-        render_world_stage(FakeStreamlit, feature, theme_world)
+        render_world_stage(FakeStreamlit, feature)
         for feature in ("Learning", "Recovery", "Analytics")
     ]
     assert slugs == ["w01", "w02", "w04"]
     assert len(set(slugs)) == 3
-    assert all('data-theme-world="ocean"' in markup for markup in calls)
-    assert all('data-theme-source-world="deep-tide-world"' in markup for markup in calls)
-    assert all('data-theme-revision="4"' in markup for markup in calls)
+    assert all("data-theme-world" not in markup for markup in calls)
+    assert all("data-theme-source-world" not in markup for markup in calls)
+    assert all("data-theme-revision" not in markup for markup in calls)
     for feature, markup in zip(("Learning", "Recovery", "Analytics"), calls):
         definition = FEATURE_WORLD_DEFINITIONS[feature]
         assert f'ule-world-backdrop--{definition.slug}' in markup
-        assert f'data-feature-world="{definition.slug}"' in markup
-        assert definition.motif in markup
+        assert f'aria-label="{definition.label}"' in markup
+        assert "ule-world-intro__motif" not in markup
 
 
 def test_ule_lock_or_override_keeps_previous_applied_presentation() -> None:
@@ -420,8 +395,8 @@ class UICompatibilityAutomaticTest(unittest.TestCase):
         test_all_adapter_variables_are_declared_and_consumed_by_repository_css()
         test_every_module_resolves_to_a_registered_background_contract()
         test_theme_loader_keeps_static_css_and_appends_validated_overrides()
-        test_theme_home_and_functional_worlds_use_real_distinct_assets()
+        test_original_home_and_functional_worlds_use_real_distinct_assets()
         test_theme_world_definition_preserves_source_world_and_revision()
-        test_representative_features_render_distinct_scenes_in_the_same_theme()
+        test_representative_features_render_distinct_original_scenes()
         test_ule_lock_or_override_keeps_previous_applied_presentation()
         test_theme_adapter_has_no_learner_or_runtime_state_dependency()

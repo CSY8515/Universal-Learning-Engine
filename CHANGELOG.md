@@ -2,6 +2,36 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.096 - Original UI Recovery Patch
+
+### Recovered
+
+- Restored the pre-Theme Home renderer and its repository-owned orbital World
+  map without Theme World scene replacement or floating icon overlays
+- Restored direct feature-specific backgrounds for Learning, Recovery,
+  Analytics, Library, and the remaining functional Worlds
+- Restored the original functional layout, navigation markup, animation, and
+  background composition while retaining the approved viewport-fit Home scale
+- Aligned the AI connection and subject-management presentation with the
+  existing Analytics/Management split layout: left functional content, right
+  repository-owned `w08` visual, and the shared bottom navigation
+
+### Preserved
+
+- Learning Engine behavior, data, routing, CRUD, Database, BYOK, Analytics,
+  reports, and all existing user functions
+- The later approved `홈` label and compact navigation structure
+- General UI Foundation contracts and unused Theme assets without reconnecting
+  them to the official ULE renderer
+
+### Verified
+
+- Python compilation and the complete automated regression suite
+- Localhost HTTP 200 and browser navigation through Home, Learning, Recovery,
+  Analytics, Library, and back to Home
+- No Theme context markup, developer output, or critical runtime error in the
+  reviewed user screens
+
 ## v1.095 - Original UI Recovery & Stabilization
 
 ### Stabilized
