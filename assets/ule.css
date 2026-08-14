@@ -108,6 +108,7 @@
   --ule-background-theme-archive: url("./app/static/theme-worlds/theme-archive.png");
   --ule-active-theme-image: var(--ule-background-theme-official);
   --ule-home-detail-image: var(--ule-background-world-map);
+  --ule-home-detail-size: cover;
   --ule-feature-image: var(--ule-background-w01);
   --ule-inherited-brightness: 1;
   --ule-inherited-contrast: 1;
@@ -278,7 +279,7 @@ label,
     var(--ule-inherited-lighting),
     linear-gradient(180deg, rgba(0, 4, 9, 0.1), transparent 13%, transparent 82%, rgba(0, 4, 9, 0.2)),
     radial-gradient(circle at 50% 52%, transparent 44%, rgba(0, 5, 12, 0.08) 84%),
-    var(--ule-home-detail-image) center / cover no-repeat;
+    var(--ule-home-detail-image) center / var(--ule-home-detail-size) no-repeat;
   opacity: var(--ule-inherited-opacity);
   filter:
     brightness(var(--ule-inherited-brightness))
@@ -651,24 +652,39 @@ label,
 /* v1.091 Theme World hub. The received Theme selects a real repository-owned
    World asset; feature identity is then drawn as nine deliberately different
    instruments instead of cropped copies of one parent image. */
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="official"]) { --ule-active-theme-image: var(--ule-background-theme-official); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="light"]) { --ule-active-theme-image: var(--ule-background-theme-light); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="dark"]) { --ule-active-theme-image: var(--ule-background-theme-dark); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="calm"]) { --ule-active-theme-image: var(--ule-background-theme-calm); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="universe"]) { --ule-active-theme-image: var(--ule-background-theme-universe); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="ecosystem"]) { --ule-active-theme-image: var(--ule-background-theme-ecosystem); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="ocean"]) { --ule-active-theme-image: var(--ule-background-theme-ocean); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="grassland"]) { --ule-active-theme-image: var(--ule-background-theme-grassland); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="lava"]) { --ule-active-theme-image: var(--ule-background-theme-lava); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="galaxy"]) { --ule-active-theme-image: var(--ule-background-theme-galaxy); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="minimal"]) { --ule-active-theme-image: var(--ule-background-theme-minimal); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="paper"]) { --ule-active-theme-image: var(--ule-background-theme-paper); }
-.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="archive"]) { --ule-active-theme-image: var(--ule-background-theme-archive); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="official"]) { --ule-active-theme-image: var(--ule-background-theme-official); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="light"]) { --ule-active-theme-image: var(--ule-background-theme-light); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="dark"]) { --ule-active-theme-image: var(--ule-background-theme-dark); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="calm"]) { --ule-active-theme-image: var(--ule-background-theme-calm); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="universe"]) { --ule-active-theme-image: var(--ule-background-theme-universe); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="ecosystem"]) { --ule-active-theme-image: var(--ule-background-theme-ecosystem); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="ocean"]) { --ule-active-theme-image: var(--ule-background-theme-ocean); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="grassland"]) { --ule-active-theme-image: var(--ule-background-theme-grassland); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="lava"]) { --ule-active-theme-image: var(--ule-background-theme-lava); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="galaxy"]) { --ule-active-theme-image: var(--ule-background-theme-galaxy); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="minimal"]) { --ule-active-theme-image: var(--ule-background-theme-minimal); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="paper"]) { --ule-active-theme-image: var(--ule-background-theme-paper); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-visual="archive"]) { --ule-active-theme-image: var(--ule-background-theme-archive); }
 
 /* The official hub keeps its detailed World map. Other approved Themes expose
    their own Home concept art instead of being covered by the Official map. */
-.st-key-ule_world_map_navigation:has(.ule-theme-context:not([data-theme-world="official"])) {
+.st-key-ule_world_map_navigation:has(.ule-theme-context:not([data-theme-visual="official"])) {
   --ule-home-detail-image: linear-gradient(transparent, transparent);
+}
+
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-role-assets="true"]) [role="radiogroup"] > label::before {
+  border: 0;
+  background: var(--ule-navigation-skin) center / contain no-repeat;
+  opacity: 0.92;
+  transform: none;
+}
+
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-role-assets="true"]) [role="radiogroup"] > label:hover::before,
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-role-assets="true"]) [role="radiogroup"] > label:has(input:focus-visible)::before {
+  border: 0;
+  box-shadow: none;
+  opacity: 1;
+  transform: scale(1.06);
 }
 
 .st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label > div:first-child {

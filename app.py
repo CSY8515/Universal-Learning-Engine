@@ -2518,7 +2518,12 @@ def main() -> None:
     )
     if remember_incoming:
         st.session_state[APPLIED_QUERY_CONTRACT_SESSION_KEY] = dict(query_contract)
-    if inherited_blocked or inherited_theme is None:
+    theme_world = resolve_theme_world(query_contract)
+    if theme_world.theme_asset_required:
+        # Parent Theme art is not a ULE Home/Feature skin. Keep the requested
+        # contract metadata but preserve the original readable presentation.
+        theme_settings = None
+    elif inherited_blocked or inherited_theme is None:
         theme_settings = theme_settings_from_mapping(query_contract)
     else:
         theme_settings = dict(inherited_theme.settings or {})
@@ -2526,8 +2531,7 @@ def main() -> None:
         # contract may style their tokens but must not collapse them to one
         # repeated background image.
         theme_settings.pop("backgrounds", None)
-    theme_world = resolve_theme_world(query_contract)
-    inherited_effect_css = (
+    inherited_effect_css = "" if theme_world.theme_asset_required else (
         inherited_theme.effect_css
         if inherited_theme is not None
         else query_adjustment_css(query_contract)

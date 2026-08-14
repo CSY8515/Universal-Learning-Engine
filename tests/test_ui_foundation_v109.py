@@ -253,7 +253,7 @@ def test_theme_home_and_functional_worlds_use_real_distinct_assets() -> None:
     assert "background-image: var(--ule-active-theme-image)" in styles
     assert "--ule-home-detail-image: var(--ule-background-world-map)" in styles
     assert (
-        '.st-key-ule_world_map_navigation:has(.ule-theme-context:not([data-theme-world="official"]))'
+        '.st-key-ule_world_map_navigation:has(.ule-theme-context:not([data-theme-visual="official"]))'
         in styles
     )
     assert "--ule-home-detail-image: linear-gradient(transparent, transparent)" in styles
@@ -261,7 +261,7 @@ def test_theme_home_and_functional_worlds_use_real_distinct_assets() -> None:
     home_detail_block = styles[
         home_detail_start : styles.index("\n}", home_detail_start)
     ]
-    assert "var(--ule-home-detail-image) center / cover no-repeat" in home_detail_block
+    assert "var(--ule-home-detail-image) center / var(--ule-home-detail-size) no-repeat" in home_detail_block
     assert "var(--ule-background-world-map) center / cover no-repeat" not in home_detail_block
     assert "background-image: var(--ule-feature-image)" in styles
     feature_art_start = styles.index(".ule-world-backdrop::before")
@@ -293,7 +293,10 @@ def test_theme_world_definition_preserves_source_world_and_revision() -> None:
     assert galaxy.theme_id == "galaxy"
     assert galaxy.source_world_id == "rose-nebula-world"
     assert galaxy.revision == 7
-    assert galaxy.home_asset != ocean.home_asset
+    assert galaxy.home_asset == ocean.home_asset == THEME_WORLD_DEFINITIONS["official"][0]
+    assert galaxy.visual_theme_id == ocean.visual_theme_id == "official"
+    assert galaxy.asset_state == ocean.asset_state == "fallback-used"
+    assert galaxy.theme_asset_required and ocean.theme_asset_required
     assert galaxy.metaphor != ocean.metaphor
 
 
@@ -321,6 +324,9 @@ def test_representative_features_render_distinct_scenes_in_the_same_theme() -> N
     assert slugs == ["w01", "w02", "w04"]
     assert len(set(slugs)) == 3
     assert all('data-theme-world="ocean"' in markup for markup in calls)
+    assert all('data-theme-visual="official"' in markup for markup in calls)
+    assert all('data-theme-asset-state="fallback-used"' in markup for markup in calls)
+    assert all('data-theme-asset-required="true"' in markup for markup in calls)
     assert all('data-theme-source-world="deep-tide-world"' in markup for markup in calls)
     assert all('data-theme-revision="4"' in markup for markup in calls)
     for feature, markup in zip(("Learning", "Recovery", "Analytics"), calls):

@@ -11,6 +11,7 @@ from .interface import get_ui_compatibility_layer
 
 
 _STYLE_PATH = Path(__file__).resolve().parent.parent / "assets" / "ule.css"
+_STATIC_ROOT = _STYLE_PATH.parent.parent / "static"
 
 
 @dataclass(frozen=True)
@@ -36,6 +37,12 @@ class ThemeWorldDefinition:
     metaphor: str
     material: str
     lighting: str
+    visual_theme_id: str = "official"
+    asset_state: str = "official"
+    theme_asset_required: bool = False
+    role_asset_revision: int = 0
+    central_asset: str = ""
+    navigation_skin_asset: str = ""
 
 
 FEATURE_WORLD_DEFINITIONS = {
@@ -203,6 +210,14 @@ _SAFE_THEME_ID = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 _SAFE_WORLD_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
 _CONTRACT_ID = "ultra-brain.ui/v1"
 _INTERFACE_VERSION = "1.0"
+_ROLE_ASSET_REGISTRY = "ui-theme-registry"
+_ROLE_ASSET_REGISTRY_VERSION = "1.0.0"
+_VISUAL_ROLES = frozenset(
+    {
+        "HOME_BACKGROUND", "CENTRAL_WORLD", "NAVIGATION_OBJECT_SKIN",
+        "FEATURE_BACKGROUND", "DECORATIVE_VISUAL",
+    }
+)
 _TARGETS = frozenset(
     {
         "ultra-brain",
@@ -274,7 +289,35 @@ _ADJUSTMENT_LIMITS = {
 }
 APPLIED_QUERY_CONTRACT_SESSION_KEY = "ule_applied_query_contract_v1"
 _SELF_SYSTEM_ID = "universal-learning-engine"
-_APPLIED_PRESENTATION_KEYS = ("theme", "world", "revision", *_ADJUSTMENT_LIMITS)
+_APPROVED_ROLE_ASSETS = {
+    ("dark", _SELF_SYSTEM_ID, None, "HOME_BACKGROUND"): (
+        2,
+        "theme-role-assets/dark/home-background.png",
+    ),
+    ("dark", _SELF_SYSTEM_ID, None, "CENTRAL_WORLD"): (
+        2,
+        "theme-role-assets/dark/central-world.png",
+    ),
+    ("dark", _SELF_SYSTEM_ID, None, "NAVIGATION_OBJECT_SKIN"): (
+        2,
+        "theme-role-assets/dark/navigation-object-skin.png",
+    ),
+    ("dark", _SELF_SYSTEM_ID, "planner", "FEATURE_BACKGROUND"): (
+        2,
+        "theme-role-assets/dark/learning-plan-background.png",
+    ),
+    ("dark", _SELF_SYSTEM_ID, "analytics", "FEATURE_BACKGROUND"): (
+        2,
+        "theme-role-assets/dark/analytics-background.png",
+    ),
+}
+_ROLE_CONTEXT_KEYS = (
+    "asset_registry", "asset_registry_version", "project_id", "feature_id",
+    "visual_role", "asset_revision",
+)
+_APPLIED_PRESENTATION_KEYS = (
+    "theme", "world", "revision", *_ADJUSTMENT_LIMITS, *_ROLE_CONTEXT_KEYS,
+)
 
 
 def _query_scalar(value: Any) -> str:
@@ -384,6 +427,38 @@ def query_contract_from_mapping(
         "locked_systems": _safe_system_csv(values.get("locked_systems")),
         "overridden_systems": _safe_system_csv(values.get("overridden_systems")),
     }
+    if (
+        _query_scalar(values.get("asset_registry")) == _ROLE_ASSET_REGISTRY
+        and _query_scalar(values.get("asset_registry_version")) == _ROLE_ASSET_REGISTRY_VERSION
+    ):
+        project_id = _SYSTEM_ALIASES.get(
+            _query_scalar(values.get("project_id")).lower()
+        )
+        feature_id = _query_scalar(values.get("feature_id")).lower()
+        visual_role = _query_scalar(values.get("visual_role")).upper()
+        if feature_id and not _SAFE_WORLD_ID.fullmatch(feature_id):
+            feature_id = ""
+        if project_id == _SELF_SYSTEM_ID and visual_role in _VISUAL_ROLES:
+            try:
+                asset_revision = max(
+                    1,
+                    min(
+                        2_147_483_647,
+                        int(_query_scalar(values.get("asset_revision")) or "1"),
+                    ),
+                )
+            except ValueError:
+                asset_revision = 1
+            normalized.update(
+                {
+                    "asset_registry": _ROLE_ASSET_REGISTRY,
+                    "asset_registry_version": _ROLE_ASSET_REGISTRY_VERSION,
+                    "project_id": project_id,
+                    "feature_id": feature_id,
+                    "visual_role": visual_role,
+                    "asset_revision": asset_revision,
+                }
+            )
     for name in _ADJUSTMENT_LIMITS:
         number = _bounded_adjustment(values, name)
         if number is not None:
@@ -445,6 +520,59 @@ def theme_settings_from_mapping(params: Mapping[str, Any] | None) -> dict[str, A
     return settings
 
 
+def resolve_role_asset_reference(
+    contract: Mapping[str, Any] | None,
+    visual_role: str,
+    feature_id: str | None = None,
+) -> tuple[str | None, str, str]:
+    """Resolve only ULE-owned approved role assets, otherwise fail closed."""
+
+    normalized = query_contract_from_mapping(contract)
+    safe_role = str(visual_role).strip().upper()
+    safe_feature = str(feature_id or "").strip().lower()
+    context_matches = (
+        normalized.get("asset_registry") == _ROLE_ASSET_REGISTRY
+        and normalized.get("project_id") == _SELF_SYSTEM_ID
+        and normalized.get("visual_role") == safe_role
+        and normalized.get("feature_id", "") == safe_feature
+    )
+    theme_id = str(normalized.get("theme", "official"))
+    if (
+        theme_id == "official"
+        and safe_role == "HOME_BACKGROUND"
+        and not safe_feature
+    ):
+        return THEME_WORLD_DEFINITIONS["official"][0], "official-default", "NONE"
+    if context_matches:
+        registered = _approved_role_asset(
+            theme_id,
+            safe_role,
+            safe_feature or None,
+            int(normalized.get("asset_revision", 0)),
+        )
+        if registered:
+            source = "theme-project-feature-role" if safe_feature else "theme-project-role"
+            return registered, source, "NONE"
+    return None, "missing-role-asset", "ASSET REQUIRED"
+
+
+def _approved_role_asset(
+    theme_id: str,
+    visual_role: str,
+    feature_id: str | None,
+    asset_revision: int,
+) -> str | None:
+    """Return one verified ULE-owned role asset without changing resolution rules."""
+
+    registered = _APPROVED_ROLE_ASSETS.get(
+        (theme_id, _SELF_SYSTEM_ID, feature_id, visual_role)
+    )
+    if not registered or registered[0] > asset_revision:
+        return None
+    reference = registered[1]
+    return reference if (_STATIC_ROOT / reference).is_file() else None
+
+
 def resolve_theme_world(
     contract: Mapping[str, Any] | None,
 ) -> ThemeWorldDefinition:
@@ -454,15 +582,40 @@ def resolve_theme_world(
     theme_id = str(normalized.get("theme", "official"))
     if theme_id not in THEME_WORLD_DEFINITIONS:
         theme_id = "official"
-    asset, metaphor, material, lighting = THEME_WORLD_DEFINITIONS[theme_id]
+    requested_asset, metaphor, material, lighting = THEME_WORLD_DEFINITIONS[theme_id]
+    resolved_asset, source, _fallback = resolve_role_asset_reference(
+        normalized, "HOME_BACKGROUND"
+    )
+    resolved_theme_asset = theme_id == "official" or resolved_asset is not None
+    visual_theme_id = theme_id if resolved_theme_asset else "official"
+    visual_asset = resolved_asset or THEME_WORLD_DEFINITIONS[visual_theme_id][0]
+    asset_state = "official" if theme_id == "official" else (
+        source if resolved_asset is not None else "fallback-used"
+    )
+    role_asset_revision = int(normalized.get("asset_revision", 0))
+    central_asset = ""
+    navigation_skin_asset = ""
+    if resolved_asset is not None and theme_id != "official":
+        central_asset = _approved_role_asset(
+            theme_id, "CENTRAL_WORLD", None, role_asset_revision
+        ) or ""
+        navigation_skin_asset = _approved_role_asset(
+            theme_id, "NAVIGATION_OBJECT_SKIN", None, role_asset_revision
+        ) or ""
     return ThemeWorldDefinition(
         theme_id=theme_id,
         source_world_id=str(normalized.get("world", "")),
         revision=int(normalized.get("revision", 1)),
-        home_asset=asset,
+        home_asset=visual_asset,
         metaphor=metaphor,
         material=material,
         lighting=lighting,
+        visual_theme_id=visual_theme_id,
+        asset_state=asset_state,
+        theme_asset_required=theme_id != "official" and resolved_asset is None,
+        role_asset_revision=role_asset_revision,
+        central_asset=central_asset,
+        navigation_skin_asset=navigation_skin_asset,
     )
 
 
@@ -571,18 +724,50 @@ def render_world_stage(
         resolved_world = theme_world
     else:
         theme_id = theme_world if theme_world in THEME_WORLD_DEFINITIONS else "official"
-        asset, metaphor, material, lighting = THEME_WORLD_DEFINITIONS[theme_id]
+        _requested_asset, metaphor, material, lighting = THEME_WORLD_DEFINITIONS[theme_id]
+        visual_theme_id = theme_id if theme_id == "official" else "official"
+        asset = THEME_WORLD_DEFINITIONS[visual_theme_id][0]
         resolved_world = ThemeWorldDefinition(
-            theme_id, "", 1, asset, metaphor, material, lighting
+            theme_id,
+            "",
+            1,
+            asset,
+            metaphor,
+            material,
+            lighting,
+            visual_theme_id,
+            "official" if theme_id == "official" else "fallback-used",
+            theme_id != "official",
         )
     safe_theme = escape(resolved_world.theme_id, quote=True)
+    safe_visual_theme = escape(resolved_world.visual_theme_id, quote=True)
+    safe_asset_state = escape(resolved_world.asset_state, quote=True)
     safe_source_world = escape(resolved_world.source_world_id, quote=True)
+    feature_asset = ""
+    if (
+        resolved_world.asset_state == "theme-project-role"
+        and resolved_world.role_asset_revision > 0
+    ):
+        feature_asset = _approved_role_asset(
+            resolved_world.theme_id,
+            "FEATURE_BACKGROUND",
+            definition.view.lower(),
+            resolved_world.role_asset_revision,
+        ) or ""
+    feature_asset_style = ""
+    if feature_asset:
+        feature_asset_url = escape(f"./app/static/{feature_asset}", quote=True)
+        feature_asset_style = f' style="--ule-feature-image:url(\'{feature_asset_url}\');"'
     st_module.markdown(
         f"""
-        <div class="ule-world-backdrop ule-world-backdrop--{definition.slug} ule-world-theme--{safe_theme}"
+        <div class="ule-world-backdrop ule-world-backdrop--{definition.slug} ule-world-theme--{safe_visual_theme}"
              data-theme-world="{safe_theme}"
+             data-theme-visual="{safe_visual_theme}"
+             data-theme-asset-state="{safe_asset_state}"
+             data-theme-asset-required="{str(resolved_world.theme_asset_required).lower()}"
              data-theme-source-world="{safe_source_world}"
              data-theme-revision="{resolved_world.revision}"
+             data-feature-role-asset="{str(bool(feature_asset)).lower()}"{feature_asset_style}
              aria-hidden="true"></div>
         <section class="ule-world-intro ule-world-intro--{definition.slug}"
                  data-feature-world="{definition.slug}"

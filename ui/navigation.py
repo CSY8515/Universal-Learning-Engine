@@ -52,6 +52,26 @@ def render_navigation(st_module, theme_world="official") -> str:
         str(getattr(theme_world, "source_world_id", "")), quote=True
     )
     revision = int(getattr(theme_world, "revision", 1))
+    visual_theme_id = escape(
+        str(getattr(theme_world, "visual_theme_id", theme_id)), quote=True
+    )
+    asset_state = escape(
+        str(getattr(theme_world, "asset_state", "official")), quote=True
+    )
+    asset_required = str(
+        bool(getattr(theme_world, "theme_asset_required", False))
+    ).lower()
+    home_asset = str(getattr(theme_world, "home_asset", ""))
+    central_asset = str(getattr(theme_world, "central_asset", ""))
+    navigation_skin_asset = str(
+        getattr(theme_world, "navigation_skin_asset", "")
+    )
+    role_assets_active = (
+        asset_state == "theme-project-role"
+        and bool(home_asset)
+        and bool(central_asset)
+        and bool(navigation_skin_asset)
+    )
     is_world_map = st_module.session_state.get("active_view") == HOME_VIEW
     container_key = (
         "ule_world_map_navigation"
@@ -60,9 +80,30 @@ def render_navigation(st_module, theme_world="official") -> str:
     )
 
     with st_module.container(key=container_key):
+        role_asset_style = ""
+        if is_world_map and role_assets_active:
+            home_url = escape(f"./app/static/{home_asset}", quote=True)
+            central_url = escape(f"./app/static/{central_asset}", quote=True)
+            navigation_url = escape(
+                f"./app/static/{navigation_skin_asset}", quote=True
+            )
+            role_asset_style = (
+                '<style data-ule-role-assets="true">'
+                '.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-role-assets="true"]){'
+                f"--ule-active-theme-image:url('{home_url}');"
+                f"--ule-home-detail-image:url('{central_url}');"
+                "--ule-home-detail-size:contain;"
+                f"--ule-navigation-skin:url('{navigation_url}');"
+                '}</style>'
+            )
         st_module.markdown(
             (
-                f'<span class="ule-theme-context" data-theme-world="{theme_id}" '
+                role_asset_style
+                + f'<span class="ule-theme-context" data-theme-world="{theme_id}" '
+                f'data-theme-visual="{visual_theme_id}" '
+                f'data-theme-asset-state="{asset_state}" '
+                f'data-theme-asset-required="{asset_required}" '
+                f'data-theme-role-assets="{str(role_assets_active).lower()}" '
                 f'data-theme-source-world="{source_world_id}" '
                 f'data-theme-revision="{revision}" hidden></span>'
             ),
