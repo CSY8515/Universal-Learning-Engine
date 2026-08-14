@@ -22,9 +22,11 @@ class V1096LayoutTests(IsolatedWorldStateTestCase):
         self.assertIn("margin: 1.4rem 0 4rem", content_block)
 
         self.assertIn(
-            ".ule-world-backdrop--w08 { background-image: var(--ule-background-w08); }",
+            ".ule-world-backdrop--w08 { --ule-feature-image: var(--ule-background-w08);",
             styles,
         )
+        self.assertIn(".ule-world-backdrop::before {", styles)
+        self.assertIn("background-image: var(--ule-feature-image)", styles)
         navigation_section = styles.index(
             "/* Compact navigation remains available in every World. */"
         )

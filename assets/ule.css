@@ -90,6 +90,43 @@
   --ule-background-w07: url("./app/static/worlds/w07.png");
   --ule-background-w08: url("./app/static/worlds/w08.png");
   --ule-background-w09: url("./app/static/worlds/w09.png");
+  /* Theme-package candidates are retained for compatibility only. A single
+     theme image is not a feature-specific ULE World and must not replace the
+     repository-owned w01-w09 art below. */
+  --ule-background-theme-official: url("./app/static/theme-worlds/theme-official.png");
+  --ule-background-theme-light: url("./app/static/theme-worlds/theme-light.png");
+  --ule-background-theme-dark: url("./app/static/theme-worlds/theme-dark.png");
+  --ule-background-theme-calm: url("./app/static/theme-worlds/theme-calm.png");
+  --ule-background-theme-universe: url("./app/static/theme-worlds/theme-universe.png");
+  --ule-background-theme-ecosystem: url("./app/static/theme-worlds/theme-ecosystem.png");
+  --ule-background-theme-ocean: url("./app/static/theme-worlds/theme-ocean.png");
+  --ule-background-theme-grassland: url("./app/static/theme-worlds/theme-grassland.png");
+  --ule-background-theme-lava: url("./app/static/theme-worlds/theme-lava.png");
+  --ule-background-theme-galaxy: url("./app/static/theme-worlds/theme-galaxy.png");
+  --ule-background-theme-minimal: url("./app/static/theme-worlds/theme-minimal.png");
+  --ule-background-theme-paper: url("./app/static/theme-worlds/theme-paper.png");
+  --ule-background-theme-archive: url("./app/static/theme-worlds/theme-archive.png");
+  --ule-active-theme-image: var(--ule-background-theme-official);
+  --ule-home-detail-image: var(--ule-background-world-map);
+  --ule-feature-image: var(--ule-background-w01);
+  --ule-inherited-brightness: 1;
+  --ule-inherited-contrast: 1;
+  --ule-inherited-saturation: 1;
+  --ule-inherited-hue: 0deg;
+  --ule-inherited-blur: 0px;
+  --ule-inherited-opacity: 1;
+  --ule-inherited-lighting: linear-gradient(transparent, transparent);
+  --ule-inherited-texture: linear-gradient(transparent, transparent);
+  --ule-inherited-content-shadow: var(--ule-shadow);
+  --ule-inherited-content-glow: 0 0 0 transparent;
+  --ule-inherited-topbar-transform: translate(0px, 0px) scale(1);
+  --ule-inherited-center-transform: translate(0px, 0px) scale(1);
+  --ule-inherited-seed-transform: translate(0px, 0px) scale(1);
+  --ule-inherited-rail-transform: translate(0px, 0px) scale(1);
+  --ule-inherited-topbar-display: flex;
+  --ule-inherited-center-display: block;
+  --ule-inherited-seed-display: block;
+  --ule-inherited-rail-display: block;
   --ule-night: var(--ule-color-background);
   --ule-navy: var(--ule-color-background-alt);
   --ule-glass: var(--ule-color-surface);
@@ -153,10 +190,11 @@ body,
   top: 1.35rem;
   left: max(1.6rem, calc((100vw - 1600px) / 2 + 1.5rem));
   z-index: 1002;
-  display: flex;
+  display: var(--ule-inherited-topbar-display);
   align-items: center;
   gap: 0.75rem;
   pointer-events: none;
+  transform: var(--ule-inherited-topbar-transform);
   filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.75));
 }
 
@@ -216,13 +254,13 @@ label,
   min-height: 0;
   aspect-ratio: 16 / 9;
   margin: 0 auto;
-  display: block;
+  display: var(--ule-inherited-center-display);
   overflow: hidden;
   border: 1px solid var(--ule-scene-border);
   border-radius: var(--ule-scene-radius);
   background:
     linear-gradient(180deg, rgba(1, 5, 9, 0.08), rgba(1, 5, 9, 0.18)),
-    var(--ule-background-world-map) center / cover no-repeat;
+    var(--ule-active-theme-image) center / cover no-repeat;
   box-shadow:
     var(--ule-shadow),
     inset 0 0 100px rgba(0, 0, 0, 0.24);
@@ -236,8 +274,18 @@ label,
   z-index: 0;
   pointer-events: none;
   background:
+    var(--ule-inherited-texture),
+    var(--ule-inherited-lighting),
     linear-gradient(180deg, rgba(0, 4, 9, 0.1), transparent 13%, transparent 82%, rgba(0, 4, 9, 0.2)),
-    radial-gradient(circle at 50% 52%, transparent 44%, rgba(0, 5, 12, 0.08) 84%);
+    radial-gradient(circle at 50% 52%, transparent 44%, rgba(0, 5, 12, 0.08) 84%),
+    var(--ule-home-detail-image) center / cover no-repeat;
+  opacity: var(--ule-inherited-opacity);
+  filter:
+    brightness(var(--ule-inherited-brightness))
+    contrast(var(--ule-inherited-contrast))
+    saturate(var(--ule-inherited-saturation))
+    hue-rotate(var(--ule-inherited-hue))
+    blur(var(--ule-inherited-blur));
 }
 
 .st-key-ule_world_map_navigation > div,
@@ -600,10 +648,91 @@ label,
   outline-offset: 5px;
 }
 
+/* v1.091 Theme World hub. The received Theme selects a real repository-owned
+   World asset; feature identity is then drawn as nine deliberately different
+   instruments instead of cropped copies of one parent image. */
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="official"]) { --ule-active-theme-image: var(--ule-background-theme-official); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="light"]) { --ule-active-theme-image: var(--ule-background-theme-light); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="dark"]) { --ule-active-theme-image: var(--ule-background-theme-dark); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="calm"]) { --ule-active-theme-image: var(--ule-background-theme-calm); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="universe"]) { --ule-active-theme-image: var(--ule-background-theme-universe); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="ecosystem"]) { --ule-active-theme-image: var(--ule-background-theme-ecosystem); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="ocean"]) { --ule-active-theme-image: var(--ule-background-theme-ocean); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="grassland"]) { --ule-active-theme-image: var(--ule-background-theme-grassland); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="lava"]) { --ule-active-theme-image: var(--ule-background-theme-lava); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="galaxy"]) { --ule-active-theme-image: var(--ule-background-theme-galaxy); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="minimal"]) { --ule-active-theme-image: var(--ule-background-theme-minimal); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="paper"]) { --ule-active-theme-image: var(--ule-background-theme-paper); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context[data-theme-world="archive"]) { --ule-active-theme-image: var(--ule-background-theme-archive); }
+
+/* The official hub keeps its detailed World map. Other approved Themes expose
+   their own Home concept art instead of being covered by the Official map. */
+.st-key-ule_world_map_navigation:has(.ule-theme-context:not([data-theme-world="official"])) {
+  --ule-home-detail-image: linear-gradient(transparent, transparent);
+}
+
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label > div:first-child {
+  opacity: 0;
+  background: none;
+}
+
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label::after {
+  top: 5%;
+  left: 50%;
+  right: auto;
+  display: grid;
+  width: clamp(2.35rem, 3.7vw, 4.2rem);
+  height: clamp(2.35rem, 3.7vw, 4.2rem);
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ule-color-accent) 68%, var(--ule-gold));
+  clip-path: none;
+  color: var(--ule-text);
+  opacity: 0.9;
+  background:
+    radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--ule-color-accent) 30%, transparent), transparent 66%),
+    color-mix(in srgb, var(--ule-color-surface-strong) 82%, transparent);
+  box-shadow:
+    inset 0 0 16px color-mix(in srgb, var(--ule-color-accent) 20%, transparent),
+    0 0 14px color-mix(in srgb, var(--ule-color-accent) 28%, transparent);
+  font-family: var(--ule-icon-family);
+  font-size: clamp(1.05rem, 1.65vw, 1.8rem);
+  line-height: 1;
+  mix-blend-mode: normal;
+  filter: none;
+  transform: translateX(-50%);
+}
+
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(2)::after { content: "✎"; border-radius: 48% 48% 34% 34%; }
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(3)::after { content: "↻"; border-radius: 50%; }
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(4)::after { content: "◆"; border-radius: 22%; transform: translateX(-50%) rotate(45deg); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(4)::after { text-indent: 0; }
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(5)::after { content: "▥"; border-radius: 50% 50% 24% 24%; }
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(6)::after { content: "✦"; border-radius: 38% 62% 44% 56%; }
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(7)::after { content: "◷"; border-radius: 50%; border-style: double; }
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(8)::after { content: "▤"; border-radius: 18% 18% 42% 42%; }
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(9)::after { content: "⚙"; border-radius: 30%; clip-path: polygon(25% 0,75% 0,100% 25%,100% 75%,75% 100%,25% 100%,0 75%,0 25%); }
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(10)::after { content: "◎"; border-width: 2px; border-radius: 50%; }
+
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:hover::after,
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:has(input:focus-visible)::after {
+  opacity: 1;
+  filter: brightness(1.25) saturate(1.16);
+  box-shadow:
+    inset 0 0 22px color-mix(in srgb, var(--ule-color-accent) 38%, transparent),
+    0 0 12px color-mix(in srgb, var(--ule-gold) 68%, transparent),
+    0 0 30px color-mix(in srgb, var(--ule-color-accent) 42%, transparent);
+  transform: translateX(-50%) translateY(-0.25rem) scale(1.1);
+}
+
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(4):hover::after,
+.st-key-ule_world_map_navigation:has(.ule-theme-context) [role="radiogroup"] > label:nth-child(4):has(input:focus-visible)::after {
+  transform: translateX(-50%) translateY(-0.25rem) rotate(45deg) scale(1.1);
+}
+
 .st-key-ule_home_dock {
   position: relative;
   z-index: 100;
-  display: block;
+  display: var(--ule-inherited-rail-display);
   width: min(var(--ule-layout-home-dock-max-width), calc(100% - 2rem));
   margin: 0.75rem auto 1rem;
   padding: 0.38rem 0.65rem;
@@ -707,10 +836,32 @@ label,
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  background-image: var(--ule-active-theme-image);
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
+  opacity: var(--ule-inherited-opacity);
+  filter:
+    brightness(var(--ule-inherited-brightness))
+    contrast(var(--ule-inherited-contrast))
+    saturate(var(--ule-inherited-saturation))
+    hue-rotate(var(--ule-inherited-hue))
+    blur(var(--ule-inherited-blur));
   animation: ule-world-reveal var(--ule-animation-world-reveal) var(--ule-animation-easing) both;
+}
+
+.ule-world-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--ule-feature-image);
+  background-position: var(--ule-feature-focus, center);
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 1;
+  mix-blend-mode: normal;
+  filter: none;
+  pointer-events: none;
 }
 
 .ule-world-backdrop::after {
@@ -718,20 +869,36 @@ label,
   position: absolute;
   inset: 0;
   background:
+    var(--ule-inherited-texture),
+    var(--ule-inherited-lighting),
     linear-gradient(90deg, rgba(1, 6, 11, 0.9) 0%, rgba(1, 6, 11, 0.64) 35%, rgba(1, 6, 11, 0.06) 76%),
     linear-gradient(180deg, rgba(1, 5, 9, 0.42), transparent 26%, rgba(1, 5, 9, 0.42));
   box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.36);
 }
 
-.ule-world-backdrop--w01 { background-image: var(--ule-background-w01); }
-.ule-world-backdrop--w02 { background-image: var(--ule-background-w02); }
-.ule-world-backdrop--w03 { background-image: var(--ule-background-w03); }
-.ule-world-backdrop--w04 { background-image: var(--ule-background-w04); }
-.ule-world-backdrop--w05 { background-image: var(--ule-background-w05); }
-.ule-world-backdrop--w06 { background-image: var(--ule-background-w06); }
-.ule-world-backdrop--w07 { background-image: var(--ule-background-w07); }
-.ule-world-backdrop--w08 { background-image: var(--ule-background-w08); }
-.ule-world-backdrop--w09 { background-image: var(--ule-background-w09); }
+.ule-world-backdrop--w01 { --ule-feature-image: var(--ule-background-w01); --ule-feature-focus: 62% center; }
+.ule-world-backdrop--w02 { --ule-feature-image: var(--ule-background-w02); --ule-feature-focus: 70% center; }
+.ule-world-backdrop--w03 { --ule-feature-image: var(--ule-background-w03); --ule-feature-focus: 64% center; }
+.ule-world-backdrop--w04 { --ule-feature-image: var(--ule-background-w04); --ule-feature-focus: 68% center; }
+.ule-world-backdrop--w05 { --ule-feature-image: var(--ule-background-w05); --ule-feature-focus: 65% center; }
+.ule-world-backdrop--w06 { --ule-feature-image: var(--ule-background-w06); --ule-feature-focus: 69% center; }
+.ule-world-backdrop--w07 { --ule-feature-image: var(--ule-background-w07); --ule-feature-focus: 66% center; }
+.ule-world-backdrop--w08 { --ule-feature-image: var(--ule-background-w08); --ule-feature-focus: 70% center; }
+.ule-world-backdrop--w09 { --ule-feature-image: var(--ule-background-w09); --ule-feature-focus: 66% center; }
+
+.ule-world-theme--official { --ule-active-theme-image: var(--ule-background-theme-official); }
+.ule-world-theme--light { --ule-active-theme-image: var(--ule-background-theme-light); }
+.ule-world-theme--dark { --ule-active-theme-image: var(--ule-background-theme-dark); }
+.ule-world-theme--calm { --ule-active-theme-image: var(--ule-background-theme-calm); }
+.ule-world-theme--universe { --ule-active-theme-image: var(--ule-background-theme-universe); }
+.ule-world-theme--ecosystem { --ule-active-theme-image: var(--ule-background-theme-ecosystem); }
+.ule-world-theme--ocean { --ule-active-theme-image: var(--ule-background-theme-ocean); }
+.ule-world-theme--grassland { --ule-active-theme-image: var(--ule-background-theme-grassland); }
+.ule-world-theme--lava { --ule-active-theme-image: var(--ule-background-theme-lava); }
+.ule-world-theme--galaxy { --ule-active-theme-image: var(--ule-background-theme-galaxy); }
+.ule-world-theme--minimal { --ule-active-theme-image: var(--ule-background-theme-minimal); }
+.ule-world-theme--paper { --ule-active-theme-image: var(--ule-background-theme-paper); }
+.ule-world-theme--archive { --ule-active-theme-image: var(--ule-background-theme-archive); }
 
 .ule-world-intro,
 [class*="st-key-ule_world_content_"],
@@ -741,6 +908,8 @@ label,
 }
 
 .ule-world-intro {
+  --ule-inherited-component-transform: var(--ule-inherited-center-transform);
+  display: var(--ule-inherited-center-display);
   width: min(42rem, 54vw);
   margin: clamp(7.5rem, 15vh, 10rem) 0 0.8rem;
   padding-left: clamp(0.5rem, 2vw, 2rem);
@@ -771,7 +940,37 @@ label,
   box-shadow: 0 0 10px rgba(225, 189, 107, 0.36);
 }
 
+.ule-world-intro__motif {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 0.9rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ule-color-accent) 58%, var(--ule-gold));
+  border-radius: 50%;
+  color: var(--ule-text);
+  background: color-mix(in srgb, var(--ule-color-surface-strong) 76%, transparent);
+  box-shadow:
+    inset 0 0 18px color-mix(in srgb, var(--ule-color-accent) 24%, transparent),
+    0 0 18px color-mix(in srgb, var(--ule-color-accent) 26%, transparent);
+  font-family: var(--ule-icon-family);
+  font-size: 1.3rem;
+}
+
+.ule-world-intro--w02 .ule-world-intro__motif { border-style: double; }
+.ule-world-intro--w03 .ule-world-intro__motif { border-radius: 24%; transform: rotate(45deg); }
+.ule-world-intro--w04 .ule-world-intro__motif { border-radius: 50% 50% 22% 22%; }
+.ule-world-intro--w07 .ule-world-intro__motif { border-radius: 18% 18% 42% 42%; }
+.ule-world-intro--w08 .ule-world-intro__motif { clip-path: polygon(25% 0,75% 0,100% 25%,100% 75%,75% 100%,25% 100%,0 75%,0 25%); }
+
+[class*="st-key-ule_world_content_w01"] { border-top-color: color-mix(in srgb, var(--ule-color-accent) 78%, transparent); }
+[class*="st-key-ule_world_content_w02"] { border-left: 2px solid color-mix(in srgb, var(--ule-color-success) 68%, transparent); }
+[class*="st-key-ule_world_content_w03"] { border-top: 2px solid color-mix(in srgb, var(--ule-gold) 72%, transparent); }
+[class*="st-key-ule_world_content_w04"] { border-right: 2px solid color-mix(in srgb, var(--ule-color-accent-secondary) 68%, transparent); }
+
 [class*="st-key-ule_world_content_"] {
+  --ule-inherited-component-transform: var(--ule-inherited-seed-transform);
+  display: var(--ule-inherited-seed-display);
   width: min(790px, calc(100% - 1rem));
   margin: 1.4rem 0 4rem clamp(0rem, 1.5vw, 1.5rem);
   padding: clamp(1.1rem, 2.4vw, 2rem);
@@ -779,7 +978,8 @@ label,
   border-radius: var(--ule-card-radius);
   background: var(--ule-card-background);
   box-shadow:
-    var(--ule-shadow),
+    var(--ule-inherited-content-shadow),
+    var(--ule-inherited-content-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     inset 0 0 44px rgba(49, 118, 201, 0.055);
   backdrop-filter: blur(var(--ule-glass-blur)) saturate(118%);
@@ -887,7 +1087,7 @@ hr {
   right: 50%;
   bottom: 1rem;
   z-index: 1000;
-  display: block;
+  display: var(--ule-inherited-rail-display);
   width: min(var(--ule-layout-world-dock-max-width), calc(100vw - 2rem));
   padding: 0.5rem;
   border: 1px solid var(--ule-world-dock-border);
@@ -954,28 +1154,28 @@ hr {
 }
 
 @keyframes ule-scene-enter {
-  from { opacity: 0; transform: scale(1.014); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: var(--ule-inherited-center-transform) scale(1.014); }
+  to { opacity: 1; transform: var(--ule-inherited-center-transform); }
 }
 
 @keyframes ule-world-reveal {
-  from { opacity: 0; transform: scale(1.035); filter: brightness(0.72) saturate(0.78); }
-  to { opacity: 1; transform: scale(1); filter: brightness(1) saturate(1); }
+  from { transform: scale(1.035); }
+  to { transform: scale(1); }
 }
 
 @keyframes ule-panel-enter {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: var(--ule-inherited-component-transform, translate(0px, 0px) scale(1)) translateY(18px); }
+  to { opacity: 1; transform: var(--ule-inherited-component-transform, translate(0px, 0px) scale(1)); }
 }
 
 @keyframes ule-dock-enter {
-  from { opacity: 0; transform: translate(50%, 18px); }
-  to { opacity: 1; transform: translate(50%, 0); }
+  from { opacity: 0; transform: translateX(50%) var(--ule-inherited-rail-transform) translateY(18px); }
+  to { opacity: 1; transform: translateX(50%) var(--ule-inherited-rail-transform); }
 }
 
 @keyframes ule-home-dock-enter {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: var(--ule-inherited-rail-transform) translateY(18px); }
+  to { opacity: 1; transform: var(--ule-inherited-rail-transform); }
 }
 
 @media (max-width: 980px) {

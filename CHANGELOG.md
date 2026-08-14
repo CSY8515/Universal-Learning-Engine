@@ -2,6 +2,32 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.097 - Background Restoration Hotfix
+
+### Restored
+
+- Restored the approved v1.095 Theme propagation, Home scene, and layered
+  feature-specific background renderer that were unintentionally removed from
+  the v1.096 release
+- Restored the repository-owned `w01`-`w09` feature art while retaining the
+  active Theme World visual layer and inherited visual contracts
+- Restored the Theme-aware navigation context, feature motifs, visual effects,
+  and existing responsive behavior
+
+### Preserved
+
+- Preserved the AI connection and subject-management functional controls and
+  their existing split feature layout
+- Preserved Learning Engine behavior, data, routing, CRUD, BYOK, Analytics,
+  reports, and all user data
+
+### Verified
+
+- Background and Theme files match the approved pre-v1.096 implementation
+- Home, Analytics, Management, AI connection, subject management, and bottom
+  navigation regression coverage
+- Python compilation, automated tests, localhost health, and browser smoke
+
 ## v1.096 - Original UI Recovery Patch
 
 ### Recovered
