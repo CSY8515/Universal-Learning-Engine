@@ -1,7 +1,6 @@
 """Trusted static theme loading for the official ULE interface."""
 
 from dataclasses import dataclass
-from functools import lru_cache
 from html import escape
 import math
 from pathlib import Path
@@ -499,12 +498,13 @@ def query_adjustment_css(params: Mapping[str, Any] | None) -> str:
     )
 
 
-@lru_cache(maxsize=1)
 def _official_styles() -> str:
-    """Read repository-owned CSS once per process.
+    """Read the current repository-owned CSS for every Streamlit rerun.
 
-    The returned stylesheet is static source-controlled content. Learner topics,
-    generated lessons, answers, secrets, and Pack data are never interpolated.
+    Streamlit Cloud keeps Python processes alive between deployments, so caching
+    this file can preserve an obsolete background rule after a release. The
+    stylesheet is small, static, and source controlled; reading it again avoids
+    cross-release visual leakage without involving learner or secret data.
     """
 
     return _STYLE_PATH.read_text(encoding="utf-8")

@@ -2,6 +2,30 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.098 - Dedicated Background Hotfix
+
+### Fixed
+
+- Forced each functional World to render its repository-owned `w01`-`w09`
+  background at full opacity with normal color blending and no desaturation
+- Prevented long-lived Streamlit Cloud processes from retaining an obsolete
+  background blend after a deployment
+- Kept Theme tokens, lighting overlays, functional layout, and navigation while
+  preventing the Theme base art from obscuring the selected Feature World
+
+### Preserved
+
+- Home World composition and navigation
+- AI connection, subject management, Learning Engine, data, CRUD, BYOK,
+  Analytics, reports, and user records
+
+### Verified
+
+- Dedicated Analytics and Management background assets in localhost and
+  production browser smoke
+- Python compilation, focused background tests, full regression suite, and
+  health checks
+
 ## v1.097 - Background Restoration Hotfix
 
 ### Restored

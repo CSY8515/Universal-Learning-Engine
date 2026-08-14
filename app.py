@@ -41,6 +41,23 @@ APP_TITLE = "Universal Learning Engine"
 APP_DESCRIPTION = "학습할 주제를 입력하면 동일한 학습 엔진이 해당 주제에 맞게 동작합니다."
 DEFAULT_MODEL = "gpt-4.1-mini"
 API_TIMEOUT_SECONDS = 60.0
+FEATURE_BACKGROUND_LOCK_CSS = """
+<style data-ule-feature-background-lock="v1.098">
+.ule-world-backdrop::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image: var(--ule-feature-image) !important;
+  background-position: var(--ule-feature-focus, center) !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+  filter: none !important;
+  pointer-events: none !important;
+}
+</style>
+"""
 BYOK_API_KEY_STATE = "user_openai_api_key"
 BYOK_CONNECTION_STATE = "openai_connection_status"
 BYOK_NOTICE_STATE = "openai_api_notice"
@@ -2474,7 +2491,7 @@ def render_my_learning_world() -> None:
 def main() -> None:
     configure_logging()
     st.set_page_config(
-        page_title=f"{APP_TITLE} v1.097",
+        page_title=f"{APP_TITLE} v1.098",
         page_icon="✦",
         layout="wide",
         initial_sidebar_state="collapsed",
@@ -2516,6 +2533,9 @@ def main() -> None:
         else query_adjustment_css(query_contract)
     )
     apply_official_theme(st, theme_settings or None, inherited_effect_css)
+    # This final presentation rule prevents a long-lived Streamlit Cloud process
+    # from reviving an obsolete desaturated background blend after deployment.
+    st.markdown(FEATURE_BACKGROUND_LOCK_CSS, unsafe_allow_html=True)
     selected_view = render_navigation(st, theme_world)
     if selected_view == HOME_VIEW:
         return
