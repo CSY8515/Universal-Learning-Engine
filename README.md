@@ -1,6 +1,6 @@
-# Universal Learning Engine v1.098 Dedicated Background Hotfix
+# Universal Learning Engine v1.099 Feature Background Resolution Hotfix
 
-![Version](https://img.shields.io/badge/version-v1.098-DDB55B)
+![Version](https://img.shields.io/badge/version-v1.099-DDB55B)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Streamlit](https://img.shields.io/badge/streamlit-ready-red)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -9,7 +9,7 @@ Universal Learning Engine is a production-ready Streamlit learning application t
 
 Topic → Tutorial → Example → Direct Task → Practice → CBT → Scoring → Result
 
-The repository contains the **v1.098 dedicated background hotfix** on
+The repository contains the **v1.099 feature background resolution hotfix** on
 the preserved v1.09 UI Foundation, v1.08 operational architecture, v1.07
 Official UI / UX, v1.06.1 production runtime, v1.05 end-to-end flow, v1.04 AI
 Integration & BYOK, and Expansion runtime.
@@ -201,7 +201,7 @@ and a headless health check on Python 3.10 and 3.13.
 
 ## Explicit exclusions
 
-The following remain outside v1.098:
+The following remain outside v1.099:
 
 - Learning Decision Engine or Weakness Score
 - Background scheduler or notifications
@@ -299,6 +299,7 @@ Universal-Learning-Engine/
 
 ## Release information
 
+- [v1.099 release notes](./RELEASE_NOTES_v1.099.md)
 - [v1.098 release notes](./RELEASE_NOTES_v1.098.md)
 - [v1.097 release notes](./RELEASE_NOTES_v1.097.md)
 - [v1.096 release notes](./RELEASE_NOTES_v1.096.md)

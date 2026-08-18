@@ -12,6 +12,7 @@ from .interface import get_ui_compatibility_layer
 
 _STYLE_PATH = Path(__file__).resolve().parent.parent / "assets" / "ule.css"
 _STATIC_ROOT = _STYLE_PATH.parent.parent / "static"
+FEATURE_BACKGROUND_RESOLVER_VERSION = "1.099"
 
 
 @dataclass(frozen=True)
@@ -586,13 +587,34 @@ def resolve_theme_world(
     resolved_asset, source, _fallback = resolve_role_asset_reference(
         normalized, "HOME_BACKGROUND"
     )
+    role_asset_revision = int(normalized.get("asset_revision", 0))
+    if resolved_asset is None and theme_id != "official":
+        # A valid project/feature role context belongs to the same approved
+        # Theme package as its Home asset. Validate that exact incoming role
+        # first, then activate the package Home without weakening per-role
+        # resolution or accepting transported file paths.
+        incoming_role = str(normalized.get("visual_role", ""))
+        incoming_feature = str(normalized.get("feature_id", "")) or None
+        context_asset, context_source, _context_fallback = resolve_role_asset_reference(
+            normalized,
+            incoming_role,
+            incoming_feature,
+        )
+        if context_asset is not None:
+            resolved_asset = _approved_role_asset(
+                theme_id,
+                "HOME_BACKGROUND",
+                None,
+                role_asset_revision,
+            )
+            if resolved_asset is not None:
+                source = context_source
     resolved_theme_asset = theme_id == "official" or resolved_asset is not None
     visual_theme_id = theme_id if resolved_theme_asset else "official"
     visual_asset = resolved_asset or THEME_WORLD_DEFINITIONS[visual_theme_id][0]
     asset_state = "official" if theme_id == "official" else (
         source if resolved_asset is not None else "fallback-used"
     )
-    role_asset_revision = int(normalized.get("asset_revision", 0))
     central_asset = ""
     navigation_skin_asset = ""
     if resolved_asset is not None and theme_id != "official":
@@ -617,6 +639,31 @@ def resolve_theme_world(
         central_asset=central_asset,
         navigation_skin_asset=navigation_skin_asset,
     )
+
+
+def resolve_feature_background(
+    theme_world: ThemeWorldDefinition,
+    selected_view: str,
+) -> tuple[str, str, str]:
+    """Resolve one deterministic Feature background with an explicit fallback."""
+
+    definition = FEATURE_WORLD_DEFINITIONS[selected_view]
+    official_asset = f"worlds/{definition.slug}.png"
+    if (
+        theme_world.visual_theme_id == theme_world.theme_id
+        and theme_world.theme_id != "official"
+        and theme_world.role_asset_revision > 0
+    ):
+        registered = _approved_role_asset(
+            theme_world.theme_id,
+            "FEATURE_BACKGROUND",
+            definition.view.lower(),
+            theme_world.role_asset_revision,
+        )
+        if registered:
+            return registered, "theme-project-feature-role", "NONE"
+        return official_asset, "official-feature-fallback", "ASSET REQUIRED"
+    return official_asset, "official", "NONE"
 
 
 def query_adjustment_css(params: Mapping[str, Any] | None) -> str:
@@ -743,21 +790,12 @@ def render_world_stage(
     safe_visual_theme = escape(resolved_world.visual_theme_id, quote=True)
     safe_asset_state = escape(resolved_world.asset_state, quote=True)
     safe_source_world = escape(resolved_world.source_world_id, quote=True)
-    feature_asset = ""
-    if (
-        resolved_world.asset_state == "theme-project-role"
-        and resolved_world.role_asset_revision > 0
-    ):
-        feature_asset = _approved_role_asset(
-            resolved_world.theme_id,
-            "FEATURE_BACKGROUND",
-            definition.view.lower(),
-            resolved_world.role_asset_revision,
-        ) or ""
-    feature_asset_style = ""
-    if feature_asset:
-        feature_asset_url = escape(f"./app/static/{feature_asset}", quote=True)
-        feature_asset_style = f' style="--ule-feature-image:url(\'{feature_asset_url}\');"'
+    feature_asset, feature_asset_state, feature_fallback = resolve_feature_background(
+        resolved_world,
+        selected_view,
+    )
+    feature_asset_url = escape(f"./app/static/{feature_asset}", quote=True)
+    feature_asset_style = f' style="--ule-feature-image:url(\'{feature_asset_url}\');"'
     st_module.markdown(
         f"""
         <div class="ule-world-backdrop ule-world-backdrop--{definition.slug} ule-world-theme--{safe_visual_theme}"
@@ -767,7 +805,9 @@ def render_world_stage(
              data-theme-asset-required="{str(resolved_world.theme_asset_required).lower()}"
              data-theme-source-world="{safe_source_world}"
              data-theme-revision="{resolved_world.revision}"
-             data-feature-role-asset="{str(bool(feature_asset)).lower()}"{feature_asset_style}
+             data-feature-role-asset="{str(feature_asset_state == 'theme-project-feature-role').lower()}"
+             data-feature-asset-state="{escape(feature_asset_state, quote=True)}"
+             data-feature-asset-required="{str(feature_fallback == 'ASSET REQUIRED').lower()}"{feature_asset_style}
              aria-hidden="true"></div>
         <section class="ule-world-intro ule-world-intro--{definition.slug}"
                  data-feature-world="{definition.slug}"

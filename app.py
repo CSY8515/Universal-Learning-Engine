@@ -21,7 +21,7 @@ from expansion import ExpansionAPI
 if not hasattr(
     getattr(ui_theme_module, "ThemeWorldDefinition", object),
     "theme_asset_required",
-):
+) or getattr(ui_theme_module, "FEATURE_BACKGROUND_RESOLVER_VERSION", "") != "1.099":
     ui_theme_module = importlib.reload(ui_theme_module)
     ui_module = importlib.reload(ui_module)
 
@@ -55,7 +55,7 @@ APP_DESCRIPTION = "학습할 주제를 입력하면 동일한 학습 엔진이 �
 DEFAULT_MODEL = "gpt-4.1-mini"
 API_TIMEOUT_SECONDS = 60.0
 FEATURE_BACKGROUND_LOCK_CSS = """
-<style data-ule-feature-background-lock="v1.098">
+<style data-ule-feature-background-lock="v1.099">
 .ule-world-backdrop::before {
   content: "" !important;
   position: absolute !important;
@@ -2504,7 +2504,7 @@ def render_my_learning_world() -> None:
 def main() -> None:
     configure_logging()
     st.set_page_config(
-        page_title=f"{APP_TITLE} v1.098",
+        page_title=f"{APP_TITLE} v1.099",
         page_icon="✦",
         layout="wide",
         initial_sidebar_state="collapsed",

@@ -24,7 +24,7 @@ def test_repository_feature_background_is_full_color() -> None:
 def test_runtime_lock_wins_over_stale_deployment_css() -> None:
     application = (ROOT / "app.py").read_text(encoding="utf-8")
 
-    assert 'data-ule-feature-background-lock="v1.098"' in application
+    assert 'data-ule-feature-background-lock="v1.099"' in application
     assert "opacity: 1 !important" in application
     assert "mix-blend-mode: normal !important" in application
     assert "filter: none !important" in application

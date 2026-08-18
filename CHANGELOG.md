@@ -2,6 +2,24 @@
 
 All notable changes to Universal Learning Engine are documented here.
 
+## v1.099 - Feature Background Resolution Hotfix
+
+### Fixed
+
+- Allowed an approved `FEATURE_BACKGROUND` context to activate its matching
+  Dark Theme package without requiring a separate Home context first
+- Resolved Learning Plan and Learning Analytics to their registered Dark
+  feature artwork and preserved exact `w01`-`w09` Official fallbacks for
+  features without dedicated Dark artwork
+- Added deterministic full-matrix, Official return, Dark re-entry, and
+  fail-closed context regression coverage
+
+### Preserved
+
+- Home World composition and navigation
+- Functional overlays, routing, AI connection, data, CRUD, BYOK, Analytics,
+  reports, and existing Theme architecture
+
 ## v1.098 - Dedicated Background Hotfix
 
 ### Fixed
