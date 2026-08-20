@@ -311,6 +311,21 @@ _APPROVED_ROLE_ASSETS = {
         2,
         "theme-role-assets/dark/analytics-background.png",
     ),
+    **{
+        ("dark", _SELF_SYSTEM_ID, feature_id, "FEATURE_BACKGROUND"): (
+            2,
+            f"theme-role-assets/dark/{feature_id}-background.png",
+        )
+        for feature_id in (
+            "learning",
+            "recovery",
+            "challenge",
+            "ai",
+            "library",
+            "management",
+            "my-learning",
+        )
+    },
 }
 _ROLE_CONTEXT_KEYS = (
     "asset_registry", "asset_registry_version", "project_id", "feature_id",
@@ -657,7 +672,7 @@ def resolve_feature_background(
         registered = _approved_role_asset(
             theme_world.theme_id,
             "FEATURE_BACKGROUND",
-            definition.view.lower(),
+            definition.view.lower().replace(" ", "-"),
             theme_world.role_asset_revision,
         )
         if registered:

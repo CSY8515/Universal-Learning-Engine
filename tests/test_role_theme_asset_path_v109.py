@@ -65,6 +65,13 @@ def test_ule_registered_feature_assets_resolve_independently() -> None:
     for feature_id, expected in (
         ("planner", "theme-role-assets/dark/learning-plan-background.png"),
         ("analytics", "theme-role-assets/dark/analytics-background.png"),
+        ("learning", "theme-role-assets/dark/learning-background.png"),
+        ("recovery", "theme-role-assets/dark/recovery-background.png"),
+        ("challenge", "theme-role-assets/dark/challenge-background.png"),
+        ("ai", "theme-role-assets/dark/ai-background.png"),
+        ("library", "theme-role-assets/dark/library-background.png"),
+        ("management", "theme-role-assets/dark/management-background.png"),
+        ("my-learning", "theme-role-assets/dark/my-learning-background.png"),
     ):
         contract = query_contract_from_mapping(
             query(

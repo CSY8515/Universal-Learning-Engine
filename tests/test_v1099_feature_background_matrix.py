@@ -12,8 +12,15 @@ from ui.theme import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DARK_ASSETS = {
+    "Learning": "theme-role-assets/dark/learning-background.png",
+    "Recovery": "theme-role-assets/dark/recovery-background.png",
+    "Challenge": "theme-role-assets/dark/challenge-background.png",
     "Analytics": "theme-role-assets/dark/analytics-background.png",
+    "AI": "theme-role-assets/dark/ai-background.png",
     "Planner": "theme-role-assets/dark/learning-plan-background.png",
+    "Library": "theme-role-assets/dark/library-background.png",
+    "Management": "theme-role-assets/dark/management-background.png",
+    "My Learning": "theme-role-assets/dark/my-learning-background.png",
 }
 
 
@@ -45,15 +52,11 @@ def test_complete_dark_feature_background_matrix_is_deterministic_and_safe() -> 
         resolved = resolve_feature_background(world, view)
         first_pass[view] = resolved
         asset, source, fallback = resolved
-        expected = DARK_ASSETS.get(view, f"worlds/{definition.slug}.png")
+        expected = DARK_ASSETS[view]
         assert asset == expected
         assert (ROOT / "static" / asset).is_file()
-        if view in DARK_ASSETS:
-            assert source == "theme-project-feature-role"
-            assert fallback == "NONE"
-        else:
-            assert source == "official-feature-fallback"
-            assert fallback == "ASSET REQUIRED"
+        assert source == "theme-project-feature-role"
+        assert fallback == "NONE"
 
     # A -> B -> A must never leak the second Feature's asset into the first.
     assert resolve_feature_background(world, "Planner") == first_pass["Planner"]
@@ -62,7 +65,8 @@ def test_complete_dark_feature_background_matrix_is_deterministic_and_safe() -> 
 
 
 def test_feature_role_context_activates_only_an_approved_dark_package() -> None:
-    for feature_id, view in (("planner", "Planner"), ("analytics", "Analytics")):
+    for view in FEATURE_WORLD_DEFINITIONS:
+        feature_id = view.lower().replace(" ", "-")
         contract = query_contract_from_mapping(
             query(visual_role="FEATURE_BACKGROUND", feature_id=feature_id)
         )
@@ -73,7 +77,7 @@ def test_feature_role_context_activates_only_an_approved_dark_package() -> None:
 
     missing = resolve_theme_world(
         query_contract_from_mapping(
-            query(visual_role="FEATURE_BACKGROUND", feature_id="learning")
+            query(visual_role="FEATURE_BACKGROUND", feature_id="unregistered")
         )
     )
     assert missing.visual_theme_id == "official"
