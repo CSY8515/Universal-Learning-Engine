@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from ui.theme import (
     query_contract_from_mapping,
+    resolve_feature_background,
     resolve_role_asset_reference,
     resolve_theme_world,
 )
@@ -59,6 +60,36 @@ def test_ule_home_context_is_not_reused_as_learning_plan_feature() -> None:
     assert asset is None
     assert source == "missing-role-asset"
     assert fallback == "ASSET REQUIRED"
+
+
+def test_ule_accepts_registered_calm_home_but_keeps_features_asset_required() -> None:
+    contract = query_contract_from_mapping(
+        query(
+            theme="calm",
+            world="calm-wetland-world",
+            asset_registry="ui-theme-registry",
+            asset_registry_version="1.0.0",
+            project_id="universal-learning-engine",
+            visual_role="HOME_BACKGROUND",
+            asset_revision="2",
+        )
+    )
+    asset, source, fallback = resolve_role_asset_reference(
+        contract, "HOME_BACKGROUND"
+    )
+    assert asset == "theme-worlds/theme-calm.png"
+    assert source == "theme-project-role"
+    assert fallback == "NONE"
+    world = resolve_theme_world(contract)
+    assert world.visual_theme_id == "calm"
+    assert world.home_asset == "theme-worlds/theme-calm.png"
+    assert world.theme_asset_required is False
+    feature_asset, feature_state, feature_fallback = resolve_feature_background(
+        world, "Learning"
+    )
+    assert feature_asset == "worlds/w01.png"
+    assert feature_state == "official-feature-fallback"
+    assert feature_fallback == "ASSET REQUIRED"
 
 
 def test_ule_registered_feature_assets_resolve_independently() -> None:

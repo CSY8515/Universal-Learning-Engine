@@ -291,6 +291,14 @@ _ADJUSTMENT_LIMITS = {
 APPLIED_QUERY_CONTRACT_SESSION_KEY = "ule_applied_query_contract_v1"
 _SELF_SYSTEM_ID = "universal-learning-engine"
 _APPROVED_ROLE_ASSETS = {
+    **{
+        (theme_id, _SELF_SYSTEM_ID, None, "HOME_BACKGROUND"): (
+            2,
+            f"theme-worlds/{definition[0]}",
+        )
+        for theme_id, definition in THEME_WORLD_DEFINITIONS.items()
+        if theme_id not in {"official", "dark"}
+    },
     ("dark", _SELF_SYSTEM_ID, None, "HOME_BACKGROUND"): (
         2,
         "theme-role-assets/dark/home-background.png",
